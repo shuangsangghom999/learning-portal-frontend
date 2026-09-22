@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...tru file mau. ".env*" o tren chan luon ca no, ma file mau thi PHAI duoc
+# commit - khong thi nguoi moi clone ve khong biet du an can nhung bien nao.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +42,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bao cao lint sinh tu may (1.5MB, chua duong dan tuyet doi tren may)
+lint-report.json
+
+.vercel
+.env*
+
+# vercel CLI tu them hai dong duoi khi chay `vercel link`.
+.vercel
+.env*
+# ...nhung `.env*` nuot luon ca file mau. File do la TAI LIEU - no liet ke
+# moi bien can dat kem ly do, va khong chua gia tri nao. Hien no dang duoc git
+# theo doi nen luat tren khong dong toi, nhung ai lo `git rm --cached` mot lan
+# la no bien mat khong dau vet. Mien tru ro rang cho chac.
+!.env.example

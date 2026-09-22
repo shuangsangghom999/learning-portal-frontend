@@ -1,46 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { BookOpen, User, Building2, Filter, RotateCcw } from "lucide-react";
-import Link from "next/link";
-import { getCourses, Course } from "@/src/services/course";
+import { useEffect, useMemo, useState } from "react";
+import { Filter, RotateCcw } from "lucide-react";
+import { getCourses, layIdChuDe, type Course } from "@/src/services/course";
 import { getCategories, Category } from "@/src/services/categoryService";
+import { locKhoaDaDang } from "@/src/components/home/locKhoaHoc";
+import TieuDeMuc from "./TieuDeMuc";
+import TheKhoaHoc from "./TheKhoaHoc";
 
 function CourseGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 animate-pulse">
+    <div className="mt-8 grid animate-pulse grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
         <div
           key={index}
-          className="bg-white rounded-2xl flex flex-col justify-between overflow-hidden border border-slate-100 shadow-sm h-[320px]"
+          className="flex h-[320px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
         >
           {/* Trên: Khung ảnh Thumbnail giả lập tỷ lệ aspect-video */}
           <div className="aspect-video w-full bg-slate-200"></div>
 
           {/* Dưới: Khung nội dung chi tiết */}
-          <div className="p-4 flex flex-col flex-1 justify-between">
+          <div className="flex flex-1 flex-col justify-between p-4">
             <div className="space-y-3">
               {/* Hàng Instructor và Provider giả lập */}
               <div className="flex items-center gap-2">
-                <div className="h-3 bg-slate-200 rounded w-16"></div>
-                <span className="text-slate-200 text-xs">|</span>
-                <div className="h-3 bg-slate-200 rounded w-20"></div>
+                <div className="h-3 w-16 rounded bg-slate-200"></div>
+                <span className="text-xs text-slate-400">|</span>
+                <div className="h-3 w-20 rounded bg-slate-200"></div>
               </div>
 
               {/* Tiêu đề khóa học giả lập (2 dòng lệch size) */}
               <div className="space-y-2">
-                <div className="h-4 bg-slate-200 rounded w-full"></div>
-                <div className="h-4 bg-slate-200 rounded w-4/5"></div>
+                <div className="h-4 w-full rounded bg-slate-200"></div>
+                <div className="h-4 w-4/5 rounded bg-slate-200"></div>
               </div>
             </div>
 
             {/* Bottom bar giả lập: Level, Số bài, Giá tiền */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
+            <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
               <div className="flex items-center gap-2">
-                <div className="h-3.5 bg-slate-200 rounded w-12"></div>
-                <div className="h-3.5 bg-slate-200 rounded w-14"></div>
+                <div className="h-3.5 w-12 rounded bg-slate-200"></div>
+                <div className="h-3.5 w-14 rounded bg-slate-200"></div>
               </div>
-              <div className="h-4 bg-slate-200 rounded w-16"></div>
+              <div className="h-4 w-16 rounded bg-slate-200"></div>
             </div>
           </div>
         </div>
@@ -49,83 +51,58 @@ function CourseGridSkeleton() {
   );
 }
 
-export default function CourseSection() {
-  const [courses, setCourses] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+interface Props {
+  /**
+   * Du lieu lay san tu may chu (xem app/(portal)/page.tsx).
+   *
+   * Co san thi KHONG goi API luc mount nua: noi dung nam thang trong HTML,
+   * nguoi dung khong phai nhin khung xam, va may tim kiem doc duoc.
+   * Bo trong thi component tu goi nhu cu - de con dung lai duoc o cho khac.
+   */
+  initialCourses?: Course[] | null;
+  initialCategories?: Category[] | null;
+}
+
+export default function CourseSection({ initialCourses, initialCategories }: Props) {
+  const [courses, setCourses] = useState<Course[]>(initialCourses ?? []);
+  const [categories, setCategories] = useState<Category[]>(initialCategories ?? []);
+  const [loading, setLoading] = useState(!initialCourses);
 
   // States quản lý bộ lọc
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedPrice, setSelectedPrice] = useState<string>("all");
 
-  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
-
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [coursesRes, categoriesRes] = await Promise.all([
-          getCourses(),
-          getCategories(),
-        ]);
+    if (initialCourses) return;
 
-        let rawCourses: any[] = [];
-        if (Array.isArray(coursesRes)) {
-          rawCourses = coursesRes;
-        } else if (coursesRes && typeof coursesRes === "object" && Array.isArray((coursesRes as any).data)) {
-          rawCourses = (coursesRes as any).data;
-        }
+    Promise.all([getCourses(), getCategories()])
+      .then(([coursesRes, categoriesRes]) => {
+        // filteredCourses tu suy ra tu courses qua useMemo ben duoi,
+        // khong can set rieng nua.
+        setCourses(locKhoaDaDang(coursesRes));
+        if (Array.isArray(categoriesRes)) setCategories(categoriesRes);
+      })
+      .catch((error) => console.error("Lỗi khi tải dữ liệu:", error))
+      .finally(() => setLoading(false));
+  }, [initialCourses]);
 
-        const published = rawCourses.filter((c: any) => c.isPublished !== undefined ? c.isPublished : true); 
-        
-        setCourses(published);
-        setFilteredCourses(published);
-
-        if (Array.isArray(categoriesRes)) {
-          setCategories(categoriesRes);
-        }
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
+  const filteredCourses = useMemo(() => {
     let result = [...courses];
 
     // Lọc theo Category
     if (selectedCategory !== "all") {
-      result = result.filter((course) => {
-        const catData = course.category;
-        if (!catData) return false;
-
-        if (Array.isArray(catData)) {
-          return catData.some((item: any) => {
-            if (typeof item === "string") return item === selectedCategory;
-            if (item && item.$oid) return item.$oid === selectedCategory;
-            if (item && item._id) return item._id === selectedCategory;
-            return false;
-          });
-        }
-
-        if (typeof catData === "object") {
-          if (catData.$oid) return catData.$oid === selectedCategory;
-          if (catData._id) return catData._id === selectedCategory;
-        }
-
-        return catData === selectedCategory;
-      });
+      // layIdChuDe xu ly ca ba hinh dang cua course.category (mang id, mang doi
+      // tuong da populate, dang { $oid }) - xem ghi chu tai dinh nghia Course.
+      result = result.filter((course) =>
+        layIdChuDe(course.category).includes(selectedCategory),
+      );
     }
 
     // Lọc theo Trình độ (Level)
     if (selectedLevel !== "all") {
       result = result.filter(
-        (course) => course.level?.toLowerCase() === selectedLevel.toLowerCase()
+        (course) => course.level?.toLowerCase() === selectedLevel.toLowerCase(),
       );
     }
 
@@ -138,7 +115,7 @@ export default function CourseSection() {
       }
     }
 
-    setFilteredCourses(result);
+    return result;
   }, [selectedCategory, selectedLevel, selectedPrice, courses]);
 
   const handleResetFilters = () => {
@@ -147,38 +124,28 @@ export default function CourseSection() {
     setSelectedPrice("all");
   };
 
-  const getCategorySlug = (course: any) => {
-    const catData = course.category;
-    if (!catData) return "general";
-    const catId = typeof catData === "object" ? (catData._id || catData.$oid) : catData;
-    const cat = categories.find((c) => c._id === catId);
-    return cat?.slug || cat?.name?.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, "").replace(/\s+/g, "-") || "general";
-  };
-
   return (
-    <section className="bg-white py-12 border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-6">
-        
-        {/* HEADER */}
-        <div className="pb-6 border-b border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900">Tất cả khóa học</h2>
-          <p className="text-sm text-gray-500 mt-1">Khám phá toàn bộ khoá học trực tuyến hiện có trên hệ thống</p>
-        </div>
+    <section className="bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-14 md:py-16">
+        <TieuDeMuc
+          tieuDe="Tất cả khoá học"
+          moTa="Toàn bộ khoá học đang mở trên hệ thống. Lọc theo lĩnh vực, cấp độ hoặc học phí."
+        />
 
         {/* THANH BỘ LỌC (Giữ nguyên cấu trúc để UI không bị trống trải khi đang tải) */}
-        <div className="mt-6 bg-slate-50 p-4 rounded-2xl border border-gray-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4 flex-1">
-            <div className="flex items-center gap-1.5 text-gray-700 text-sm font-semibold">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
+          <div className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
               <Filter size={16} className="text-blue-600" />
               <span>Bộ lọc:</span>
             </div>
 
             {/* Chọn Danh mục */}
-            <div className="flex flex-col min-w-[160px]">
+            <div className="flex min-w-[160px] flex-col">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[13px] font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
               >
                 <option value="all">Tất cả danh mục</option>
                 {categories.map((cat) => (
@@ -190,11 +157,11 @@ export default function CourseSection() {
             </div>
 
             {/* Chọn Cấp độ */}
-            <div className="flex flex-col min-w-[140px]">
+            <div className="flex min-w-[140px] flex-col">
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[13px] font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
               >
                 <option value="all">Tất cả cấp độ</option>
                 <option value="beginner">Sơ cấp (Beginner)</option>
@@ -204,11 +171,11 @@ export default function CourseSection() {
             </div>
 
             {/* Chọn Học phí */}
-            <div className="flex flex-col min-w-[140px]">
+            <div className="flex min-w-[140px] flex-col">
               <select
                 value={selectedPrice}
                 onChange={(e) => setSelectedPrice(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+                className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[13px] font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
               >
                 <option value="all">Tất cả học phí</option>
                 <option value="free">Miễn phí</option>
@@ -217,93 +184,50 @@ export default function CourseSection() {
             </div>
           </div>
 
-          {/* Reset Filters */}
-          {(selectedCategory !== "all" || selectedLevel !== "all" || selectedPrice !== "all") && (
-            <button
-              onClick={handleResetFilters}
-              className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-semibold transition bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl"
-            >
-              <RotateCcw size={14} />
-              Xóa bộ lọc
-            </button>
-          )}
+          {/* Ket qua + xoa loc.
+              So khoa hoc luon hien chu khong chi hien khi dang loc: doi bo loc
+              ma con so khong nhuc nhich la dau hieu duy nhat cho biet lua chon
+              vua roi khong thu hep them duoc gi. */}
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] text-slate-500">
+              <b className="font-semibold text-slate-900 tabular-nums">
+                {filteredCourses.length}
+              </b>{" "}
+              khoá học
+            </span>
+
+            {(selectedCategory !== "all" ||
+              selectedLevel !== "all" ||
+              selectedPrice !== "all") && (
+              <button
+                onClick={handleResetFilters}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[13px] font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              >
+                <RotateCcw size={14} />
+                Xoá bộ lọc
+              </button>
+            )}
+          </div>
         </div>
 
         {/* LISTING GRID HOẶC SKELETON */}
         {loading ? (
           <CourseGridSkeleton />
         ) : filteredCourses.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 bg-slate-50 rounded-2xl border border-dashed mt-8">
+          <div className="mt-8 rounded-2xl border border-dashed bg-slate-50 py-20 text-center text-gray-500">
             Không tìm thấy khóa học nào phù hợp với bộ lọc đã chọn.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
-            {filteredCourses.map((course) => {
-              const instructorName = typeof course.instructor === "object" && course.instructor !== null
-                ? course.instructor.name 
-                : "Expert Instructor";
-              
-              const rawProvider = course.provider;
-              let providerName = "Hệ thống LMS";
-
-              if (rawProvider && typeof rawProvider === "object") {
-                providerName = rawProvider.name || "Hệ thống LMS";
-              }
-
-              return (
-                <Link
-                  href={`/${getCategorySlug(course)}/${course.slug}`}
-                  key={course._id?.$oid || course._id}
-                  className="bg-white rounded-2xl flex flex-col justify-between overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition duration-300 group cursor-pointer"
-                >
-                  <div className="aspect-video w-full bg-slate-100 flex items-center justify-center relative overflow-hidden">
-                    {course.thumbnail ? (
-                      <img
-                        src={course.thumbnail}
-                        alt={course.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                    ) : (
-                      <BookOpen size={36} className="text-slate-300" />
-                    )}
-                  </div>
-
-                  <div className="p-4 flex flex-col flex-1 justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <div className="flex items-center gap-1 min-w-0">
-                          <User size={12} className="text-gray-400 flex-shrink-0" />
-                          <p className="text-xs text-gray-500 truncate max-w-[100px]">{instructorName}</p>
-                        </div>
-                        <span className="text-gray-200 text-xs">|</span>
-                        <div className="flex items-center gap-1 min-w-0">
-                          <Building2 size={12} className="text-violet-400 flex-shrink-0" />
-                          <p className="text-[11px] font-medium text-violet-600 truncate max-w-[90px]">{providerName}</p>
-                        </div>
-                      </div>
-
-                      <h4 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition mb-3">
-                        {course.title}
-                      </h4>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-auto text-[11px] text-gray-500 font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 capitalize">{course.level}</span>
-                        <span>•</span>
-                        <span className="text-blue-600">{course.lessons?.length || 0} bài học</span>
-                      </div>
-                      <span className="text-slate-900 font-bold text-xs">
-                        {course.price === 0 ? "Miễn phí" : `${course.price.toLocaleString("vi-VN")}đ`}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredCourses.map((course) => (
+              <TheKhoaHoc
+                key={course._id}
+                khoa={course}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
+              />
+            ))}
           </div>
         )}
-
       </div>
     </section>
   );

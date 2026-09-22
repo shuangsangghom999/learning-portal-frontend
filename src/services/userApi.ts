@@ -10,8 +10,38 @@ export interface User {
   phone?: string;
   bio?: string;
   avatar?: string;
-  provider?: string | { _id: string; name: string }; 
+  provider?: string | { _id: string; name: string };
   createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
+  status?: boolean;
+  // Co googleId nghia la tai khoan da lien ket Google
+  googleId?: string;
+  // Tai khoan Google chua tung dat mat khau -> false
+  hasPassword?: boolean;
+  // Anh tu Google chi tra ve trong response, KHONG luu vao DB
+  googlePicture?: string;
+  // Chi co khi anh do CHINH NGUOI DUNG tai len (public_id ben Cloudinary).
+  // Anh dan tu lien ket ngoai thi truong nay rong -> dung de phan biet hai loai.
+  avatarPublicId?: string;
+}
+
+// Body gui len khi cap nhat ho so.
+// currentPassword chi bat buoc khi doi mat khau (tai khoan Google chua co
+// mat khau thi dat lan dau khong can).
+export interface UpdateProfilePayload {
+  name?: string;
+  fullname?: string;
+  birthday?: string;
+  avatar?: string;
+  bio?: string;
+  phone?: string;
+  /** Chi dat duoc MOT LAN, khi tai khoan chua co email. May chu tu choi
+   *  moi yeu cau doi mot dia chi da dat - xem updateUserProfile. */
+  email?: string;
+  provider?: string | null;
+  password?: string;
+  currentPassword?: string;
 }
 
 export interface Provider {
@@ -26,26 +56,83 @@ export const getUsers = async (): Promise<User[]> => {
   return apiRequest("/users");
 };
 
-export const updateUserProfileApi = async (profileData: Partial<User>): Promise<User> => {
+export const updateUserProfileApi = async (
+  profileData: UpdateProfilePayload,
+): Promise<User> => {
   return apiRequest("/users/profile", {
     method: "PUT",
     body: JSON.stringify(profileData),
   });
 };
 
+/**
+ * Tai anh dai dien tu may len.
+ *
+ * Truyen thang FormData, KHONG tu dat Content-Type: apiHelper go header do ra
+ * de trinh duyet tu sinh boundary cho multipart.
+ *
+ * Tra ve ban ghi nguoi dung day du giong updateUserProfileApi, nen cho tiep
+ * vao setUser / syncLocal duoc ngay.
+ */
+export const uploadAvatarApi = async (file: File): Promise<User> => {
+  const fd = new FormData();
+  fd.append("avatar", file);
+  return apiRequest("/users/profile/avatar", { method: "POST", body: fd });
+};
+
 export const getProvidersApi = async (): Promise<Provider[]> => {
   return apiRequest("/providers");
 };
 
-export const updateUserRole = async (userId: string, role: string) => {
+export const updateUserRole = async (userId: string, role: string): Promise<User> => {
   return apiRequest(`/users/${userId}/role`, {
     method: "PUT",
     body: JSON.stringify({ role }),
   });
 };
 
-export const deleteUser = async (userId: string) => {
+export const deleteUser = async (userId: string): Promise<{ message: string }> => {
   return apiRequest(`/users/${userId}`, {
     method: "DELETE",
+  });
+};
+export interface ActivityDay {
+  date: string; // YYYY-MM-DD
+  count: number;
+  lessons: number;
+  quizzes: number;
+  reviews: number;
+  achievements: number;
+}
+
+export interface ActivitySummary {
+  from: string;
+  to: string;
+  total: number;
+  activeDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  days: ActivityDay[];
+}
+
+// Thong tin day du cua tai khoan dang dang nhap.
+// localStorage chi luu _id/name/email/role tu response login,
+// nen fullname / birthday / avatar phai lay tu day.
+export const getMyProfile = async (): Promise<User> => {
+  return apiRequest("/users/profile");
+};
+
+export const getMyActivity = async (): Promise<ActivitySummary> => {
+  return apiRequest("/users/activity");
+};
+
+// Tu vo hieu hoa tai khoan. Sau khi goi thanh cong, token hien tai coi nhu het
+// tac dung: protect() chan status === false o moi request tiep theo.
+export const deactivateMyAccount = async (
+  password: string,
+): Promise<{ message: string }> => {
+  return apiRequest("/users/deactivate", {
+    method: "PUT",
+    body: JSON.stringify({ password }),
   });
 };

@@ -1,56 +1,105 @@
-"use client";
-
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import AuthModal from "@/src/components/auth/AuthModal";
 import HeroSection from "@/src/components/home/HeroSection";
-import PartnersSection from "@/src/components/home/PartnersSection";
+import DaiDonVi from "@/src/components/home/DaiDonVi";
+import TrinhBay from "@/src/components/home/TrinhBay";
 import CategoriesSection from "@/src/components/home/CategoriesSection";
 import PopularCoursesSection from "@/src/components/home/PopularCoursesSection";
-import FaqSection  from "@/src/components/home/FaqSection";
+import FaqSection from "@/src/components/home/FaqSection";
 import TestimonialsSection from "@/src/components/home/TestimonialsSection";
-// import CareerSection from "@/src/components/home/CareerSection";
 import CourseSection from "@/src/components/home/CourseSection";
-// import CourseDetailPage from "./individuals/courses/[slug]/page";
+import GoiYKhoaHoc from "@/src/components/courses/GoiYKhoaHoc";
+import { locKhoaDaDang } from "@/src/components/home/locKhoaHoc";
+import { layIdChuDe } from "@/src/services/course";
 
-function HomeContent() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const router = useRouter();
+import type { Category } from "@/src/services/categoryService";
+import type { ProviderData } from "@/src/services/provider";
+import type { FaqItem } from "@/src/services/faq";
+import type { HomeSectionsState } from "@/src/components/home/PopularCoursesSection";
+import { layTuMayChu } from "@/src/services/serverFetch";
 
-  useEffect(() => {
-    if (searchParams.get("auth")) {
-      setIsAuthOpen(true);
+// Trang chu doi theo khoa hoc admin dat, nen khong dung trang tinh vinh vien.
+// 60 giay la muc dung hoa giua "moi vao la thay ngay" va "khong danh thuc ham
+// serverless moi luot xem".
+export const revalidate = 60;
+
+// Rong -> tra ve null chu khong phai [].
+//
+// Cac muc coi "co initialData" la tin hieu "khoi goi API nua". Neu luc dung
+// san may chu lay hut (backend chet, mang chap chon) ma van truyen [] xuong
+// thi trang se hien mot muc trong tron va KHONG bao gio thu lai. Tra null thi
+// trinh duyet tu goi nhu truoc day - dung nguyen duong lui cu.
+const hoacNull = <T,>(ds: T[]): T[] | null => (ds.length ? ds : null);
+
+export default async function HomePage() {
+  // Lay het o day, mot lan, song song.
+  //
+  // Da BO luot goi /api/banners: phan mo dau khong con la bang bang khuyen
+  // mai nua. Xem ghi chu dau HeroSection.tsx.
+  const [categories, providers, faqs, homeSections, coursesRes] = await Promise.all([
+    layTuMayChu<Category[]>("/api/categories", []),
+    layTuMayChu<ProviderData[]>("/api/providers", []),
+    layTuMayChu<{ data?: FaqItem[] }>("/api/faqs/homepage", {}),
+    layTuMayChu<{ success?: boolean; data?: HomeSectionsState }>(
+      "/api/courses/home-sections",
+      {},
+    ),
+    layTuMayChu<unknown>("/api/courses", []),
+  ]);
+
+  const muc = homeSections?.success ? homeSections.data : undefined;
+  const coMuc = Boolean(
+    muc &&
+    (muc.mostPopular?.length || muc.trendingNow?.length || muc.newReleases?.length),
+  );
+
+  const khoaDaDang = locKhoaDaDang(coursesRes);
+  const soMienPhi = khoaDaDang.filter((k) => (k.price ?? 0) === 0).length;
+
+  // Dem so khoa hoc trong tung danh muc, dem o day chu khong goi them API.
+  //
+  // Danh sach khoa hoc da nam san trong tay o tren, nen viec dem la mien phi.
+  // Con o phia danh muc thi con so nay la thu duy nhat tra loi duoc "bam vao
+  // day co gi khong" truoc khi nguoi ta bam.
+  //
+  // Mot khoa co the thuoc nhieu danh muc - layIdChuDe tra ve MANG - nen tong
+  // cac o dem se lon hon tong so khoa hoc, va do la dung.
+  const soKhoaTheoDanhMuc: Record<string, number> = {};
+  for (const khoa of khoaDaDang) {
+    for (const id of layIdChuDe(khoa.category)) {
+      soKhoaTheoDanhMuc[id] = (soKhoaTheoDanhMuc[id] ?? 0) + 1;
     }
-  }, [searchParams]);
-
-  const handleClose = () => {
-    setIsAuthOpen(false);
-    router.replace("/");
-  };
+  }
+  const donVi = Array.isArray(providers) ? providers : [];
 
   return (
     <>
-      <AuthModal open={isAuthOpen} onClose={handleClose} />
-
+      {/* AuthModalGate da chuyen len app/(portal)/layout.tsx: moi trang trong
+          khu hoc vien deu can mo duoc hop dang nhap, khong rieng trang chu. */}
       <div>
-        <HeroSection />
-        <CategoriesSection />
-        <PopularCoursesSection />
-        <PartnersSection />
-        {/* <CareerSection /> */}
-        <CourseSection />
+        <HeroSection soKhoa={khoaDaDang.length} soMienPhi={soMienPhi} />
+        {/* Dai nay thay cho PartnersSection cu - cung mot noi dung (don vi
+            dao tao), nhung gon trong mot dai thay vi mot luoi the. */}
+        <DaiDonVi donVi={donVi} />
+        <TrinhBay />
+        <CategoriesSection
+          initialData={hoacNull(categories)}
+          soKhoaTheoDanhMuc={soKhoaTheoDanhMuc}
+        />
+        <PopularCoursesSection initialData={coMuc && muc ? muc : null} />
+        <CourseSection
+          initialCourses={hoacNull(khoaDaDang)}
+          initialCategories={hoacNull(categories)}
+        />
+        {/* Goi y dat SAU cac muc co san va TRUOC phan danh gia/FAQ.
+            Dat tren cung thi no day muc "Khoa hoc pho bien" xuong, ma voi
+            nguoi chua dang nhap thi hai muc do noi dung gan trung nhau. Dat
+            duoi cung sau FAQ thi khong ai cuon toi.
+
+            Component tu an di khi khong co goi y nao, nen khong can boc dieu
+            kien o day. */}
+        <GoiYKhoaHoc soLuong={8} />
         <TestimonialsSection />
-        <FaqSection  />
+        <FaqSection initialData={hoacNull(faqs?.data ?? [])} />
       </div>
     </>
-  );
-}
-
-export default function HomePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomeContent />
-    </Suspense>
   );
 }
