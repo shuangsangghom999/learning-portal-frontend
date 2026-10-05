@@ -149,23 +149,9 @@
   left: calc(var(--spacing) * 4);
 }
 
-.nutXoa {
-  @extend %nutTren;
-  right: calc(var(--spacing) * 4);
-
-  @media (hover: hover) {
-    &:hover {
-      border-color: #f5b5b0;
-      color: #bd251c;
-    }
-  }
-}
-
 // Hien nut khi re chuot vao the; da luu thi luon hien.
 .the:hover .nutLuu,
-.the:hover .nutXoa,
 .the:focus-within .nutLuu,
-.the:focus-within .nutXoa,
 .nutLuuOn {
   opacity: 1;
 }
@@ -178,8 +164,7 @@
 
 // Man cam ung khong co hover - luon hien nut.
 @media (hover: none) {
-  .nutLuu,
-  .nutXoa {
+  .nutLuu {
     opacity: 1;
   }
 }

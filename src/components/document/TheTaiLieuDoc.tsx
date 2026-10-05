@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, CalendarDays, Download, Eye, Trash2 } from "lucide-react";
+import { Bookmark, CalendarDays, Download, Eye } from "lucide-react";
 
 import { thoiGianTuongDoi } from "@/src/components/common/time";
 import { doiLuu, useDaLuu } from "@/src/hooks/savedStore";
@@ -34,13 +34,10 @@ function anhBia(doc: DocumentSummary | SharedDocument): string {
 export default function TheTaiLieuDoc({
   doc,
   chan = "luotTai",
-  khiXoa,
 }: {
   doc: DocumentSummary | SharedDocument;
   /** Vien chan the: luot tai (mac dinh), "x ngay truoc", hay luot xem + tai. */
   chan?: "luotTai" | "thoiGian" | "phoBien";
-  /** Co thi hien nut xoa (chu bai / admin). */
-  khiXoa?: () => void;
 }) {
   const user = useNguoiDungLuu();
   const daLuu = useDaLuu("taiLieu", doc._id);
@@ -117,17 +114,6 @@ export default function TheTaiLieuDoc({
       >
         <Bookmark size={15} />
       </button>
-      {khiXoa && (
-        <button
-          type="button"
-          onClick={khiXoa}
-          aria-label={`Xóa ${doc.title}`}
-          title="Xóa tài liệu"
-          className={styles.nutXoa}
-        >
-          <Trash2 size={15} />
-        </button>
-      )}
     </article>
   );
 }

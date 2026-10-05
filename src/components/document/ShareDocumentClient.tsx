@@ -36,7 +36,6 @@ import {
   type DocumentSubject,
   type DocumentUniversity,
   type LoaiTaiLieu,
-  type SharedDocument,
   type ThongKeDanhSach,
 } from "@/src/services/document";
 import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
@@ -260,20 +259,6 @@ export default function ShareDocumentClient({
       // Nguoi dung huy bang chia se - khong can bao gi.
     }
   };
-
-  const xoaBai = async (doc: SharedDocument) => {
-    if (!confirm(`Xóa tài liệu "${doc.title}"? Thao tác này không hoàn tác được.`))
-      return;
-    try {
-      await documentService.deleteDocument(doc._id);
-      await taiLai(data.page, boLoc);
-    } catch (err) {
-      alert(getErrorMessage(err, "Không xóa được tài liệu."));
-    }
-  };
-
-  const coTheXoa = (doc: SharedDocument) =>
-    Boolean(user && (user.role === "admin" || user._id === doc.uploader?._id));
 
   const dangLocGi = Boolean(boLoc.q || boLoc.mon || boLoc.nhom || boLoc.truong);
   const LOC_TRONG: BoLoc = { q: "", mon: "", nhom: "", truong: "", loai: "" };
@@ -611,11 +596,10 @@ export default function ShareDocumentClient({
             <ul className={b.luoi}>
               {data.documents.map((doc) => (
                 <li key={doc._id}>
-                  <TheTaiLieuDoc
-                    doc={doc}
-                    chan="thoiGian"
-                    khiXoa={coTheXoa(doc) ? () => void xoaBai(doc) : undefined}
-                  />
+                  {/* Khong co nut xoa o day: trang nay de xem / tim, bam nham la
+                      mat bai. Chu bai xoa o ho so (Tai lieu cua toi), admin
+                      xoa o trang quan tri. */}
+                  <TheTaiLieuDoc doc={doc} chan="thoiGian" />
                 </li>
               ))}
             </ul>
