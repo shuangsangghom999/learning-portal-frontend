@@ -4,6 +4,7 @@ import type { ProviderData } from "@/src/services/provider";
 import SafeImage from "@/src/components/ui/SafeImage";
 
 import styles from "./PartnerMarquee.module.scss";
+import { LOGO_DON_VI } from "./partnerLogos";
 /**
  * Dai ten don vi dao tao chay ngang, dat ngay duoi phan mo dau.
  *
@@ -12,9 +13,10 @@ import styles from "./PartnerMarquee.module.scss";
  * khong phai chu trang tri: dien ten mot don vi chua he hop tac vao day la
  * mao danh ho, va trang nay se nam trong ho so xin viec.
  *
- * Dieu do ap dung cho CA LOGO. Logo lay tu truong `logo` cua chinh ban ghi
- * trong CSDL, khong di muon logo o dau khac ve dan vao: mot logo la dau hieu
- * nhan dien co chu so huu, dat nham la mao danh ro rang hon ca ghi nham ten.
+ * Dieu do ap dung cho CA LOGO: mot logo la dau hieu nhan dien co chu so huu,
+ * dat nham la mao danh ro rang hon ca ghi nham ten. Logo uu tien truong `logo`
+ * cua chinh ban ghi trong CSDL; ban ghi nao chua co thi lay file dung tam trong
+ * partnerLogos.ts, tra theo `slug` cua chinh don vi do.
  *
  * Danh sach ngan thi dai ngan - do la trung thuc, khong phai loi thiet ke.
  */
@@ -27,7 +29,11 @@ export default function DaiDonVi({ donVi }: Props) {
   if (!donVi.length) return null;
 
   // Lap cho du dai de mot vong chay khong lo ra khoang trong o man hinh rong.
-  const day = [...donVi, ...donVi, ...donVi].slice(0, Math.max(6, donVi.length * 2));
+  const coAnh = donVi.map((d) => ({
+    ...d,
+    logo: d.logo || LOGO_DON_VI[d.slug]?.src || "",
+  }));
+  const day = [...coAnh, ...coAnh, ...coAnh].slice(0, Math.max(6, coAnh.length * 2));
 
   // Thoi gian chay mot vong phai suy ra tu BE RONG cua dai, khong duoc ghi cung.
   //
