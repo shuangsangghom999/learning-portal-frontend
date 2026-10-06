@@ -27,6 +27,7 @@ import {
   type LoaiThongBao,
   type ThongBao,
 } from "@/src/services/notification";
+import { khoangCach } from "@/src/lib/time";
 
 // Bieu tuong va mau theo tung loai.
 //
@@ -40,21 +41,6 @@ const KIEU: Record<LoaiThongBao, { Icon: typeof Bell; mau: string }> = {
   tra_loi_hoi_dap: { Icon: MessageCircle, mau: styles.mauTraLoi },
   coin_duoc_cong: { Icon: Coins, mau: styles.mauCoin },
   he_thong: { Icon: Info, mau: styles.mauHeThong },
-};
-
-// Cach day bao lau, doc bang tieng Viet.
-//
-// Khong dung toLocaleString: mot cai nhan "14:32 12/09" bat nguoi doc phai tu
-// tinh xem no la lau chua. "3 giờ trước" tra loi thang cau ho dang hoi.
-const khoangCach = (moc: string): string => {
-  const giay = Math.floor((Date.now() - new Date(moc).getTime()) / 1000);
-
-  if (giay < 60) return "vừa xong";
-  if (giay < 3600) return `${Math.floor(giay / 60)} phút trước`;
-  if (giay < 86400) return `${Math.floor(giay / 3600)} giờ trước`;
-  if (giay < 604800) return `${Math.floor(giay / 86400)} ngày trước`;
-
-  return new Date(moc).toLocaleDateString("vi-VN");
 };
 
 // Nhip do lai so chua doc khi tab dang mo.

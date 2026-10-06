@@ -1,0 +1,40 @@
+import { Suspense } from "react";
+
+import CourseSearchClient from "@/src/components/courses/CourseSearchClient";
+import { locKhoaDaDang } from "@/src/components/home/filterCourses";
+import { COURSES_PAGE as C } from "@/src/constants/courses-page";
+import type { Category } from "@/src/services/categoryService";
+import { layTuMayChu } from "@/src/services/serverFetch";
+
+import styles from "./CourseSearchPage.module.scss";
+
+/** Trang /courses: server lay san du lieu, trinh duyet loc theo ?search= / ?category=. */
+export default async function CourseSearchPage() {
+  // Lay ca danh sach mot lan o may chu. Phep loc theo ?search= va ?category=
+  // lam o phia trinh duyet tren chinh danh sach nay, nen doi tu khoa khong
+  // sinh them luot mang nao.
+  const [coursesRes, categories] = await Promise.all([
+    layTuMayChu<unknown>(C.coursesApi, []),
+    layTuMayChu<Category[]>(C.categoriesApi, []),
+  ]);
+
+  const khoa = locKhoaDaDang(coursesRes);
+
+  return (
+    // useSearchParams() ben trong bat buoc phai co Suspense, neu khong ca
+    // trang mat kha nang prerender tinh.
+    <Suspense
+      fallback={
+        <div className={styles.page}>
+          <div className={styles.spinner} />
+        </div>
+      }
+    >
+      <CourseSearchClient
+        // Rong -> null de trinh duyet tu goi lai, xem ghi chu trong component.
+        initialCourses={khoa.length ? khoa : null}
+        initialCategories={categories.length ? categories : null}
+      />
+    </Suspense>
+  );
+}

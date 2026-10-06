@@ -14,6 +14,7 @@ import {
   type CauHoiHoiDap,
   type VaiTroTraLoi,
 } from "@/src/services/question";
+import { khoangCach, tenHienThi } from "@/src/lib/time";
 
 const DAI_TOI_DA = 2000;
 
@@ -24,19 +25,8 @@ const NHAN_VAI_TRO: Partial<Record<VaiTroTraLoi, { chu: string; lop: string }>> 
   quanTri: { chu: "Quản trị", lop: styles.nhanQuanTri },
 };
 
-const khoangCach = (moc: string): string => {
-  const giay = Math.floor((Date.now() - new Date(moc).getTime()) / 1000);
-
-  if (giay < 60) return "vừa xong";
-  if (giay < 3600) return `${Math.floor(giay / 60)} phút trước`;
-  if (giay < 86400) return `${Math.floor(giay / 3600)} giờ trước`;
-  if (giay < 604800) return `${Math.floor(giay / 86400)} ngày trước`;
-
-  return new Date(moc).toLocaleDateString("vi-VN");
-};
-
 const tenCua = (n: { name?: string; email?: string } | null): string =>
-  n?.name?.trim() || n?.email?.split("@")[0] || "Người dùng";
+  tenHienThi(n, "Người dùng");
 
 export default function HoiDapBaiHoc({
   courseId,
