@@ -4,7 +4,7 @@ import SafeImage from "@/src/components/ui/SafeImage";
 import AnhDaiDien from "@/src/components/ui/Avatar";
 import CardActions, { type MucMenu } from "@/src/components/common/CardActions";
 import type { LoaiLuu } from "@/src/services/saved";
-import { tomTatHtml } from "@/src/components/common/postHtml";
+import { tomTatHtml } from "@/src/lib/post-html";
 import type { ReactNode } from "react";
 
 import styles from "./FeedCard.module.scss";

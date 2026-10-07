@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin-course-detail";
+import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin/course-detail-page";
 
 import styles from "../AdminCourseDetail.module.scss";
 

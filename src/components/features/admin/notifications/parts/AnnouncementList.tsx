@@ -1,6 +1,6 @@
 import { Eye, EyeOff, Megaphone, Pencil, Trash2 } from "lucide-react";
 
-import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin-notifications";
+import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
 import type { ThongBaoChung } from "@/src/services/announcement";
 
 import type { AdminAnnouncementsState } from "../hooks/useAdminAnnouncements";

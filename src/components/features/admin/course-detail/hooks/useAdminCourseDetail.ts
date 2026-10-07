@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin-course-detail";
+import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin/course-detail-page";
 import { convertToSlug } from "@/src/lib/slug";
 import { getCategories, Category } from "@/src/services/categoryService";
 import {

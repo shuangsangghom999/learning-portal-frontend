@@ -1,6 +1,9 @@
 import { Search } from "lucide-react";
 
-import { ADMIN_POSTS as C, type PostStatusFilter } from "@/src/constants/admin-posts";
+import {
+  ADMIN_POSTS as C,
+  type PostStatusFilter,
+} from "@/src/constants/admin/posts-page";
 
 import type { AdminPostsState } from "../hooks/useAdminPosts";
 import styles from "../AdminPosts.module.scss";

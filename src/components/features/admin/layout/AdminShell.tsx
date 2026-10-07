@@ -2,7 +2,7 @@
 
 import { Menu } from "lucide-react";
 
-import { ADMIN_SHELL as C } from "@/src/constants/admin-menu";
+import { ADMIN_SHELL as C } from "@/src/constants/admin/menu";
 
 import { useAdminShell } from "./hooks/useAdminShell";
 import AdminBreadcrumbs from "./parts/AdminBreadcrumbs";

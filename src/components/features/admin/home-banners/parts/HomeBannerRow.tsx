@@ -1,5 +1,5 @@
 import SafeImage from "@/src/components/ui/SafeImage";
-import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin-home-banners";
+import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin/home-banners-page";
 import type { BannerData } from "@/src/services/banner";
 
 import styles from "../AdminHomeBanners.module.scss";

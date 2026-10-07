@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import PracticeTest from "@/src/components/practice/PracticeTest";
-import { PRACTICE_PAGE } from "@/src/constants/practice";
+import PracticeTest from "@/src/components/features/portal/practice/PracticeTest";
+import { PRACTICE_PAGE } from "@/src/constants/portal/practice-page";
 import { thamSoMoiDe, timDe } from "@/src/lib/practice";
 
 interface Props {

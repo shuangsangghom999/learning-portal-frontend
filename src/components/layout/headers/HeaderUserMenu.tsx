@@ -9,9 +9,9 @@ import { HIEN_COIN } from "@/src/services/tinhNang";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useNguoiDungLuu, useDangTaiNguoiDung } from "@/src/hooks/userStore";
-import { duongDanDangNhap } from "@/src/components/auth/loginUrl";
-import ChuongThongBao from "@/src/components/notifications/NotificationBell";
-import NutGioHang from "@/src/components/cart/CartButton";
+import { duongDanDangNhap } from "@/src/components/features/portal/auth/loginUrl";
+import ChuongThongBao from "@/src/components/layout/headers/NotificationBell";
+import NutGioHang from "@/src/components/layout/headers/CartButton";
 
 import styles from "./HeaderUserMenu.module.scss";
 // Tach rieng khoi IndividualsHeader de moi header trang deu co menu tai khoan.

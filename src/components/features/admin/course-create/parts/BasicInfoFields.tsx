@@ -1,4 +1,4 @@
-import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin-course-create";
+import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin/course-create-page";
 import type {
   AdminCourseCreateFormData,
   FieldChangeEvent,

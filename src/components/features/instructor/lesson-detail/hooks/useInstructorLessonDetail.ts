@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { INSTRUCTOR_LESSON_DETAIL as C } from "@/src/constants/instructor-lesson-detail";
+import { INSTRUCTOR_LESSON_DETAIL as C } from "@/src/constants/instructor/lesson-detail-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { deleteLesson, getLessonById, updateLesson } from "@/src/services/lesson.api";
 

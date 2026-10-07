@@ -1,6 +1,6 @@
 import { BookOpen, CheckCircle, Edit3, Star, Trash2, User } from "lucide-react";
 
-import { ADMIN_REVIEWS as C } from "@/src/constants/admin-reviews";
+import { ADMIN_REVIEWS as C } from "@/src/constants/admin/reviews-page";
 import type { Review } from "@/src/services/review";
 
 import styles from "../AdminReviews.module.scss";

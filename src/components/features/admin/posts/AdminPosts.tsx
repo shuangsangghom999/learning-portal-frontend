@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AlertCircle, FileText, Loader2, Newspaper, Plus } from "lucide-react";
 
-import { ADMIN_POSTS as C } from "@/src/constants/admin-posts";
+import { ADMIN_POSTS as C } from "@/src/constants/admin/posts-page";
 
 import { useAdminPosts } from "./hooks/useAdminPosts";
 import PostCard from "./parts/PostCard";

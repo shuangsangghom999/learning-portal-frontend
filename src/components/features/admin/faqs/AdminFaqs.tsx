@@ -2,7 +2,7 @@
 
 import { CheckCircle, HelpCircle, Plus } from "lucide-react";
 
-import { ADMIN_FAQS as C } from "@/src/constants/admin-faqs";
+import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
 
 import { useAdminFaqs } from "./hooks/useAdminFaqs";
 import FaqAreaTabs from "./parts/FaqAreaTabs";

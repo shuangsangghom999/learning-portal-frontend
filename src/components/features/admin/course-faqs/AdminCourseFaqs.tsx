@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, HelpCircle, Plus } from "lucide-react";
 
-import { ADMIN_COURSE_FAQS as C } from "@/src/constants/admin-course-faqs";
+import { ADMIN_COURSE_FAQS as C } from "@/src/constants/admin/course-faqs-page";
 
 import { useCourseFaqs } from "./hooks/useCourseFaqs";
 import CourseFaqList from "./parts/CourseFaqList";

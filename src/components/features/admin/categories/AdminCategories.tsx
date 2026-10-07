@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 
-import { ADMIN_CATEGORIES as C } from "@/src/constants/admin-categories";
+import { ADMIN_CATEGORIES as C } from "@/src/constants/admin/categories-page";
 
 import { useAdminCategories } from "./hooks/useAdminCategories";
 import CategoriesTable from "./parts/CategoriesTable";

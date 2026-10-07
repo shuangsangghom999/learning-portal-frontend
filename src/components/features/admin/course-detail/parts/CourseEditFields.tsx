@@ -4,7 +4,7 @@
    nen dung the <img> o day moi dung. */
 import { Building2, Image as ImageIcon } from "lucide-react";
 
-import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin-course-detail";
+import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin/course-detail-page";
 import type { ProviderData } from "@/src/services/provider";
 import type { AdminCourseEditFormData, FieldChangeEvent } from "@/src/types/course-form";
 

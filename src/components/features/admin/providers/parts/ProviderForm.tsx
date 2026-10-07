@@ -4,7 +4,7 @@
    nen dung the <img> o day moi dung. */
 import { Building2, Edit3, Plus, School, UploadCloud } from "lucide-react";
 
-import { ADMIN_PROVIDERS as C } from "@/src/constants/admin-providers";
+import { ADMIN_PROVIDERS as C } from "@/src/constants/admin/providers-page";
 
 import type { AdminProvidersState } from "../hooks/useAdminProviders";
 import styles from "../AdminProviders.module.scss";

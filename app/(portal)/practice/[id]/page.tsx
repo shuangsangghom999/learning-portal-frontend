@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import PracticeSetup from "@/src/components/practice/PracticeSetup";
+import PracticeSetup from "@/src/components/features/portal/practice/PracticeSetup";
 import { thamSoMoiDe, timDe } from "@/src/lib/practice";
 
 interface Props {

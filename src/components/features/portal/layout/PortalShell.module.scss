@@ -2,8 +2,17 @@
 // Khai bao lay dung tu ban CSS Tailwind da build, nen giao dien khong doi.
 
 .box {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  // Bo chu cua khu hoc vien. next/font dat --chu-than/--chu-hien tren chinh
+  // the nay (khong con o <html>), nen phai khai lai font-family va hai bien
+  // --font-than/--font-hien tai day: o :root chung duoc tinh khi --chu-than
+  // chua co nen roi ve Inter.
+  --font-than: var(--chu-than), "Inter", system-ui, sans-serif;
+  --font-hien: var(--chu-hien), "Inter", system-ui, sans-serif;
+  font-family:
+    var(--chu-than, "Inter"),
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .box2 {

@@ -2,8 +2,8 @@
 
 import { Coins, Loader2 } from "lucide-react";
 
-import Pager from "@/src/components/common/Pager";
-import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin-coin-topups";
+import Pager from "@/src/components/ui/Pager";
+import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin/coin-topups-page";
 
 import { useCoinTopups } from "./hooks/useCoinTopups";
 import TopupRow from "./parts/TopupRow";

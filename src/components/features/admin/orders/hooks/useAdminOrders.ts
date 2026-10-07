@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_ORDERS as C } from "@/src/constants/admin-orders";
+import { ADMIN_ORDERS as C } from "@/src/constants/admin/orders-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   DonHangAdmin,

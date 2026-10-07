@@ -1,6 +1,6 @@
 "use client";
 
-import { ADMIN_DASHBOARD as C } from "@/src/constants/admin-dashboard";
+import { ADMIN_DASHBOARD as C } from "@/src/constants/admin/dashboard-page";
 
 import { useDashboardStats } from "./hooks/useDashboardStats";
 import StatCard from "./parts/StatCard";

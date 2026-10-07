@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 
-import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor-lessons";
+import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor/lessons-page";
 
 import { useInstructorLessons } from "./hooks/useInstructorLessons";
 import LessonRowItem from "./parts/LessonRowItem";

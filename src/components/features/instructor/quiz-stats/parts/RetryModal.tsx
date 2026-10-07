@@ -1,6 +1,6 @@
 import { Loader2, MessageSquare } from "lucide-react";
 
-import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor-quiz-stats";
+import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor/quiz-stats-page";
 
 import styles from "../InstructorQuizStats.module.scss";
 

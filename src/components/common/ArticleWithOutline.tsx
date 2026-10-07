@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ListTree } from "lucide-react";
-import { layMucLuc, phanTichNoiDung } from "./articleOutline";
-import { laHtml, neoHoaTieuDe } from "./postHtml";
+import { layMucLuc, phanTichNoiDung } from "@/src/lib/article-outline";
+import { laHtml, neoHoaTieuDe } from "@/src/lib/post-html";
 
 import styles from "./ArticleWithOutline.module.scss";
 // Bo cuc hai o dung chung cho tai lieu chia se va bai viet blog:

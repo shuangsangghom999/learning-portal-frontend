@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { ADMIN_COURSES as C } from "@/src/constants/admin-courses";
+import { ADMIN_COURSES as C } from "@/src/constants/admin/courses-page";
 
 import { useAdminCourses } from "./hooks/useAdminCourses";
 import AdminCourseRow from "./parts/AdminCourseRow";

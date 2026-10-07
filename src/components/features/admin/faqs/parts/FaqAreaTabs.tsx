@@ -1,4 +1,4 @@
-import { ADMIN_FAQS as C } from "@/src/constants/admin-faqs";
+import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
 import type { ViTriFaq } from "@/src/services/faq";
 
 import styles from "../AdminFaqs.module.scss";

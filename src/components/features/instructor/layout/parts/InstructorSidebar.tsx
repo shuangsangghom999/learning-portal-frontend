@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronDown, GraduationCap, LogOut } from "lucide-react";
 
-import { INSTRUCTOR_MENU, INSTRUCTOR_SHELL as C } from "@/src/constants/instructor-menu";
+import { INSTRUCTOR_MENU, INSTRUCTOR_SHELL as C } from "@/src/constants/instructor/menu";
 
 import type { InstructorShellState } from "../hooks/useInstructorShell";
 import styles from "../InstructorShell.module.scss";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { INSTRUCTOR_COURSE_CREATE as C } from "@/src/constants/instructor-course-create";
+import { INSTRUCTOR_COURSE_CREATE as C } from "@/src/constants/instructor/course-create-page";
 
 import styles from "../InstructorCourseCreate.module.scss";
 

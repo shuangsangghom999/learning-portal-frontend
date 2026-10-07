@@ -1,6 +1,6 @@
 import { Check, GraduationCap, Pencil, Plus, Trash2, X } from "lucide-react";
 
-import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin-document-subjects";
+import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
 import type { DocumentUniversity } from "@/src/services/document";
 
 import type { DocumentCatalogState } from "../hooks/useDocumentCatalog";

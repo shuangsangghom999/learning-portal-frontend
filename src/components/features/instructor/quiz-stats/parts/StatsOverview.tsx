@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 
-import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor-quiz-stats";
+import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor/quiz-stats-page";
 import type { QuizStats } from "@/src/services/quizService";
 
 import type { StatsTab } from "../hooks/useInstructorQuizStats";

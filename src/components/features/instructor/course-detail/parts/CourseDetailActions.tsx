@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Video } from "lucide-react";
 
-import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor-course-detail";
+import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor/course-detail-page";
 
 import styles from "../InstructorCourseDetail.module.scss";
 

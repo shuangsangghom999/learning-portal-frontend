@@ -1,4 +1,4 @@
-import { MyCourses } from "@/src/components/features/user/my-courses";
+import { MyCourses } from "@/src/components/features/portal/user/my-courses";
 
 export default function MyCoursesPage() {
   return <MyCourses />;

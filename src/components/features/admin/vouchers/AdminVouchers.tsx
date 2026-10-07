@@ -2,7 +2,7 @@
 
 import { BadgePercent, Plus } from "lucide-react";
 
-import { ADMIN_VOUCHERS as C } from "@/src/constants/admin-vouchers";
+import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 
 import { useAdminVouchers } from "./hooks/useAdminVouchers";
 import UsageModal from "./parts/UsageModal";

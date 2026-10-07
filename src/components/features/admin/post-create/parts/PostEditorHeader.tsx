@@ -9,7 +9,7 @@ import {
   Save,
 } from "lucide-react";
 
-import { ADMIN_POST_CREATE as C } from "@/src/constants/admin-post-create";
+import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 
 import type { PostEditorState } from "../hooks/usePostEditor";
 import styles from "../AdminPostCreate.module.scss";

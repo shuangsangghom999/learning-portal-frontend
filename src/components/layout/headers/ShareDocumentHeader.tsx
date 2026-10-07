@@ -7,7 +7,7 @@ import {
   DUONG_TAT_CA,
   DUONG_TRANG_CHU,
   DUONG_TRUONG,
-} from "@/src/components/document/duongDan";
+} from "@/src/lib/document/duong-dan";
 
 import styles from "./ShareDocumentHeader.module.scss";
 

@@ -2,7 +2,7 @@ import SafeImage from "@/src/components/ui/SafeImage";
 import {
   ADMIN_HOME_SECTION_COMMON as COMMON,
   type AdminHomeSectionKind,
-} from "@/src/constants/admin-home-sections";
+} from "@/src/constants/admin/home-sections-page";
 import { tenGiangVien, type Course } from "@/src/services/course";
 
 import { SECTION_CONFIG } from "../config";

@@ -8,7 +8,7 @@ import {
   HOME_SECTION_ROUTES,
   LESSON_ROUTES,
   type AdminMenuItem,
-} from "@/src/constants/admin-menu";
+} from "@/src/constants/admin/menu";
 
 import type { AdminShellState } from "../hooks/useAdminShell";
 import styles from "../AdminShell.module.scss";

@@ -2,7 +2,7 @@
 
 import { MessageSquare, Plus, RefreshCw } from "lucide-react";
 
-import { ADMIN_REVIEWS as C } from "@/src/constants/admin-reviews";
+import { ADMIN_REVIEWS as C } from "@/src/constants/admin/reviews-page";
 
 import { useAdminReviews } from "./hooks/useAdminReviews";
 import ReviewModal from "./parts/ReviewModal";

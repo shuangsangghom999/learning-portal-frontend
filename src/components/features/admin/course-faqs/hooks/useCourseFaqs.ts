@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { ADMIN_COURSE_FAQS as C } from "@/src/constants/admin-course-faqs";
+import { ADMIN_COURSE_FAQS as C } from "@/src/constants/admin/course-faqs-page";
 import { useFaqManager } from "@/src/hooks/useFaqManager";
 import { faqService } from "@/src/services/faq";
 

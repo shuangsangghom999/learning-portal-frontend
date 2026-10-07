@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Edit, HelpCircle, Trash2, Video } from "lucide-react";
 
-import { ADMIN_COURSES as C } from "@/src/constants/admin-courses";
+import { ADMIN_COURSES as C } from "@/src/constants/admin/courses-page";
 import { formatVnd } from "@/src/lib/format";
 import type { Course } from "@/src/services/course";
 

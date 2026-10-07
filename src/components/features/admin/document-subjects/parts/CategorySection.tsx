@@ -1,7 +1,7 @@
 import { Check, Layers, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 
-import { BIEU_TUONG } from "@/src/components/document/DocumentCategories";
-import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin-document-subjects";
+import { BIEU_TUONG } from "@/src/components/features/portal/share-document/parts/DocumentCategories";
+import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
 import type { BieuTuongLinhVuc } from "@/src/services/document";
 
 import type { DocumentCatalogState } from "../hooks/useDocumentCatalog";

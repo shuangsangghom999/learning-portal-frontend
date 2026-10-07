@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_COIN as C } from "@/src/constants/admin-coin";
+import { ADMIN_COIN as C } from "@/src/constants/admin/coin-page";
 import { getAllUsersAdmin } from "@/src/services/adminService";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {

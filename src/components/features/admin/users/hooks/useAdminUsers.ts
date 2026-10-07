@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_USERS as C } from "@/src/constants/admin-users";
+import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 import { useNguoiDungLuu } from "@/src/hooks/userStore";
 import {
   createUserAdmin,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin-coin-topups";
+import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin/coin-topups-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   layDanhSachNapAdmin,

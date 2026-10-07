@@ -1,6 +1,6 @@
 import { Star, X } from "lucide-react";
 
-import { ADMIN_REVIEWS as C } from "@/src/constants/admin-reviews";
+import { ADMIN_REVIEWS as C } from "@/src/constants/admin/reviews-page";
 
 import type { AdminReviewsState } from "../hooks/useAdminReviews";
 import styles from "../AdminReviews.module.scss";

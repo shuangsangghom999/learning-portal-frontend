@@ -2,7 +2,7 @@
 
 import { Image as ImageIcon, Loader2, Plus } from "lucide-react";
 
-import { ADMIN_BANNERS as C } from "@/src/constants/admin-banners";
+import { ADMIN_BANNERS as C } from "@/src/constants/admin/banners-page";
 
 import { useAdminBanners } from "./hooks/useAdminBanners";
 import BannerFormPanel from "./parts/BannerFormPanel";

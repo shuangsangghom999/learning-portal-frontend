@@ -1,6 +1,6 @@
 "use client";
 
-import { ADMIN_ORDERS as C } from "@/src/constants/admin-orders";
+import { ADMIN_ORDERS as C } from "@/src/constants/admin/orders-page";
 
 import { useAdminOrders } from "./hooks/useAdminOrders";
 import OrderRow from "./parts/OrderRow";

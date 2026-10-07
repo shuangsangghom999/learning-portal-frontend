@@ -6,7 +6,7 @@ import {
   ADMIN_HOME_SECTION_COMMON as COMMON,
   ADMIN_HOME_SECTIONS,
   type AdminHomeSectionKind,
-} from "@/src/constants/admin-home-sections";
+} from "@/src/constants/admin/home-sections-page";
 
 import { useAdminHomeSection } from "./hooks/useAdminHomeSection";
 import HomeSectionHeader from "./parts/HomeSectionHeader";

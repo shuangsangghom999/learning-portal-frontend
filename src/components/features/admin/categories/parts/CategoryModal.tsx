@@ -1,6 +1,6 @@
 import { Loader2, X } from "lucide-react";
 
-import { ADMIN_CATEGORIES as C } from "@/src/constants/admin-categories";
+import { ADMIN_CATEGORIES as C } from "@/src/constants/admin/categories-page";
 
 import styles from "../AdminCategories.module.scss";
 

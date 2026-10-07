@@ -4,7 +4,7 @@ import {
   ADMIN_HOME_SECTION_COMMON as COMMON,
   ADMIN_HOME_SECTIONS,
   type AdminHomeSectionKind,
-} from "@/src/constants/admin-home-sections";
+} from "@/src/constants/admin/home-sections-page";
 
 import { SECTION_CONFIG } from "../config";
 import styles from "../AdminHomeSection.module.scss";

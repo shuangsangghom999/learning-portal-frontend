@@ -1,6 +1,6 @@
 import { Award, Ban, Check, Copy, FileText, ShieldCheck } from "lucide-react";
 
-import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin-certificates";
+import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin/certificates-page";
 import { duongDanPdfChungChi } from "@/src/services/certificate";
 import type { AdminCertificateRow } from "@/src/types/certificate";
 

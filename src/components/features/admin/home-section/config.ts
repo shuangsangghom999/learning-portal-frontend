@@ -1,6 +1,6 @@
 import { Award, CalendarDays, Flame, type LucideIcon } from "lucide-react";
 
-import type { AdminHomeSectionKind } from "@/src/constants/admin-home-sections";
+import type { AdminHomeSectionKind } from "@/src/constants/admin/home-sections-page";
 import {
   getAdminNewReleasesCourses,
   getAdminPopularCourses,

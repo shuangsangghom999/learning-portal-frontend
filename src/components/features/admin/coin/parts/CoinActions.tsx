@@ -1,6 +1,6 @@
 import { Coins, Gift } from "lucide-react";
 
-import { ADMIN_COIN as C } from "@/src/constants/admin-coin";
+import { ADMIN_COIN as C } from "@/src/constants/admin/coin-page";
 import { giaRaCoin } from "@/src/services/coin.api";
 import type { Course } from "@/src/services/course";
 

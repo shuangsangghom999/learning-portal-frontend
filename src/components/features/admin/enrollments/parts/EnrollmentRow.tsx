@@ -1,7 +1,7 @@
 import { CheckCircle2, PlayCircle, XCircle, type LucideIcon } from "lucide-react";
 
 import AnhDaiDien from "@/src/components/ui/Avatar";
-import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin-enrollments";
+import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin/enrollments-page";
 import type { AdminEnrollmentRow } from "@/src/services/adminService";
 
 import styles from "../AdminEnrollments.module.scss";

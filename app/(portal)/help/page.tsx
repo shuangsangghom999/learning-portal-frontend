@@ -1,5 +1,17 @@
-import { HelpCenter } from "@/src/components/features/help";
+import {
+  HelpContact,
+  HelpFaqList,
+  HelpHero,
+  HelpShell,
+} from "@/src/components/features/portal/help";
+import { HELP_PAGE } from "@/src/constants/portal/help-page";
 
 export default function HelpPage() {
-  return <HelpCenter />;
+  return (
+    <HelpShell>
+      <HelpHero {...HELP_PAGE.hero} />
+      <HelpFaqList {...HELP_PAGE.faq} />
+      <HelpContact {...HELP_PAGE.contact} />
+    </HelpShell>
+  );
 }

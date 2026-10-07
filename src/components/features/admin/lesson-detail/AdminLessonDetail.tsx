@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 
-import { ADMIN_LESSON_DETAIL as C } from "@/src/constants/admin-lesson-detail";
+import { ADMIN_LESSON_DETAIL as C } from "@/src/constants/admin/lesson-detail-page";
 
 import { useAdminLessonDetail } from "./hooks/useAdminLessonDetail";
 import VideoSourceField from "./parts/VideoSourceField";

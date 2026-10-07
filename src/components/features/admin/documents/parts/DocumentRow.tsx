@@ -10,14 +10,10 @@ import {
   X,
 } from "lucide-react";
 
-import { duongTaiLieu } from "@/src/components/document/duongDan";
-import {
-  doiKichThuoc,
-  nhanDinhDang,
-  tongDungLuong,
-} from "@/src/components/document/fileInfo";
-import SubjectPicker from "@/src/components/document/SubjectPicker";
-import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin-documents";
+import { duongTaiLieu } from "@/src/lib/document/duong-dan";
+import { doiKichThuoc, nhanDinhDang, tongDungLuong } from "@/src/lib/document/file-info";
+import SubjectPicker from "@/src/components/features/portal/share-document/parts/SubjectPicker";
+import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin/documents-page";
 import type { SharedDocument } from "@/src/services/document";
 
 import type { AdminDocumentsState } from "../hooks/useAdminDocuments";

@@ -1,7 +1,7 @@
 import { Loader2, X } from "lucide-react";
 
 import AnhDaiDien from "@/src/components/ui/Avatar";
-import { ADMIN_USERS as C } from "@/src/constants/admin-users";
+import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 import { DAI_MAT_KHAU_TOI_THIEU } from "@/src/services/rules";
 
 import type { AdminUser, AdminUsersState } from "../hooks/useAdminUsers";

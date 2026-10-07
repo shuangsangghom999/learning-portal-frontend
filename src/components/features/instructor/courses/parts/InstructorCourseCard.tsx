@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Tag, User } from "lucide-react";
 
 import SafeImage from "@/src/components/ui/SafeImage";
-import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor-courses";
+import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor/courses-page";
 import { formatVnd } from "@/src/lib/format";
 import { Course, tenChuDe } from "@/src/services/course";
 

@@ -1,7 +1,7 @@
 import { Building2, Edit3, RefreshCw, School, Trash2 } from "lucide-react";
 
 import SafeImage from "@/src/components/ui/SafeImage";
-import { ADMIN_PROVIDERS as C } from "@/src/constants/admin-providers";
+import { ADMIN_PROVIDERS as C } from "@/src/constants/admin/providers-page";
 
 import type { AdminProvidersState } from "../hooks/useAdminProviders";
 import styles from "../AdminProviders.module.scss";

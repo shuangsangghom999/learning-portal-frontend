@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin-enrollments";
+import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin/enrollments-page";
 import {
   getAllEnrollmentsAdmin,
   updateEnrollmentStatusAdmin,

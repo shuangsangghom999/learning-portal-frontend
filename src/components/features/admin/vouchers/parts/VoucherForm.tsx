@@ -1,4 +1,4 @@
-import { ADMIN_VOUCHERS as C } from "@/src/constants/admin-vouchers";
+import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 import type { ThanMaGiamGia } from "@/src/services/voucher";
 
 import type { AdminVouchersState } from "../hooks/useAdminVouchers";

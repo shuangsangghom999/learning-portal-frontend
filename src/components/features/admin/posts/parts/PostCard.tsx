@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Eye, ImageOff, PenLine, Trash2 } from "lucide-react";
 
 import SafeImage from "@/src/components/ui/SafeImage";
-import { ADMIN_POSTS as C } from "@/src/constants/admin-posts";
+import { ADMIN_POSTS as C } from "@/src/constants/admin/posts-page";
 import type { BlogPost } from "@/src/services/post";
 
 import styles from "../AdminPosts.module.scss";

@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 
-import { boThe } from "@/src/components/common/postHtml";
+import { boThe } from "@/src/lib/post-html";
 import {
   DocumentDetailPage as DocumentDetail,
   layLienQuan,
   layTaiLieu,
-} from "@/src/components/features/share-document";
-import { SHARE_DOCUMENT } from "@/src/constants/share-document";
+} from "@/src/components/features/portal/share-document";
+import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
 export const revalidate = 30;
 

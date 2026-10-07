@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor-quiz-stats";
+import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor/quiz-stats-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { allowStudentRetry, getQuizStats, QuizStats } from "@/src/services/quizService";
 

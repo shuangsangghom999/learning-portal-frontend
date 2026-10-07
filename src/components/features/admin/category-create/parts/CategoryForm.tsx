@@ -1,4 +1,4 @@
-import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin-category-create";
+import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin/category-create-page";
 
 import styles from "../AdminCategoryCreate.module.scss";
 

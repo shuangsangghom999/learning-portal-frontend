@@ -1,4 +1,4 @@
-import { PORTAL_LAYOUT as C } from "@/src/constants/portal-layout";
+import { PORTAL_LAYOUT as C } from "@/src/constants/portal/layout";
 import type { Category } from "@/src/services/categoryService";
 import type { Course } from "@/src/services/course";
 import type { ProviderData } from "@/src/services/provider";

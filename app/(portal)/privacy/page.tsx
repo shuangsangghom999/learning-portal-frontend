@@ -1,5 +1,15 @@
-import { PrivacyPolicy } from "@/src/components/features/privacy";
+import {
+  PrivacyContent,
+  PrivacyHeader,
+  PrivacyShell,
+} from "@/src/components/features/portal/privacy";
+import { PRIVACY_PAGE } from "@/src/constants/portal/privacy-page";
 
 export default function PrivacyPage() {
-  return <PrivacyPolicy />;
+  return (
+    <PrivacyShell>
+      <PrivacyHeader {...PRIVACY_PAGE.header} />
+      <PrivacyContent {...PRIVACY_PAGE.content} />
+    </PrivacyShell>
+  );
 }

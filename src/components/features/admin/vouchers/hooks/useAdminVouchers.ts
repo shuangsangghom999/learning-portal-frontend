@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_VOUCHERS as C } from "@/src/constants/admin-vouchers";
+import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 import {
   batTatMa,
   danhSachMa,

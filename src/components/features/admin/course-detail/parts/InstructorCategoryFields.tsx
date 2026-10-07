@@ -1,6 +1,6 @@
 import { Check, Tag, User as UserIcon } from "lucide-react";
 
-import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin-course-detail";
+import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin/course-detail-page";
 import type { Category } from "@/src/services/categoryService";
 import type { User } from "@/src/services/userApi";
 import type { AdminCourseEditFormData, FieldChangeEvent } from "@/src/types/course-form";

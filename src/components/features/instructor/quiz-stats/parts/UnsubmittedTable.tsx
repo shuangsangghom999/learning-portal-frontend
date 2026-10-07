@@ -1,6 +1,6 @@
 import { AlertCircle, Mail } from "lucide-react";
 
-import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor-quiz-stats";
+import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor/quiz-stats-page";
 import type { QuizStats } from "@/src/services/quizService";
 
 import styles from "../InstructorQuizStats.module.scss";

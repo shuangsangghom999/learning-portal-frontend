@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_COURSES as C } from "@/src/constants/admin-courses";
+import { ADMIN_COURSES as C } from "@/src/constants/admin/courses-page";
 import { deleteCourseAdmin } from "@/src/services/adminService";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { Course, getInstructorCourses } from "@/src/services/course";

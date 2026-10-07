@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ADMIN_FAQS as C } from "@/src/constants/admin-faqs";
+import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
 import { useFaqManager } from "@/src/hooks/useFaqManager";
 import { faqService, type ViTriFaq } from "@/src/services/faq";
 

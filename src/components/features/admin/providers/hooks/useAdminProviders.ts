@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_PROVIDERS as C } from "@/src/constants/admin-providers";
+import { ADMIN_PROVIDERS as C } from "@/src/constants/admin/providers-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   createProviderAdmin,

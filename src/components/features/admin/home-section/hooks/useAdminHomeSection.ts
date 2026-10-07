@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   ADMIN_HOME_SECTIONS,
   type AdminHomeSectionKind,
-} from "@/src/constants/admin-home-sections";
+} from "@/src/constants/admin/home-sections-page";
 import { updateCourseTags, type Course } from "@/src/services/course";
 
 import { SECTION_CONFIG } from "../config";

@@ -1,6 +1,6 @@
 import { MessageCircleQuestion } from "lucide-react";
 
-import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor-questions";
+import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-page";
 
 import styles from "../InstructorQuestions.module.scss";
 

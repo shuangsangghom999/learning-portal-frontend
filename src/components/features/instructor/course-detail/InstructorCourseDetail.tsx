@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 
-import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor-course-detail";
+import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor/course-detail-page";
 
 import { useInstructorCourseDetail } from "./hooks/useInstructorCourseDetail";
 import CategoryTags from "./parts/CategoryTags";

@@ -2,8 +2,8 @@
 
 import { Loader2 } from "lucide-react";
 
-import Pager from "@/src/components/common/Pager";
-import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin-certificates";
+import Pager from "@/src/components/ui/Pager";
+import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin/certificates-page";
 
 import { useAdminCertificates } from "./hooks/useAdminCertificates";
 import CertificateRow from "./parts/CertificateRow";

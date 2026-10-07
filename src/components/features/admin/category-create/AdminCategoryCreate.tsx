@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 
-import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin-category-create";
+import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin/category-create-page";
 
 import { useCategoryCreate } from "./hooks/useCategoryCreate";
 import CategoryForm from "./parts/CategoryForm";

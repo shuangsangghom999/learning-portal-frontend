@@ -1,8 +1,8 @@
 import { Suspense, type ReactNode } from "react";
 
-import TroLyToanTrang from "@/src/components/assistant/AssistantWidget";
+import TroLyToanTrang from "@/src/components/features/portal/assistant/AssistantWidget";
 import NapNguoiDung from "@/src/components/common/UserBootstrap";
-import AuthModalGate from "@/src/components/home/AuthModalGate";
+import AuthModalGate from "@/src/components/features/portal/auth/AuthModalGate";
 import Footer from "@/src/components/layout/Footer";
 import Header from "@/src/components/layout/Header";
 

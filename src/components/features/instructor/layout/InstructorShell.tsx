@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 
-import { INSTRUCTOR_SHELL as C } from "@/src/constants/instructor-menu";
+import { INSTRUCTOR_SHELL as C } from "@/src/constants/instructor/menu";
 
 import { useInstructorShell } from "./hooks/useInstructorShell";
 import InstructorBreadcrumbs from "./parts/InstructorBreadcrumbs";

@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-import { ADMIN_POST_CREATE as C } from "@/src/constants/admin-post-create";
+import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 
 import { usePostEditor } from "./hooks/usePostEditor";
 import PostEditorHeader from "./parts/PostEditorHeader";

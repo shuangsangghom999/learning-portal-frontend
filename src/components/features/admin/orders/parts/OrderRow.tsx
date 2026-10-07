@@ -1,4 +1,4 @@
-import { ADMIN_ORDERS as C } from "@/src/constants/admin-orders";
+import { ADMIN_ORDERS as C } from "@/src/constants/admin/orders-page";
 import { dinhDangTien, type DonHangAdmin, type TrangThaiDon } from "@/src/services/order";
 
 import styles from "../AdminOrders.module.scss";

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 
-import { ADMIN_LESSONS as C } from "@/src/constants/admin-lessons";
+import { ADMIN_LESSONS as C } from "@/src/constants/admin/lessons-page";
 import { useCourseLessons } from "@/src/hooks/useCourseLessons";
 
 import AdminLessonRow from "./parts/AdminLessonRow";

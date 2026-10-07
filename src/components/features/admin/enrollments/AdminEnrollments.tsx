@@ -2,8 +2,8 @@
 
 import { Loader2 } from "lucide-react";
 
-import Pager from "@/src/components/common/Pager";
-import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin-enrollments";
+import Pager from "@/src/components/ui/Pager";
+import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin/enrollments-page";
 
 import { useAdminEnrollments } from "./hooks/useAdminEnrollments";
 import EnrollmentRow from "./parts/EnrollmentRow";

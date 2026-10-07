@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin-certificates";
+import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin/certificates-page";
 import {
   getAllCertificatesAdmin,
   revokeCertificateAdmin,

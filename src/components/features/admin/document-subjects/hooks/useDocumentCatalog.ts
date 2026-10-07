@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin-document-subjects";
+import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   documentService,

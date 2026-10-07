@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_CATEGORIES as C } from "@/src/constants/admin-categories";
+import { ADMIN_CATEGORIES as C } from "@/src/constants/admin/categories-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   Category,

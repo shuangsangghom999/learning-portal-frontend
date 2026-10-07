@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 
-import InstitutionDetail from "@/src/components/document/InstitutionDetail";
-import { doiKhoa } from "@/src/components/document/taiLieuMayChu";
-import { layTruong } from "@/src/components/features/share-document";
-import { SHARE_DOCUMENT } from "@/src/constants/share-document";
+import { doiKhoa } from "@/src/components/features/portal/share-document/taiLieuMayChu";
+import {
+  InstitutionDetail,
+  layTruong,
+} from "@/src/components/features/portal/share-document";
+import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
 // Mon hoc va so tai lieu doi cham - luu 60 giay nhu API.
 export const revalidate = 60;

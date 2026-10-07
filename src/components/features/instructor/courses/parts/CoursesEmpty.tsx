@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, ChevronRight } from "lucide-react";
 
-import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor-courses";
+import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor/courses-page";
 
 import styles from "../InstructorCourses.module.scss";
 

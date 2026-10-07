@@ -2,7 +2,7 @@
 
 import { Bell } from "lucide-react";
 
-import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin-notifications";
+import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
 
 import { useAdminAnnouncements } from "./hooks/useAdminAnnouncements";
 import AnnouncementForm from "./parts/AnnouncementForm";

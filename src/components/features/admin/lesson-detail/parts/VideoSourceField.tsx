@@ -1,4 +1,4 @@
-import { ADMIN_LESSON_DETAIL as C } from "@/src/constants/admin-lesson-detail";
+import { ADMIN_LESSON_DETAIL as C } from "@/src/constants/admin/lesson-detail-page";
 
 import type { AdminLessonDetailState } from "../hooks/useAdminLessonDetail";
 import styles from "../AdminLessonDetail.module.scss";

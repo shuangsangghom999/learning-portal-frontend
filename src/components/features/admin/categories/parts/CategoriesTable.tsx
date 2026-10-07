@@ -1,6 +1,6 @@
 import { Edit3, FolderOpen, Loader2, Trash2 } from "lucide-react";
 
-import { ADMIN_CATEGORIES as C } from "@/src/constants/admin-categories";
+import { ADMIN_CATEGORIES as C } from "@/src/constants/admin/categories-page";
 import type { Category } from "@/src/services/categoryService";
 
 import styles from "../AdminCategories.module.scss";

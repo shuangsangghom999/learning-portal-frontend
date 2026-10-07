@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 
-import { BlogDetail, layBai } from "@/src/components/features/blog";
-import { BLOG } from "@/src/constants/blog";
+import ArticleWithOutline from "@/src/components/common/ArticleWithOutline";
+import {
+  BlogDetailHeader,
+  BlogDetailShell,
+  layBai,
+} from "@/src/components/features/portal/blog";
+import { BLOG } from "@/src/constants/portal/blog-page";
 
 export const revalidate = 30;
 
@@ -25,5 +30,13 @@ export default async function BlogDetailPage({
   const bai = await layBai(slug);
   if (!bai) notFound();
 
-  return <BlogDetail bai={bai} />;
+  return (
+    <BlogDetailShell>
+      <BlogDetailHeader bai={bai} />
+      <ArticleWithOutline
+        content={bai.content ?? ""}
+        goiYKhiTrong={BLOG.detail.noOutline}
+      />
+    </BlogDetailShell>
+  );
 }

@@ -1,4 +1,4 @@
-import { INSTRUCTOR_COURSE_CREATE as C } from "@/src/constants/instructor-course-create";
+import { INSTRUCTOR_COURSE_CREATE as C } from "@/src/constants/instructor/course-create-page";
 import type { FieldChangeEvent } from "@/src/types/course-form";
 
 import styles from "../InstructorCourseCreate.module.scss";

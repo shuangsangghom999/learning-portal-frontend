@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { layMucLuc, phanTichNoiDung } from "@/src/components/common/articleOutline";
-import { laHtml, neoHoaTieuDe } from "@/src/components/common/postHtml";
-import { ADMIN_POST_CREATE as C } from "@/src/constants/admin-post-create";
+import { layMucLuc, phanTichNoiDung } from "@/src/lib/article-outline";
+import { laHtml, neoHoaTieuDe } from "@/src/lib/post-html";
+import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { postService, type Topic } from "@/src/services/post";
 

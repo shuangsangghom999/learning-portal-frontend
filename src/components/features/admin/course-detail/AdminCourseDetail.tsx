@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { LayoutGrid, Video } from "lucide-react";
 
-import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin-course-detail";
+import { ADMIN_COURSE_DETAIL as C } from "@/src/constants/admin/course-detail-page";
 
 import { useAdminCourseDetail } from "./hooks/useAdminCourseDetail";
 import CourseEditFields from "./parts/CourseEditFields";

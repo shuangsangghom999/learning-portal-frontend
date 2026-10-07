@@ -1,6 +1,6 @@
 import { Edit2, Link2, Trash2 } from "lucide-react";
 
-import { ADMIN_BANNERS as C } from "@/src/constants/admin-banners";
+import { ADMIN_BANNERS as C } from "@/src/constants/admin/banners-page";
 
 import type { AdminBannersState } from "../hooks/useAdminBanners";
 import styles from "../AdminBanners.module.scss";

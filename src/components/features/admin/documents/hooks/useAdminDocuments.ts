@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { khoaTuTenMon } from "@/src/components/document/fileInfo";
-import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin-documents";
+import { khoaTuTenMon } from "@/src/lib/document/file-info";
+import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin/documents-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   documentService,

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ImageOff, Link2, UploadCloud, X } from "lucide-react";
 
 import SafeImage from "@/src/components/ui/SafeImage";
-import { ADMIN_USERS as C } from "@/src/constants/admin-users";
+import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 
 import type { AdminUser } from "../hooks/useAdminUsers";
 import styles from "../AdminUsers.module.scss";

@@ -1,6 +1,6 @@
 import { Power, Users } from "lucide-react";
 
-import { ADMIN_VOUCHERS as C } from "@/src/constants/admin-vouchers";
+import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 
 import type { MaHienThi } from "../hooks/useAdminVouchers";
 import styles from "../AdminVouchers.module.scss";

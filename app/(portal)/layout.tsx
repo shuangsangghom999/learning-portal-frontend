@@ -1,8 +1,6 @@
 import { Be_Vietnam_Pro, Lexend } from "next/font/google";
-import "../globals.css";
 
 import { PortalShell, portalShellStyles } from "@/src/components/features/portal/layout";
-import { PORTAL_LAYOUT } from "@/src/constants/portal-layout";
 
 // Hai bo chu nay CHI nap o khu vuc hoc vien. Trang quan tri co layout rieng
 // va khong dat hai bien nay, nen no van dung Inter nhu cu - doi giao dien
@@ -26,22 +24,16 @@ const chuHien = Lexend({
   display: "swap",
 });
 
-// <html>/<body> va font phai nam o root layout nen giu lai day; phan con lai
-// (header, footer, hop dang nhap...) nam trong PortalShell.
-export default function PortalRootLayout({
+// Hai bien font dat tren the boc cua portal (khong phai <html>) vi root layout
+// gio dung chung voi admin/instructor. CSS cua the boc: PortalShell.module.scss.
+export default function PortalLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang={PORTAL_LAYOUT.lang}
-      className={`${chuThan.variable} ${chuHien.variable}`}
-      suppressHydrationWarning
-    >
-      <body className={portalShellStyles.box}>
-        <PortalShell>{children}</PortalShell>
-      </body>
-    </html>
+    <div className={`${chuThan.variable} ${chuHien.variable} ${portalShellStyles.box}`}>
+      <PortalShell>{children}</PortalShell>
+    </div>
   );
 }

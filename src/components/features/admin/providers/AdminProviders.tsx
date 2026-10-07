@@ -2,7 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 
-import { ADMIN_PROVIDERS as C } from "@/src/constants/admin-providers";
+import { ADMIN_PROVIDERS as C } from "@/src/constants/admin/providers-page";
 
 import { useAdminProviders } from "./hooks/useAdminProviders";
 import ProviderForm from "./parts/ProviderForm";

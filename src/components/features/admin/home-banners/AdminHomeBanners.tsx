@@ -2,7 +2,7 @@
 
 import { Loader2, Search, SlidersHorizontal } from "lucide-react";
 
-import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin-home-banners";
+import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin/home-banners-page";
 
 import { useHomeBanners } from "./hooks/useHomeBanners";
 import HomeBannerRow from "./parts/HomeBannerRow";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
 
-import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor-lessons";
+import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor/lessons-page";
 
 import styles from "../InstructorLessons.module.scss";
 

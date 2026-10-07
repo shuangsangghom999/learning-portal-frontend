@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CircleCheck, Send } from "lucide-react";
 
 import AnhDaiDien from "@/src/components/ui/Avatar";
-import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor-questions";
+import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-page";
 import { khoangCach, tenHienThi } from "@/src/lib/time";
 import type { CauHoiChoGiangVien } from "@/src/services/question";
 

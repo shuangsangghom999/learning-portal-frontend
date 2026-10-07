@@ -1,6 +1,6 @@
 import { Building2, Check, Tag, User as UserIcon } from "lucide-react";
 
-import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin-course-create";
+import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin/course-create-page";
 import type { Category } from "@/src/services/categoryService";
 import type { ProviderData } from "@/src/services/provider";
 import type { User } from "@/src/services/userApi";

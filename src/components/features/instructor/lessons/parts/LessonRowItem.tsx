@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BarChart2, FileQuestion, Video } from "lucide-react";
 
-import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor-lessons";
+import { INSTRUCTOR_LESSONS as C } from "@/src/constants/instructor/lessons-page";
 import type { Quiz } from "@/src/services/quizService";
 import type { LessonRow } from "@/src/types/lesson";
 

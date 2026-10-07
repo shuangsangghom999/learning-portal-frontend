@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin-course-create";
+import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin/course-create-page";
 import { convertToSlug } from "@/src/lib/slug";
 import { getCategories, Category } from "@/src/services/categoryService";
 import { createCourse } from "@/src/services/course";

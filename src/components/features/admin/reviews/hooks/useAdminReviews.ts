@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_REVIEWS as C } from "@/src/constants/admin-reviews";
+import { ADMIN_REVIEWS as C } from "@/src/constants/admin/reviews-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { reviewService, Review } from "@/src/services/review";
 

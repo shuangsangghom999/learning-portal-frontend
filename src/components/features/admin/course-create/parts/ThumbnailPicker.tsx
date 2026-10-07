@@ -4,7 +4,7 @@
    nen dung the <img> o day moi dung. */
 import { ImageIcon, Image as ImageIcon2 } from "lucide-react";
 
-import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin-course-create";
+import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin/course-create-page";
 
 import styles from "../AdminCourseCreate.module.scss";
 

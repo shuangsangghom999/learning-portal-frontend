@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_POSTS as C, type PostStatusFilter } from "@/src/constants/admin-posts";
+import {
+  ADMIN_POSTS as C,
+  type PostStatusFilter,
+} from "@/src/constants/admin/posts-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { postService, type BlogPost, type Topic } from "@/src/services/post";
 

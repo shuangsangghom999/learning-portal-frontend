@@ -1,6 +1,6 @@
 import { Building2 } from "lucide-react";
 
-import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor-course-detail";
+import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor/course-detail-page";
 import type { ProviderData } from "@/src/services/provider";
 import type { CourseEditFormData, FieldChangeEvent } from "@/src/types/course-form";
 

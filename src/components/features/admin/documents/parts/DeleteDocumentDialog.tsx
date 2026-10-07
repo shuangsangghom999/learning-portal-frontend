@@ -1,4 +1,4 @@
-import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin-documents";
+import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin/documents-page";
 
 import type { AdminDocumentsState } from "../hooks/useAdminDocuments";
 import styles from "../AdminDocuments.module.scss";

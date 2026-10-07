@@ -1,4 +1,4 @@
-import { DE_LUYEN_TAP } from "@/src/components/practice/practiceData";
+import { DE_LUYEN_TAP } from "@/src/components/features/portal/practice/practiceData";
 
 /** De luyen tap theo id; undefined khi khong co (trang goi notFound()). */
 export const timDe = (id: string) => DE_LUYEN_TAP.find((d) => d.id === id);

@@ -1,7 +1,7 @@
 import { Eye, ImageOff, ListTree } from "lucide-react";
 
 import SafeImage from "@/src/components/ui/SafeImage";
-import { ADMIN_POST_CREATE as C } from "@/src/constants/admin-post-create";
+import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 
 import type { PostEditorState } from "../hooks/usePostEditor";
 import styles from "../AdminPostCreate.module.scss";

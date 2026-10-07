@@ -7,7 +7,7 @@ import {
   INSTRUCTOR_COURSE_ROUTES,
   INSTRUCTOR_LESSON_ROUTES,
   INSTRUCTOR_SHELL as C,
-} from "@/src/constants/instructor-menu";
+} from "@/src/constants/instructor/menu";
 import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
 import { xoaPhien } from "@/src/services/apiHelper";
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin-home-banners";
+import { ADMIN_HOME_BANNERS as C } from "@/src/constants/admin/home-banners-page";
 import { apiRequest } from "@/src/services/apiHelper";
 import { bannerService, BannerData } from "@/src/services/banner";
 

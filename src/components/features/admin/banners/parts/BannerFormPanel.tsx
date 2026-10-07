@@ -1,6 +1,6 @@
 import { Link2, Loader2, Save, X } from "lucide-react";
 
-import { ADMIN_BANNERS as C } from "@/src/constants/admin-banners";
+import { ADMIN_BANNERS as C } from "@/src/constants/admin/banners-page";
 import type { BannerData } from "@/src/services/banner";
 
 import type { AdminBannersState } from "../hooks/useAdminBanners";

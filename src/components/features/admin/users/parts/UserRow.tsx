@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import AnhDaiDien from "@/src/components/ui/Avatar";
-import { ADMIN_USERS as C } from "@/src/constants/admin-users";
+import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 
 import type { AdminUser } from "../hooks/useAdminUsers";
 import styles from "../AdminUsers.module.scss";

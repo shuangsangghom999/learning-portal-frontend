@@ -1,6 +1,6 @@
 import { Loader2, X } from "lucide-react";
 
-import { ADMIN_FAQS as C } from "@/src/constants/admin-faqs";
+import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
 import type { FaqManager } from "@/src/hooks/useFaqManager";
 
 import styles from "../AdminFaqs.module.scss";

@@ -2,8 +2,8 @@
 
 import { Loader2, Plus, Search } from "lucide-react";
 
-import Pager from "@/src/components/common/Pager";
-import { ADMIN_USERS as C } from "@/src/constants/admin-users";
+import Pager from "@/src/components/ui/Pager";
+import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 
 import { useAdminUsers } from "./hooks/useAdminUsers";
 import AvatarViewer from "./parts/AvatarViewer";

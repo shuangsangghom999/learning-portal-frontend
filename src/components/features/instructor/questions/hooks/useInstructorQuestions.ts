@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor-questions";
+import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-page";
 import {
   layCauHoiChoGiangVien,
   traLoiCauHoi,

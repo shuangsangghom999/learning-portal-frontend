@@ -1,6 +1,6 @@
 "use client";
 
-import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor-courses";
+import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor/courses-page";
 
 import { useInstructorCourses } from "./hooks/useInstructorCourses";
 import CoursesEmpty from "./parts/CoursesEmpty";

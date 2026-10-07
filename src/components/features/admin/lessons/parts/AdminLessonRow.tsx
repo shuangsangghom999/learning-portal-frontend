@@ -9,7 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { ADMIN_LESSONS as C } from "@/src/constants/admin-lessons";
+import { ADMIN_LESSONS as C } from "@/src/constants/admin/lessons-page";
 import type { Quiz } from "@/src/services/quizService";
 import type { LessonRow } from "@/src/types/lesson";
 

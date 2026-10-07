@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
 
-import { INSTRUCTOR_LESSON_DETAIL as C } from "@/src/constants/instructor-lesson-detail";
+import { INSTRUCTOR_LESSON_DETAIL as C } from "@/src/constants/instructor/lesson-detail-page";
 
 import styles from "../InstructorLessonDetail.module.scss";
 

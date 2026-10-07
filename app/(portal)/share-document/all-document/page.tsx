@@ -1,11 +1,15 @@
-import type { BoLoc } from "@/src/components/document/ShareDocumentClient";
-import { docLoai, docTuKhoa, doiKhoa } from "@/src/components/document/taiLieuMayChu";
+import type { BoLoc } from "@/src/components/features/portal/share-document/parts/ShareDocumentClient";
+import {
+  docLoai,
+  docTuKhoa,
+  doiKhoa,
+} from "@/src/components/features/portal/share-document/taiLieuMayChu";
 import {
   DocumentBrowser,
   layDuLieuTatCaTaiLieu,
   tenBoLoc,
-} from "@/src/components/features/share-document";
-import { SHARE_DOCUMENT } from "@/src/constants/share-document";
+} from "@/src/components/features/portal/share-document";
+import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

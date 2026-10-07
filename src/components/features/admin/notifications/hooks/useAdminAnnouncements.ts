@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin-notifications";
+import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
 import {
   guiThongBaoQuanTri,
   layThongBaoChungQuanTri,

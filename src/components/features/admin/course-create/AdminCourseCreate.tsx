@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
-import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin-course-create";
+import { ADMIN_COURSE_CREATE as C } from "@/src/constants/admin/course-create-page";
 
 import { useAdminCourseCreate } from "./hooks/useAdminCourseCreate";
 import AssignmentFields from "./parts/AssignmentFields";

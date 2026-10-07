@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin-category-create";
+import { ADMIN_CATEGORY_CREATE as C } from "@/src/constants/admin/category-create-page";
 import { convertToSlug } from "@/src/lib/slug";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { createCategory } from "@/src/services/categoryService";

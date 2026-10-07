@@ -1,6 +1,6 @@
 import { AlertCircle, CheckCircle, X } from "lucide-react";
 
-import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin-document-subjects";
+import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
 
 import type { DocumentCatalogState } from "../hooks/useDocumentCatalog";
 import styles from "../AdminDocumentSubjects.module.scss";

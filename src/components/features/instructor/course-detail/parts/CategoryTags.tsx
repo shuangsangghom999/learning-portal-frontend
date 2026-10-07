@@ -1,6 +1,6 @@
 import { Check, Tag } from "lucide-react";
 
-import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor-course-detail";
+import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor/course-detail-page";
 import type { Category } from "@/src/services/categoryService";
 
 import styles from "../InstructorCourseDetail.module.scss";

@@ -1,5 +1,5 @@
-import { CourseSearchPage } from "@/src/components/features/courses";
-import { COURSES_PAGE } from "@/src/constants/courses-page";
+import { CourseSearchPage } from "@/src/components/features/portal/courses";
+import { COURSES_PAGE } from "@/src/constants/portal/courses-page";
 
 export const metadata = COURSES_PAGE.metadata;
 

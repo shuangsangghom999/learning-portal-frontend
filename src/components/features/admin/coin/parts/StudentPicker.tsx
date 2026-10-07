@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 
-import { ADMIN_COIN as C } from "@/src/constants/admin-coin";
+import { ADMIN_COIN as C } from "@/src/constants/admin/coin-page";
 import type { User } from "@/src/services/userApi";
 
 import styles from "../AdminCoin.module.scss";

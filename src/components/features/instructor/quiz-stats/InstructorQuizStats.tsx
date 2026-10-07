@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor-quiz-stats";
+import { INSTRUCTOR_QUIZ_STATS as C } from "@/src/constants/instructor/quiz-stats-page";
 
 import { useInstructorQuizStats } from "./hooks/useInstructorQuizStats";
 import RetryModal from "./parts/RetryModal";

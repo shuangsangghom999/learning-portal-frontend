@@ -1,6 +1,6 @@
 "use client";
 
-import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin-document-subjects";
+import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
 
 import { useDocumentCatalog } from "./hooks/useDocumentCatalog";
 import CatalogAlerts from "./parts/CatalogAlerts";

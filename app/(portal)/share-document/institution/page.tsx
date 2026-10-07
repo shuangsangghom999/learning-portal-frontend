@@ -1,6 +1,6 @@
-import InstitutionDirectory from "@/src/components/document/InstitutionDirectory";
-import { layDsTruong } from "@/src/components/document/taiLieuMayChu";
-import { SHARE_DOCUMENT } from "@/src/constants/share-document";
+import { InstitutionDirectory } from "@/src/components/features/portal/share-document";
+import { layDsTruong } from "@/src/components/features/portal/share-document/taiLieuMayChu";
+import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
 export const metadata = SHARE_DOCUMENT.institutions.metadata;
 

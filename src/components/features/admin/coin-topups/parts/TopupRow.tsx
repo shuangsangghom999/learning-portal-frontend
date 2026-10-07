@@ -1,6 +1,6 @@
 import { Ban, Check, Clock } from "lucide-react";
 
-import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin-coin-topups";
+import { ADMIN_COIN_TOPUPS as C } from "@/src/constants/admin/coin-topups-page";
 import type { TrangThaiNap, YeuCauNapAdmin } from "@/src/services/coin.api";
 
 import styles from "../AdminCoinTopups.module.scss";

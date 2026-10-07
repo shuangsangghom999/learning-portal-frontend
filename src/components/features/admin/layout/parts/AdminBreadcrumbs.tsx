@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ADMIN_SHELL as C } from "@/src/constants/admin-menu";
+import { ADMIN_SHELL as C } from "@/src/constants/admin/menu";
 
 import styles from "../AdminShell.module.scss";
 
