@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useStoredUser } from "@/src/hooks/userStore";
 import {
   createUserAdmin,
   deleteUserAdmin,
@@ -12,7 +12,7 @@ import {
   updateUserStatusAdmin,
 } from "@/src/services/adminService";
 import { getErrorMessage } from "@/src/services/apiHelper";
-import { loiMatKhauMoi } from "@/src/services/rules";
+import { newPasswordError } from "@/src/services/rules";
 import type { User } from "@/src/services/userApi";
 
 // Dung chung kieu User cua tang service (truoc day khai lai mot ban rieng)
@@ -53,24 +53,24 @@ export function useAdminUsers() {
   const [formError, setFormError] = useState("");
 
   // Id cua chinh minh -> khong cho tu khoa / tu xoa (backend cung chan)
-  const myId = useNguoiDungLuu()?._id ?? null;
+  const myId = useStoredUser()?._id ?? null;
 
   // Nguoi dung dang duoc xem anh phong to. null = dong.
-  const [xemAnh, setXemAnh] = useState<AdminUser | null>(null);
+  const [viewImage, setViewImage] = useState<AdminUser | null>(null);
 
   // Ban ghi dang sua - chi de hien anh dai dien trong modal. Form khong giu
   // avatar vi man hinh nay khong sua anh: anh do chinh nguoi dung tu doi.
-  const [dangSua, setDangSua] = useState<AdminUser | null>(null);
+  const [editing, setEditing] = useState<AdminUser | null>(null);
 
   // Esc de dong khung xem anh. Chi gan listener khi khung dang mo.
   useEffect(() => {
-    if (!xemAnh) return;
+    if (!viewImage) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setXemAnh(null);
+      if (e.key === "Escape") setViewImage(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [xemAnh]);
+  }, [viewImage]);
 
   // Go phim xong 400ms moi goi API
   useEffect(() => {
@@ -123,14 +123,14 @@ export function useAdminUsers() {
   };
 
   const openCreate = () => {
-    setDangSua(null);
+    setEditing(null);
     setForm(emptyForm);
     setFormError("");
     setEditingId("");
   };
 
   const openEdit = (u: AdminUser) => {
-    setDangSua(u);
+    setEditing(u);
     setForm({
       name: u.name ?? "",
       email: u.email ?? "",
@@ -157,9 +157,11 @@ export function useAdminUsers() {
     // Ca hai truong hop, khi CO mat khau thi phai qua dung bo quy tac ma backend
     // dung (services/rules.ts) - truoc day cho nay chi kiem do dai toi thieu.
     if (!editingId || form.password) {
-      const loiMk = loiMatKhauMoi(form.password);
-      if (loiMk) {
-        setFormError(editingId ? loiMk.replace("Mật khẩu", "Mật khẩu mới") : loiMk);
+      const passwordError = newPasswordError(form.password);
+      if (passwordError) {
+        setFormError(
+          editingId ? passwordError.replace("Mật khẩu", "Mật khẩu mới") : passwordError,
+        );
         return;
       }
     }
@@ -244,9 +246,9 @@ export function useAdminUsers() {
     setForm,
     formError,
     myId,
-    xemAnh,
-    setXemAnh,
-    dangSua,
+    viewImage,
+    setViewImage,
+    editing,
     openCreate,
     openEdit,
     closeModal,

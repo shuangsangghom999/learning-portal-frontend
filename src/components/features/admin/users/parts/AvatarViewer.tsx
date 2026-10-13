@@ -13,10 +13,10 @@ import styles from "../AdminUsers.module.scss";
  * Tach rieng de state loi tu reset: khung xem duoc gan key theo _id, doi nguoi
  * la component nay unmount roi mount lai, khong can effect nao de xoa co loi.
  */
-function AnhPhongTo({ src, ten }: { src: string; ten?: string }) {
-  const [loi, setLoi] = useState(false);
+function ZoomedImage({ src, ten: name }: { src: string; ten?: string }) {
+  const [err, setErr] = useState(false);
 
-  if (loi) {
+  if (err) {
     return (
       <div className={styles.col}>
         <ImageOff size={32} />
@@ -29,10 +29,10 @@ function AnhPhongTo({ src, ten }: { src: string; ten?: string }) {
   return (
     <SafeImage
       src={src}
-      alt={C.avatar.alt(ten)}
+      alt={C.avatar.alt(name)}
       width={512}
       height={512}
-      onError={() => setLoi(true)}
+      onError={() => setErr(true)}
       className={styles.box}
     />
   );
@@ -59,7 +59,7 @@ export default function AvatarViewer({ user, onClose }: AvatarViewerProps) {
         </div>
 
         <div className={styles.row9}>
-          <AnhPhongTo key={user._id} src={user.avatar} ten={user.name} />
+          <ZoomedImage key={user._id} src={user.avatar} ten={user.name} />
         </div>
 
         <div className={styles.stack2}>

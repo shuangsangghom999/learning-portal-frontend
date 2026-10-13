@@ -1,6 +1,6 @@
 import { CheckCircle2, PlayCircle, XCircle, type LucideIcon } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin/enrollments-page";
 import type { AdminEnrollmentRow } from "@/src/services/adminService";
 
@@ -8,9 +8,9 @@ import styles from "../AdminEnrollments.module.scss";
 
 /** Mau va bieu tuong cua nhan trang thai. */
 const STATUS_STYLE: Record<string, { cls: string; Icon: LucideIcon }> = {
-  active: { cls: styles.nhanDangHoc, Icon: PlayCircle },
-  completed: { cls: styles.nhanHoanThanh, Icon: CheckCircle2 },
-  dropped: { cls: styles.nhanDaBo, Icon: XCircle },
+  active: { cls: styles.learningLabel, Icon: PlayCircle },
+  completed: { cls: styles.completedLabel, Icon: CheckCircle2 },
+  dropped: { cls: styles.droppedLabel, Icon: XCircle },
 };
 
 interface EnrollmentRowProps {
@@ -29,7 +29,7 @@ export default function EnrollmentRow({ r, busy, onChangeStatus }: EnrollmentRow
     <tr className={styles.row2}>
       <td className={styles.headCell}>
         <div className={styles.row3}>
-          <AnhDaiDien src={r.student?.avatar} ten={r.student?.name} size={36} />
+          <Avatar src={r.student?.avatar} ten={r.student?.name} size={36} />
           <div className={styles.box}>
             <p className={styles.text2}>{r.student?.name || C.deleted}</p>
             <p className={styles.text3}>{r.student?.email || C.none}</p>

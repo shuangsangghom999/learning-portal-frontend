@@ -17,52 +17,49 @@ import {
   ZoomOut,
 } from "lucide-react";
 
-import {
-  doiDiaChi,
-  duongDanDangNhap,
-} from "@/src/components/features/portal/auth/loginUrl";
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
+import { updateUrl, loginUrl } from "@/src/components/features/portal/auth/loginUrl";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
 
 import PracticeResult from "./PracticeResult";
-import { NAP_CAU_HOI, type CauHoi, type DeLuyenTap } from "./practiceData";
+import { QUESTION_LOADERS, type Question, type PracticeQuiz } from "./practiceData";
 import {
-  apThuTu,
-  chiaBo,
-  docThietLap,
-  thuTuDapAnNgauNhien,
-  traLoiDung,
-  xaoTron,
-  type ThietLap,
+  applyOrder,
+  splitBuckets,
+  readSettings,
+  shuffleAnswers,
+  correctAnswer,
+  shuffle,
+  type Settings,
 } from "./practiceSettings";
-import { luuBaiLam } from "@/src/services/practice";
+import { saveAttempt } from "@/src/services/practice";
 
 import styles from "./PracticeTest.module.scss";
 
 // Phong lam bai theo mau trang thi cua chu du an: thanh tren co dinh, the cau
 // hoi voi dap an A-D, cot "Danh sach cau hoi" ben phai.
 
-type CheDo = "list" | "single" | "split";
-type GiaiDoan = "nap" | "lam" | "xong";
+type Mode = "list" | "single" | "split";
+type Phase = "nap" | "lam" | "xong";
 
-const CHE_DO: { id: CheDo; nhan: string; Icon: typeof List }[] = [
+const MODES: { id: Mode; nhan: string; Icon: typeof List }[] = [
   { id: "list", nhan: "Hiển thị danh sách câu hỏi", Icon: List },
   { id: "single", nhan: "Hiển thị từng câu hỏi", Icon: Rows3 },
   { id: "split", nhan: "Tách câu hỏi và đáp án", Icon: Columns2 },
 ];
 
-const CO_CHU_MIN = 1;
-const CO_CHU_MAX = 1.5;
-const CHU_CAI = "ABCDEFGH";
+const FONT_SIZE_MIN = 1;
+const FONT_SIZE_MAX = 1.5;
+const LETTERS = "ABCDEFGH";
 
 const gon = (s: string) => s.replace(/\s+/g, " ").trim();
-const hai = (n: number) => String(n).padStart(2, "0");
-const dongHo = (giay: number) => {
-  const g = Math.max(0, giay);
-  return `${hai(Math.floor(g / 3600))} : ${hai(Math.floor((g % 3600) / 60))} : ${hai(g % 60)}`;
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const timer = (seconds: number) => {
+  const g = Math.max(0, seconds);
+  return `${pad2(Math.floor(g / 3600))} : ${pad2(Math.floor((g % 3600) / 60))} : ${pad2(g % 60)}`;
 };
 
 /** Du lieu da loc san luc chuyen doi (anh https, MathML, the dinh dang) nen gan thang. */
-function NoiDung({ html, s }: { html?: boolean; s: string }) {
+function Content({ html, s }: { html?: boolean; s: string }) {
   return html ? (
     <span className={styles.giau} dangerouslySetInnerHTML={{ __html: s }} />
   ) : (
@@ -71,230 +68,231 @@ function NoiDung({ html, s }: { html?: boolean; s: string }) {
 }
 
 interface Props {
-  de: DeLuyenTap;
+  de: PracticeQuiz;
 }
 
-export default function PracticeTest({ de }: Props) {
+export default function PracticeTest({ de: quiz }: Props) {
   const router = useRouter();
-  const duongDan = usePathname();
-  const nguoiDung = useNguoiDungLuu();
-  const dangTai = useDangTaiNguoiDung();
-  const napCauHoi = NAP_CAU_HOI[de.id];
+  const path = usePathname();
+  const user = useStoredUser();
+  const loading = useUserLoading();
+  const loadQuestions = QUESTION_LOADERS[quiz.id];
 
-  const [giaiDoan, setGiaiDoan] = useState<GiaiDoan>("nap");
-  const [tl, setTl] = useState<ThietLap | null>(null);
-  const [goc, setGoc] = useState<CauHoi[]>([]); // bo cau theo thu tu goc
-  const [ds, setDs] = useState<CauHoi[]>([]); // bo cau dang lam (co the da xao)
-  const [tuCau, setTuCau] = useState(1);
-  const [chon, setChon] = useState<(number[] | undefined)[]>([]);
-  const [hienTai, setHienTai] = useState(0);
-  const [cheDo, setCheDo] = useState<CheDo>("list");
-  const [coChu, setCoChu] = useState(1);
-  const [batDau, setBatDau] = useState(0);
-  const [bayGio, setBayGio] = useState(0);
-  const [ketThuc, setKetThuc] = useState(0);
-  const [hop, setHop] = useState<"nop" | "thoat" | null>(null);
-  const [moMenu, setMoMenu] = useState(false);
-  const [moDs, setMoDs] = useState(false);
-  const [loiNap, setLoiNap] = useState(false);
+  const [phase, setPhase] = useState<Phase>("nap");
+  const [tl, setTl] = useState<Settings | null>(null);
+  const [origin, setOrigin] = useState<Question[]>([]); // bo cau theo thu tu goc
+  const [items, setDs] = useState<Question[]>([]); // bo cau dang lam (co the da xao)
+  const [fromQuestion, setFromQuestion] = useState(1);
+  const [choice, setChoice] = useState<(number[] | undefined)[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [mode, setMode] = useState<Mode>("list");
+  const [fontSize, setFontSize] = useState(1);
+  const [start, setStart] = useState(0);
+  const [nowMs, setNowMs] = useState(0);
+  const [endsAt, setEndsAt] = useState(0);
+  const [box, setBox] = useState<"nop" | "thoat" | null>(null);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [openList, setOpenList] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   // Vi tri cau trong file de + thu tu dap an da hien: du de dung lai dung bai
   // nay khi mo lai tu lich su. Xem backend/src/utils/practiceAttempt.js.
-  const [nguon, setNguon] = useState<{ cau: number[]; dapAn: number[][] }>({
+  const [source, setSource] = useState<{ cau: number[]; dapAn: number[][] }>({
     cau: [],
     dapAn: [],
   });
-  const [luu, setLuu] = useState<"dang" | "xong" | "loi" | null>(null);
-  const daGui = useRef(false);
+  const [save, setSave] = useState<"dang" | "xong" | "loi" | null>(null);
+  const sent = useRef(false);
 
-  const vungCuon = useRef<HTMLDivElement>(null);
+  const scrollArea = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Bat dau (hoac lam lai) mot luot tu bo cau goc
-  const batDauLuot = useCallback((bo: CauHoi[], t: ThietLap, tu: number) => {
-    const chiSo = bo.map((_, k) => k);
-    const thuTuCau = t.xaoTron ? xaoTron(chiSo) : chiSo;
-    const thuTuDapAn = thuTuCau.map((k) => (t.xaoTron ? thuTuDapAnNgauNhien(bo[k]) : []));
-    const moi = thuTuCau.map((k, i) => apThuTu(bo[k], thuTuDapAn[i]));
-    setNguon({ cau: thuTuCau.map((k) => tu - 1 + k), dapAn: thuTuDapAn });
-    setLuu(null);
-    daGui.current = false;
-    setDs(moi);
-    setChon(Array(moi.length).fill(undefined));
-    setHienTai(0);
+  const startAttempt = useCallback((remove: Question[], t: Settings, word: number) => {
+    const index = remove.map((_, k) => k);
+    const questionOrder = t.shuffle ? shuffle(index) : index;
+    const answerOrder = questionOrder.map((k) =>
+      t.shuffle ? shuffleAnswers(remove[k]) : [],
+    );
+    const recent = questionOrder.map((k, i) => applyOrder(remove[k], answerOrder[i]));
+    setSource({ cau: questionOrder.map((k) => word - 1 + k), dapAn: answerOrder });
+    setSave(null);
+    sent.current = false;
+    setDs(recent);
+    setChoice(Array(recent.length).fill(undefined));
+    setCurrent(0);
     const now = Date.now();
-    setBatDau(now);
-    setBayGio(now);
-    setGiaiDoan("lam");
-    vungCuon.current?.scrollTo({ top: 0 });
+    setStart(now);
+    setNowMs(now);
+    setPhase("lam");
+    scrollArea.current?.scrollTo({ top: 0 });
   }, []);
 
   // Nap de + thiet lap sau khi gan vao trinh duyet (thiet lap nam o localStorage,
   // bo cau dang chon nam o ?bo= tren dia chi).
   useEffect(() => {
-    if (!napCauHoi || !nguoiDung) return;
-    let huy = false;
-    const t = docThietLap();
-    const cacBo = chiaBo(de.soCau, t.soLuong);
-    const so = Number(new URLSearchParams(window.location.search).get("bo"));
-    const bo = cacBo[Number.isInteger(so) && so >= 0 ? so : 0] ?? cacBo[0];
-    napCauHoi()
-      .then((tat) => {
-        if (huy) return;
-        const lat = tat.slice(bo.tu - 1, bo.den);
+    if (!loadQuestions || !user) return;
+    let cancel = false;
+    const t = readSettings();
+    const allBuckets = splitBuckets(quiz.soCau, t.soLuong);
+    const count = Number(new URLSearchParams(window.location.search).get("bo"));
+    const remove =
+      allBuckets[Number.isInteger(count) && count >= 0 ? count : 0] ?? allBuckets[0];
+    loadQuestions()
+      .then((off) => {
+        if (cancel) return;
+        const lat = off.slice(remove.tu - 1, remove.den);
         setTl(t);
-        setTuCau(bo.tu);
-        setGoc(lat);
-        batDauLuot(lat, t, bo.tu);
+        setFromQuestion(remove.tu);
+        setOrigin(lat);
+        startAttempt(lat, t, remove.tu);
       })
-      .catch(() => !huy && setLoiNap(true));
+      .catch(() => !cancel && setLoadError(true));
     return () => {
-      huy = true;
+      cancel = true;
     };
     // nguoiDung chi can co/khong: doi ten hien thi khong duoc nap lai bai
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [napCauHoi, de.soCau, !!nguoiDung, batDauLuot]);
+  }, [loadQuestions, quiz.soCau, !!user, startAttempt]);
 
   // Phong lam bai phu kin man hinh: khoa cuon trang phia sau
   useEffect(() => {
-    const truoc = document.body.style.overflow;
+    const before = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = truoc;
+      document.body.style.overflow = before;
     };
   }, []);
 
-  const daQua = Math.floor(((giaiDoan === "xong" ? ketThuc : bayGio) - batDau) / 1000);
-  const soDaLam = chon.filter((c) => c && c.length).length;
+  const passed = Math.floor(((phase === "xong" ? endsAt : nowMs) - start) / 1000);
+  const answeredCount = choice.filter((c) => c && c.length).length;
 
-  const nopBai = useCallback(() => {
-    setHop(null);
-    setLuu("dang");
-    setKetThuc(Date.now());
-    setGiaiDoan("xong");
-    setCheDo("list");
-    setMoDs(false);
-    vungCuon.current?.scrollTo({ top: 0, behavior: "smooth" });
+  const submit = useCallback(() => {
+    setBox(null);
+    setSave("dang");
+    setEndsAt(Date.now());
+    setPhase("xong");
+    setMode("list");
+    setOpenList(false);
+    scrollArea.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Nop xong thi luu vao lich su (mot lan - ref chan viec gui lai khi effect
   // chay hai lan o che do dev). Loi mang khong chan xem ket qua, chi bao lai.
   useEffect(() => {
-    if (luu !== "dang" || daGui.current) return;
-    daGui.current = true;
-    luuBaiLam({
-      deId: de.id,
-      cau: nguon.cau,
-      dapAn: nguon.dapAn,
-      chon: chon.map((c) => c ?? []),
-      soDung: ds.filter((c, i) => traLoiDung(chon[i], c.dung)).length,
-      giay: Math.max(0, Math.floor((ketThuc - batDau) / 1000)),
+    if (save !== "dang" || sent.current) return;
+    sent.current = true;
+    saveAttempt({
+      deId: quiz.id,
+      cau: source.cau,
+      dapAn: source.dapAn,
+      chon: choice.map((c) => c ?? []),
+      soDung: items.filter((c, i) => correctAnswer(choice[i], c.dung)).length,
+      giay: Math.max(0, Math.floor((endsAt - start) / 1000)),
     })
-      .then(() => setLuu("xong"))
-      .catch(() => setLuu("loi"));
-  }, [luu, de.id, nguon, chon, ds, ketThuc, batDau]);
+      .then(() => setSave("xong"))
+      .catch(() => setSave("loi"));
+  }, [save, quiz.id, source, choice, items, endsAt, start]);
 
   // Dong ho dem thoi gian da lam, moi giay mot nhip. Khong gioi han gio: chu
   // du an da bo "thoi gian dem nguoc" - luyen tap thi lam bao lau cung duoc.
   useEffect(() => {
-    if (giaiDoan !== "lam") return;
-    const id = setInterval(() => setBayGio(Date.now()), 1000);
+    if (phase !== "lam") return;
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [giaiDoan]);
+  }, [phase]);
 
   // Dang lam do dang ma dong tab / tai lai: hoi truoc
   useEffect(() => {
-    if (giaiDoan !== "lam" || soDaLam === 0) return;
-    const hoi = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", hoi);
-    return () => window.removeEventListener("beforeunload", hoi);
-  }, [giaiDoan, soDaLam]);
+    if (phase !== "lam" || answeredCount === 0) return;
+    const ask = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", ask);
+    return () => window.removeEventListener("beforeunload", ask);
+  }, [phase, answeredCount]);
 
   // Menu kieu hien thi: bam ra ngoai / Esc de dong
   useEffect(() => {
-    if (!moMenu) return;
-    const ngoai = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMoMenu(false);
+    if (!openMenu) return;
+    const outside = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpenMenu(false);
     };
-    const phim = (e: KeyboardEvent) => e.key === "Escape" && setMoMenu(false);
-    document.addEventListener("mousedown", ngoai);
+    const phim = (e: KeyboardEvent) => e.key === "Escape" && setOpenMenu(false);
+    document.addEventListener("mousedown", outside);
     window.addEventListener("keydown", phim);
     return () => {
-      document.removeEventListener("mousedown", ngoai);
+      document.removeEventListener("mousedown", outside);
       window.removeEventListener("keydown", phim);
     };
-  }, [moMenu]);
+  }, [openMenu]);
 
-  const daXongCau = (i: number) => {
-    const c = chon[i];
-    return !!c && c.length === ds[i].dung.length;
+  const answeredQuestion = (i: number) => {
+    const c = choice[i];
+    return !!c && c.length === items[i].dung.length;
   };
   // Dang lam KHONG lo dung/sai (chu du an da bo "hien dap an sau cau hoi"):
   // doi lai lua chon thoai mai, nop bai xong moi xem dap an.
-  const chonDapAn = (i: number, j: number) => {
-    if (giaiDoan !== "lam") return;
-    const c = ds[i];
-    const cu = chon[i] ?? [];
-    const moi =
+  const selectAnswer = (i: number, j: number) => {
+    if (phase !== "lam") return;
+    const c = items[i];
+    const old = choice[i] ?? [];
+    const recent =
       c.dung.length > 1
-        ? cu.includes(j)
-          ? cu.filter((x) => x !== j)
-          : cu.length < c.dung.length
-            ? [...cu, j]
-            : cu
+        ? old.includes(j)
+          ? old.filter((x) => x !== j)
+          : old.length < c.dung.length
+            ? [...old, j]
+            : old
         : [j];
-    setChon((ds0) => ds0.map((x, k) => (k === i ? moi : x)));
+    setChoice((ds0) => ds0.map((x, k) => (k === i ? recent : x)));
   };
 
-  const denCau = (i: number) => {
-    setMoDs(false);
-    if (cheDo === "list") {
+  const goToQuestion = (i: number) => {
+    setOpenList(false);
+    if (mode === "list") {
       document
         .getElementById(`cau-${i}`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    setHienTai(i);
+    setCurrent(i);
   };
 
   // Che do tung cau: phim mui ten de chuyen, A-D de chon
   useEffect(() => {
-    if (cheDo === "list" || giaiDoan === "nap") return;
+    if (mode === "list" || phase === "nap") return;
     const phim = (e: KeyboardEvent) => {
-      if (hop || (e.target as HTMLElement).closest("input, select, textarea")) return;
-      if (e.key === "ArrowRight") denCau(Math.min(hienTai + 1, ds.length - 1));
-      else if (e.key === "ArrowLeft") denCau(Math.max(hienTai - 1, 0));
+      if (box || (e.target as HTMLElement).closest("input, select, textarea")) return;
+      if (e.key === "ArrowRight") goToQuestion(Math.min(current + 1, items.length - 1));
+      else if (e.key === "ArrowLeft") goToQuestion(Math.max(current - 1, 0));
       else {
-        const j = CHU_CAI.indexOf(e.key.toUpperCase());
-        if (j >= 0 && j < (ds[hienTai]?.dapAn.length ?? 0)) chonDapAn(hienTai, j);
+        const j = LETTERS.indexOf(e.key.toUpperCase());
+        if (j >= 0 && j < (items[current]?.dapAn.length ?? 0)) selectAnswer(current, j);
       }
     };
     window.addEventListener("keydown", phim);
     return () => window.removeEventListener("keydown", phim);
   });
 
-  const quayLai = () => {
-    if (giaiDoan === "lam" && soDaLam > 0) setHop("thoat");
-    else router.push(`/practice/${de.id}`);
+  const goBack = () => {
+    if (phase === "lam" && answeredCount > 0) setBox("thoat");
+    else router.push(`/practice/${quiz.id}`);
   };
 
-  const ten = nguoiDung?.fullname || nguoiDung?.name || "Bạn";
+  const name = user?.fullname || user?.name || "Bạn";
 
   /* ---------- Chua dang nhap / dang nap ---------- */
-  if (!dangTai && !nguoiDung) {
+  if (!loading && !user) {
     return (
       <div className={styles.phong}>
         <div className={styles.giua}>
-          <p className={styles.giuaChu}>Đăng nhập để bắt đầu làm bài luyện tập.</p>
-          <div className={styles.giuaNut}>
-            <Link href={`/practice/${de.id}`} className={styles.nutPhu}>
+          <p className={styles.centerText}>Đăng nhập để bắt đầu làm bài luyện tập.</p>
+          <div className={styles.centerButton}>
+            <Link href={`/practice/${quiz.id}`} className={styles.secondaryButton}>
               Quay lại
             </Link>
             <button
               type="button"
-              className={styles.nutChinh}
+              className={styles.primaryButton}
               onClick={() =>
-                doiDiaChi(
-                  duongDanDangNhap(duongDan, new URLSearchParams(window.location.search)),
-                )
+                updateUrl(loginUrl(path, new URLSearchParams(window.location.search)))
               }
             >
               Đăng nhập
@@ -305,17 +303,17 @@ export default function PracticeTest({ de }: Props) {
     );
   }
 
-  if (giaiDoan === "nap" || !tl) {
+  if (phase === "nap" || !tl) {
     return (
       <div className={styles.phong}>
         <div className={styles.giua}>
-          <p className={styles.giuaChu}>
-            {loiNap || !napCauHoi
+          <p className={styles.centerText}>
+            {loadError || !loadQuestions
               ? "Không tải được câu hỏi của đề."
               : "Đang chuẩn bị đề…"}
           </p>
-          {(loiNap || !napCauHoi) && (
-            <Link href={`/practice/${de.id}`} className={styles.nutPhu}>
+          {(loadError || !loadQuestions) && (
+            <Link href={`/practice/${quiz.id}`} className={styles.secondaryButton}>
               Quay lại
             </Link>
           )}
@@ -325,42 +323,44 @@ export default function PracticeTest({ de }: Props) {
   }
 
   /* ---------- Mot the cau hoi ---------- */
-  const theCau = (i: number) => {
-    const c = ds[i];
-    const daChon = chon[i] ?? [];
-    const nhieu = c.dung.length > 1;
-    const phanCau = (
-      <div className={styles.cauDau}>
-        <div className={styles.cauSo}>Câu&nbsp; {i + 1}</div>
-        <div className={styles.cauChu}>
-          <NoiDung html={c.html} s={c.cau} />
+  const questionCard = (i: number) => {
+    const c = items[i];
+    const chosen = choice[i] ?? [];
+    const many = c.dung.length > 1;
+    const questionPart = (
+      <div className={styles.firstQuestion}>
+        <div className={styles.questionNumber}>Câu&nbsp; {i + 1}</div>
+        <div className={styles.questionText}>
+          <Content html={c.html} s={c.cau} />
         </div>
       </div>
     );
-    const phanDapAn = (
+    const answerPart = (
       <div>
         <div className={styles.gach}>
           <span>
-            {nhieu ? `Chọn ${c.dung.length} đáp án đúng` : "Chọn một đáp án đúng"}
+            {many ? `Chọn ${c.dung.length} đáp án đúng` : "Chọn một đáp án đúng"}
           </span>
         </div>
-        <div className={styles.dsDapAn} role={nhieu ? "group" : "radiogroup"}>
+        <div className={styles.answerList} role={many ? "group" : "radiogroup"}>
           {c.dapAn.map((a, j) => {
-            const duocChon = daChon.includes(j);
-            const lop = duocChon ? `${styles.dapAn} ${styles.dapAnChon}` : styles.dapAn;
+            const picked = chosen.includes(j);
+            const className = picked
+              ? `${styles.dapAn} ${styles.chosenAnswer}`
+              : styles.dapAn;
             return (
               <button
                 key={j}
                 type="button"
-                role={nhieu ? "checkbox" : "radio"}
-                aria-checked={duocChon}
-                disabled={giaiDoan !== "lam"}
-                onClick={() => chonDapAn(i, j)}
-                className={lop}
+                role={many ? "checkbox" : "radio"}
+                aria-checked={picked}
+                disabled={phase !== "lam"}
+                onClick={() => selectAnswer(i, j)}
+                className={className}
               >
-                <span className={styles.chuCai}>{CHU_CAI[j]}</span>
-                <span className={styles.dapAnChu}>
-                  <NoiDung html={c.html} s={a} />
+                <span className={styles.letter}>{LETTERS[j]}</span>
+                <span className={styles.answerLetter}>
+                  <Content html={c.html} s={a} />
                 </span>
               </button>
             );
@@ -372,23 +372,23 @@ export default function PracticeTest({ de }: Props) {
       <article
         key={i}
         id={`cau-${i}`}
-        className={cheDo === "split" ? `${styles.the} ${styles.theTach}` : styles.the}
+        className={mode === "split" ? `${styles.the} ${styles.splitCard}` : styles.the}
       >
-        {phanCau}
-        {phanDapAn}
+        {questionPart}
+        {answerPart}
       </article>
     );
   };
 
   const oDs = (
     <div className={styles.oDs}>
-      <h2 className={styles.oDsTieuDe}>Danh sách câu hỏi</h2>
+      <h2 className={styles.listCellTitle}>Danh sách câu hỏi</h2>
       <div className={styles.luoi}>
-        {ds.map((c, i) => {
-          const lop = [
-            styles.oSo,
-            daXongCau(i) && styles.oSoLam,
-            cheDo !== "list" && i === hienTai && styles.oSoHienTai,
+        {items.map((c, i) => {
+          const className = [
+            styles.numberCell,
+            answeredQuestion(i) && styles.answeredNumberCell,
+            mode !== "list" && i === current && styles.currentNumberCell,
           ]
             .filter(Boolean)
             .join(" ");
@@ -396,37 +396,38 @@ export default function PracticeTest({ de }: Props) {
             <button
               key={i}
               type="button"
-              className={lop}
-              onClick={() => denCau(i)}
-              aria-label={`Câu ${i + 1}${daXongCau(i) ? ", đã làm" : ""}`}
-              aria-current={cheDo !== "list" && i === hienTai ? "true" : undefined}
+              className={className}
+              onClick={() => goToQuestion(i)}
+              aria-label={`Câu ${i + 1}${answeredQuestion(i) ? ", đã làm" : ""}`}
+              aria-current={mode !== "list" && i === current ? "true" : undefined}
             >
-              {hai(i + 1)}
+              {pad2(i + 1)}
             </button>
           );
         })}
       </div>
-      <p className={styles.oDsChu}>
-        Đã làm {soDaLam}/{ds.length} câu
-        {tuCau > 1 && ` · câu ${tuCau} - ${tuCau + ds.length - 1} của đề`}
+      <p className={styles.listCellText}>
+        Đã làm {answeredCount}/{items.length} câu
+        {fromQuestion > 1 &&
+          ` · câu ${fromQuestion} - ${fromQuestion + items.length - 1} của đề`}
       </p>
     </div>
   );
 
   // Nop xong: man "da gui" roi trang xem dap an
-  if (giaiDoan === "xong") {
+  if (phase === "xong") {
     return (
       <div className={styles.phong}>
         <PracticeResult
-          tieuDe={de.title}
-          ten={ten}
-          ds={ds}
-          chon={chon}
-          daQua={daQua}
-          ketThuc={ketThuc}
-          quayLai={() => router.push(`/practice/${de.id}`)}
-          lamLai={() => batDauLuot(goc, tl, tuCau)}
-          luu={luu}
+          tieuDe={quiz.title}
+          ten={name}
+          ds={items}
+          chon={choice}
+          daQua={passed}
+          ketThuc={endsAt}
+          goBack={() => router.push(`/practice/${quiz.id}`)}
+          retry={() => startAttempt(origin, tl, fromQuestion)}
+          luu={save}
         />
       </div>
     );
@@ -438,27 +439,27 @@ export default function PracticeTest({ de }: Props) {
       <header className={styles.thanh}>
         <button
           type="button"
-          onClick={quayLai}
-          className={styles.nutVien}
+          onClick={goBack}
+          className={styles.outlineButton}
           aria-label="Quay lại"
         >
           <ChevronLeft size={18} aria-hidden="true" />
-          <span className={styles.chuRong}>Quay lại</span>
+          <span className={styles.emptyText}>Quay lại</span>
         </button>
 
-        <span className={styles.thiSinh}>Thí sinh: {ten}</span>
+        <span className={styles.candidate}>Thí sinh: {name}</span>
 
         <div className={styles.phai}>
-          <span className={styles.dongHo} role="timer" aria-label="Thời gian đã làm">
+          <span className={styles.timer} role="timer" aria-label="Thời gian đã làm">
             <Timer size={18} aria-hidden="true" />
-            {dongHo(daQua)}
+            {timer(passed)}
           </span>
 
           <button
             type="button"
-            className={`${styles.nutXam} ${styles.chuRong}`}
-            disabled={coChu <= CO_CHU_MIN}
-            onClick={() => setCoChu((v) => Math.max(CO_CHU_MIN, v - 0.125))}
+            className={`${styles.grayButton} ${styles.emptyText}`}
+            disabled={fontSize <= FONT_SIZE_MIN}
+            onClick={() => setFontSize((v) => Math.max(FONT_SIZE_MIN, v - 0.125))}
             aria-label="Thu nhỏ chữ"
             title="Thu nhỏ chữ"
           >
@@ -466,9 +467,9 @@ export default function PracticeTest({ de }: Props) {
           </button>
           <button
             type="button"
-            className={`${styles.nutXam} ${styles.chuRong}`}
-            disabled={coChu >= CO_CHU_MAX}
-            onClick={() => setCoChu((v) => Math.min(CO_CHU_MAX, v + 0.125))}
+            className={`${styles.grayButton} ${styles.emptyText}`}
+            disabled={fontSize >= FONT_SIZE_MAX}
+            onClick={() => setFontSize((v) => Math.min(FONT_SIZE_MAX, v + 0.125))}
             aria-label="Phóng to chữ"
             title="Phóng to chữ"
           >
@@ -478,35 +479,35 @@ export default function PracticeTest({ de }: Props) {
           <div className={styles.menuBoc} ref={menuRef}>
             <button
               type="button"
-              className={styles.nutXam}
+              className={styles.grayButton}
               aria-haspopup="menu"
-              aria-expanded={moMenu}
+              aria-expanded={openMenu}
               aria-label="Kiểu hiển thị"
               title="Kiểu hiển thị"
-              onClick={() => setMoMenu((v) => !v)}
+              onClick={() => setOpenMenu((v) => !v)}
             >
               <List size={18} aria-hidden="true" />
             </button>
-            {moMenu && (
+            {openMenu && (
               <div className={styles.menu} role="menu">
-                {CHE_DO.map(({ id, nhan, Icon }) => (
+                {MODES.map(({ id, nhan: label, Icon }) => (
                   <button
                     key={id}
                     type="button"
                     role="menuitemradio"
-                    aria-checked={cheDo === id}
+                    aria-checked={mode === id}
                     className={
-                      cheDo === id
-                        ? `${styles.menuMuc} ${styles.menuChon}`
-                        : styles.menuMuc
+                      mode === id
+                        ? `${styles.menuItem} ${styles.menuSelect}`
+                        : styles.menuItem
                     }
                     onClick={() => {
-                      setCheDo(id);
-                      setMoMenu(false);
+                      setMode(id);
+                      setOpenMenu(false);
                     }}
                   >
                     <Icon size={18} aria-hidden="true" />
-                    {nhan}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -515,47 +516,51 @@ export default function PracticeTest({ de }: Props) {
 
           <button
             type="button"
-            className={`${styles.nutXam} ${styles.chiDienThoai}`}
+            className={`${styles.grayButton} ${styles.phoneOnly}`}
             aria-label="Danh sách câu hỏi"
-            aria-expanded={moDs}
-            onClick={() => setMoDs((v) => !v)}
+            aria-expanded={openList}
+            onClick={() => setOpenList((v) => !v)}
           >
             <LayoutGrid size={18} aria-hidden="true" />
           </button>
 
-          <button type="button" className={styles.nutNop} onClick={() => setHop("nop")}>
+          <button
+            type="button"
+            className={styles.submitButton}
+            onClick={() => setBox("nop")}
+          >
             <FilePenLine size={16} aria-hidden="true" /> Nộp bài
           </button>
         </div>
       </header>
 
       {/* ============ THAN ============ */}
-      <div className={styles.cuon} ref={vungCuon}>
+      <div className={styles.scroll} ref={scrollArea}>
         <div className={styles.khung}>
           <section
-            className={styles.cot}
-            style={{ fontSize: `${coChu}em` }}
+            className={styles.column}
+            style={{ fontSize: `${fontSize}em` }}
             aria-label="Nội dung bài làm"
           >
-            {cheDo === "list" ? (
-              ds.map((_, i) => theCau(i))
+            {mode === "list" ? (
+              items.map((_, i) => questionCard(i))
             ) : (
               <>
-                {theCau(hienTai)}
+                {questionCard(current)}
                 <nav className={styles.chuyen} aria-label="Chuyển câu">
                   <button
                     type="button"
-                    className={styles.nutVien}
-                    disabled={hienTai === 0}
-                    onClick={() => denCau(hienTai - 1)}
+                    className={styles.outlineButton}
+                    disabled={current === 0}
+                    onClick={() => goToQuestion(current - 1)}
                   >
                     <ChevronLeft size={18} aria-hidden="true" /> Câu trước
                   </button>
                   <button
                     type="button"
-                    className={styles.nutVien}
-                    disabled={hienTai === ds.length - 1}
-                    onClick={() => denCau(hienTai + 1)}
+                    className={styles.outlineButton}
+                    disabled={current === items.length - 1}
+                    onClick={() => goToQuestion(current + 1)}
                   >
                     Câu sau <ChevronRight size={18} aria-hidden="true" />
                   </button>
@@ -564,14 +569,14 @@ export default function PracticeTest({ de }: Props) {
             )}
           </section>
 
-          <aside className={moDs ? `${styles.ben} ${styles.benMo}` : styles.ben}>
+          <aside className={openList ? `${styles.ben} ${styles.openPanel}` : styles.ben}>
             {oDs}
           </aside>
         </div>
       </div>
 
-      {hop && (
-        <div className={styles.nenHop} onClick={() => setHop(null)}>
+      {box && (
+        <div className={styles.boxBackground} onClick={() => setBox(null)}>
           <div
             role="alertdialog"
             aria-modal="true"
@@ -579,54 +584,54 @@ export default function PracticeTest({ de }: Props) {
             className={styles.hop}
             onClick={(e) => e.stopPropagation()}
           >
-            {hop === "nop" ? (
+            {box === "nop" ? (
               // Theo mau hop nop bai cua trang thi goc
-              <div className={styles.hopThan}>
-                <h2 id="hop-tieu-de" className={styles.hopTieuDe}>
-                  <FileCheck2 size={24} className={styles.hopIcon} aria-hidden="true" />
+              <div className={styles.bodyBox}>
+                <h2 id="hop-tieu-de" className={styles.titleBox}>
+                  <FileCheck2 size={24} className={styles.iconBox} aria-hidden="true" />
                   Bạn có chắc chắn muốn nộp bài ?
                 </h2>
-                <p className={styles.hopDong}>
+                <p className={styles.rowBox}>
                   Thời gian bạn đã làm:{" "}
-                  <strong className={styles.soGio}>{dongHo(daQua)}</strong>
+                  <strong className={styles.hours}>{timer(passed)}</strong>
                 </p>
-                {ds.length - soDaLam > 0 && (
-                  <p className={styles.hopCanhBao}>
+                {items.length - answeredCount > 0 && (
+                  <p className={styles.warningBox}>
                     <strong>Cảnh báo: </strong>
-                    Bạn còn {ds.length - soDaLam} câu hỏi trắc nghiệm chưa trả lời. Bạn có
-                    chắc muốn kết thúc bài thi?
+                    Bạn còn {items.length - answeredCount} câu hỏi trắc nghiệm chưa trả
+                    lời. Bạn có chắc muốn kết thúc bài thi?
                   </p>
                 )}
-                <p className={styles.hopGhiChu}>
+                <p className={styles.noteBox}>
                   Khi xác nhận nhấn nộp bài, bạn sẽ không thể sửa lại bài thi của mình.
                   Hãy chắc chắn bạn đã xem lại tất cả các đáp án. Chúc bạn may mắn!
                 </p>
               </div>
             ) : (
-              <div className={styles.hopThan}>
-                <h2 id="hop-tieu-de" className={styles.hopTieuDe}>
+              <div className={styles.bodyBox}>
+                <h2 id="hop-tieu-de" className={styles.titleBox}>
                   Thoát khỏi bài làm?
                 </h2>
-                <p className={styles.hopDong}>Bài đang làm sẽ không được lưu lại.</p>
+                <p className={styles.rowBox}>Bài đang làm sẽ không được lưu lại.</p>
               </div>
             )}
-            <div className={styles.hopNut}>
+            <div className={styles.buttonBox}>
               <button
                 type="button"
-                className={styles.nutHuy}
-                onClick={() => setHop(null)}
+                className={styles.cancelButton}
+                onClick={() => setBox(null)}
                 autoFocus
               >
                 Hủy
               </button>
               <button
                 type="button"
-                className={styles.nutChinh}
+                className={styles.primaryButton}
                 onClick={() =>
-                  hop === "nop" ? nopBai() : router.push(`/practice/${de.id}`)
+                  box === "nop" ? submit() : router.push(`/practice/${quiz.id}`)
                 }
               >
-                {hop === "nop" ? "Nộp bài" : "Thoát"}
+                {box === "nop" ? "Nộp bài" : "Thoát"}
               </button>
             </div>
           </div>

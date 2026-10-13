@@ -8,6 +8,7 @@ import { fillTemplate, formatVnd } from "@/src/lib/format";
 import { getHomeSections, Course } from "@/src/services/course";
 import type { HomePopularCoursesData } from "@/src/types/home";
 
+import { providerLogo } from "./partnerLogos";
 import styles from "./HomePopularCourses.module.scss";
 export interface HomeSectionsState {
   mostPopular: Course[];
@@ -166,11 +167,14 @@ export default function HomePopularCourses({
                   <div className={styles.col}>
                     {column.data.map((course) => {
                       const rawProvider = course.provider;
-                      let providerLogo: string | null = null;
+                      let providerLogoSrc: string | null = null;
+                      let providerLogoFallback: string | undefined;
                       let providerName = providerFallback;
 
                       if (rawProvider && typeof rawProvider === "object") {
-                        providerLogo = rawProvider.logo || null;
+                        const l = providerLogo(rawProvider);
+                        providerLogoSrc = l.src || null;
+                        providerLogoFallback = l.fallback;
                         providerName = rawProvider.name || providerFallback;
                       }
 
@@ -206,10 +210,12 @@ export default function HomePopularCourses({
                                     name: providerName,
                                   })}
                                 >
-                                  {providerLogo ? (
+                                  {providerLogoSrc ? (
                                     <div className={styles.card5}>
                                       <SafeImage
-                                        src={providerLogo}
+                                        src={providerLogoSrc}
+                                        fallbackSrc={providerLogoFallback}
+                                        hideOnError
                                         alt={providerName}
                                         width={16}
                                         height={16}
@@ -236,10 +242,16 @@ export default function HomePopularCourses({
                                   n: course.lessons?.length || 0,
                                 })}
                               </span>
-                              <span>•</span>
-                              <span className={styles.label2}>
-                                {course.price === 0 ? free : formatVnd(course.price)}
-                              </span>
+                              {/* Gia tach khoi hang thong tin: "Mien phi" la nhan xanh
+                                  la, gia la so dam mau chu dao day ve cuoi hang - khac
+                                  ca hinh lan mau, khong de doc nham voi so bai hoc. */}
+                              {course.price === 0 ? (
+                                <span className={styles.freeBadge}>{free}</span>
+                              ) : (
+                                <span className={styles.price}>
+                                  {formatVnd(course.price)}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </Link>

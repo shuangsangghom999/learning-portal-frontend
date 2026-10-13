@@ -1,31 +1,35 @@
 import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
-import type { ViTriFaq } from "@/src/services/faq";
+import type { FaqArea } from "@/src/services/faq";
 
 import styles from "../AdminFaqs.module.scss";
 
 interface FaqAreaTabsProps {
-  khuVuc: ViTriFaq;
+  faqArea: FaqArea;
   moTa: string | undefined;
-  onChange: (k: ViTriFaq) => void;
+  onChange: (k: FaqArea) => void;
 }
 
 /** Chon khu vuc: moi khu vuc mot bo FAQ rieng. */
-export default function FaqAreaTabs({ khuVuc, moTa, onChange }: FaqAreaTabsProps) {
+export default function FaqAreaTabs({
+  faqArea,
+  moTa: description,
+  onChange,
+}: FaqAreaTabsProps) {
   return (
-    <div className={styles.khuVuc} role="tablist" aria-label={C.areasAria}>
+    <div className={styles.faqArea} role="tablist" aria-label={C.areasAria}>
       {C.areas.map((k) => (
         <button
           key={k.khoa}
           type="button"
           role="tab"
-          aria-selected={khuVuc === k.khoa}
+          aria-selected={faqArea === k.khoa}
           onClick={() => onChange(k.khoa)}
-          className={`${styles.tabKhuVuc} ${khuVuc === k.khoa ? styles.tabKhuVucOn : ""}`}
+          className={`${styles.tabKhuVuc} ${faqArea === k.khoa ? styles.tabKhuVucOn : ""}`}
         >
           {k.nhan}
         </button>
       ))}
-      <span className={styles.moTaKhuVuc}>{moTa}</span>
+      <span className={styles.areaDescription}>{description}</span>
     </div>
   );
 }

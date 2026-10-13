@@ -436,12 +436,12 @@
 /* Mau nhan vai tro. Truoc day nam trong bang NHAN_VAI_TRO o file .tsx duoi
    dang chuoi lop Tailwind - go Tailwind xong thi nhan "Giang vien" va nhan
    "Quan tri" mat mau, khong con phan biet duoc bang mat. */
-.nhanGiangVien {
+.instructorLabel {
   background-color: var(--color-blue-100);
   color: var(--color-blue-700);
 }
 
-.nhanQuanTri {
+.adminLabel {
   background-color: var(--color-purple-100);
   color: var(--color-purple-700);
 }

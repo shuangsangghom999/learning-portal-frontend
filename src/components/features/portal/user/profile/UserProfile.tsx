@@ -2,15 +2,13 @@
 
 import { Loader2 } from "lucide-react";
 
-import ViCoinCuaToi from "@/src/components/common/MyCoinWallet";
 import ActivityHeatmap from "@/src/components/features/portal/user/profile/parts/ActivityHeatmap";
 import MyDocuments from "@/src/components/features/portal/user/profile/parts/MyDocuments";
 import ProfileTabs, {
-  useTabHoSo,
+  useProfileTab,
 } from "@/src/components/features/portal/user/profile/parts/ProfileTabs";
 import SavedItems from "@/src/components/features/portal/user/profile/parts/SavedItems";
 import { USER_PROFILE as C } from "@/src/constants/portal/user-profile-page";
-import { HIEN_COIN } from "@/src/services/tinhNang";
 
 import { useUserProfile } from "./hooks/useUserProfile";
 import AccountInfoCard from "./parts/AccountInfoCard";
@@ -21,7 +19,7 @@ import styles from "./UserProfile.module.scss";
 export default function UserProfile() {
   const { user, activity, loading, error, joinedAgo } = useUserProfile();
   // Tab dang mo: Tong quan / Tai lieu cua toi / Da luu - ghi tren ?tab=.
-  const [tab, doiTab] = useTabHoSo();
+  const [tab, changeTab] = useProfileTab();
 
   if (loading) {
     return (
@@ -54,7 +52,7 @@ export default function UserProfile() {
           />
 
           <section className={styles.section}>
-            <ProfileTabs tab={tab} doiTab={doiTab} />
+            <ProfileTabs tab={tab} changeTab={changeTab} />
 
             {/* Chi dung noi dung cua tab dang mo: tab Da luu / Tai lieu goi API
                 rieng, khong can goi khi nguoi dung chua bam vao. */}
@@ -75,8 +73,6 @@ export default function UserProfile() {
                   ) : (
                     <div className={styles.card2}>{C.noActivity}</div>
                   )}
-
-                  {HIEN_COIN && <ViCoinCuaToi />}
 
                   <AccountInfoCard user={user} providerName={providerName} />
                 </>

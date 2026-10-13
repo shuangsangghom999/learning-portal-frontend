@@ -6,11 +6,17 @@ import {
   ADMIN_HOME_SECTIONS,
   type AdminHomeSectionKind,
 } from "@/src/constants/admin/home-sections-page";
-import { updateCourseTags, type Course } from "@/src/services/course";
+import type { Course } from "@/src/services/course";
 
 import { SECTION_CONFIG } from "../config";
 
-/** Danh sach khoa hoc cua mot muc trang chu, tim kiem va bat/tat ghim. */
+/**
+ * Thu hang khoa hoc cua mot muc trang chu va o tim kiem.
+ *
+ * Backend tra danh sach DA XEP dung thu tu trang chu dung, nen thu hang = vi tri
+ * trong danh sach goc. Phai tinh truoc khi loc tim kiem, khong thi go chu vao o
+ * tim la khoa nao cung thanh "#1".
+ */
 export function useAdminHomeSection(kind: AdminHomeSectionKind) {
   const cfg = SECTION_CONFIG[kind];
   const text = ADMIN_HOME_SECTIONS[kind];
@@ -18,7 +24,6 @@ export function useAdminHomeSection(kind: AdminHomeSectionKind) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCourses() {
@@ -40,30 +45,16 @@ export function useAdminHomeSection(kind: AdminHomeSectionKind) {
     void Promise.resolve().then(fetchCourses);
   }, [cfg, text]);
 
-  const handleToggle = async (id: string, currentStatus: boolean) => {
-    try {
-      setUpdatingId(id);
-      await updateCourseTags(id, { [cfg.tag]: !currentStatus });
-      setCourses((prev) =>
-        prev.map((c) => (c._id === id ? { ...c, [cfg.tag]: !currentStatus } : c)),
-      );
-    } catch {
-      alert(text.toggleFailed);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const filteredCourses = courses.filter((c) =>
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredCourses = courses
+    .map((course, i) => ({ course, rank: i + 1 }))
+    .filter(({ course }) =>
+      course.title?.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
 
   return {
     loading,
     searchTerm,
     setSearchTerm,
-    updatingId,
     filteredCourses,
-    handleToggle,
   };
 }

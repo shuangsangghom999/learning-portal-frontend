@@ -3,63 +3,63 @@
 import { useCallback, useEffect, useState } from "react";
 import { CircleCheck, MessageCircleQuestion, Send, Trash2 } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 
 import styles from "./LessonQuestions.module.scss";
 import {
-  dangCauHoi,
-  layCauHoi,
-  traLoiCauHoi,
-  xoaCauHoi,
-  type CauHoiHoiDap,
-  type VaiTroTraLoi,
+  questionShape,
+  getQuestions,
+  replyQuestion,
+  deleteQuestion,
+  type QaQuestion,
+  type ReplierRole,
 } from "@/src/services/question";
-import { khoangCach, tenHienThi } from "@/src/lib/time";
+import { gap, displayName } from "@/src/lib/time";
 
-const DAI_TOI_DA = 2000;
+const MAX_LENGTH = 2000;
 
 // Nhan vai tro. Chi hien voi giang vien va quan tri: "Học viên" la truong hop
 // mac dinh, gan nhan cho moi nguoi thi cai nhan mat het tac dung phan biet.
-const NHAN_VAI_TRO: Partial<Record<VaiTroTraLoi, { chu: string; lop: string }>> = {
-  giangVien: { chu: "Giảng viên", lop: styles.nhanGiangVien },
-  quanTri: { chu: "Quản trị", lop: styles.nhanQuanTri },
+const ROLE_LABELS: Partial<Record<ReplierRole, { chu: string; className: string }>> = {
+  giangVien: { chu: "Giảng viên", className: styles.instructorLabel },
+  quanTri: { chu: "Quản trị", className: styles.adminLabel },
 };
 
-const tenCua = (n: { name?: string; email?: string } | null): string =>
-  tenHienThi(n, "Người dùng");
+const nameOf = (n: { name?: string; email?: string } | null): string =>
+  displayName(n, "Người dùng");
 
-export default function HoiDapBaiHoc({
+export default function LessonQa({
   courseId,
   lessonId,
 }: {
   courseId: string;
   lessonId: string;
 }) {
-  const [danhSach, setDanhSach] = useState<CauHoiHoiDap[]>([]);
-  const [vaiTro, setVaiTro] = useState<VaiTroTraLoi>("hocVien");
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [list, setList] = useState<QaQuestion[]>([]);
+  const [role, setRole] = useState<ReplierRole>("hocVien");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  const [cauMoi, setCauMoi] = useState("");
-  const [dangGui, setDangGui] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [sending, setSending] = useState(false);
 
   // Dang mo o tra loi cua cau nao. Mot o duy nhat tai mot thoi diem: mo tat ca
   // cung luc thi tren dien thoai man hinh day o nhap, khong con thay cau hoi.
-  const [dangTraLoi, setDangTraLoi] = useState<string | null>(null);
-  const [chuTraLoi, setChuTraLoi] = useState("");
+  const [replying, setReplying] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
-  const nap = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
 
     try {
-      const kq = await layCauHoi(courseId, lessonId);
-      setDanhSach(kq.danhSach);
-      setVaiTro(kq.vaiTro);
+      const outcome = await getQuestions(courseId, lessonId);
+      setList(outcome.danhSach);
+      setRole(outcome.vaiTro);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không tải được phần hỏi đáp.");
+      setErr(e instanceof Error ? e.message : "Không tải được phần hỏi đáp.");
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, [courseId, lessonId]);
 
@@ -70,59 +70,59 @@ export default function HoiDapBaiHoc({
     // vong ve lai noi tiep ngay sau lan ve dau, va react-hooks/set-state-in-effect
     // chan dung cho nay. Khong ai thay khac biet - nap() la mot luot goi mang,
     // luon cham hon mot khung hinh.
-    queueMicrotask(nap);
-  }, [courseId, lessonId, nap]);
+    queueMicrotask(load);
+  }, [courseId, lessonId, load]);
 
-  const guiCauHoi = async () => {
-    const cau = cauMoi.trim();
-    if (cau.length < 5 || dangGui) return;
+  const sendQuestion = async () => {
+    const questionItem = newQuestion.trim();
+    if (questionItem.length < 5 || sending) return;
 
-    setDangGui(true);
-    setLoi("");
+    setSending(true);
+    setErr("");
 
     try {
-      const kq = await dangCauHoi({ courseId, lessonId, noiDung: cau });
+      const outcome = await questionShape({ courseId, lessonId, noiDung: questionItem });
       // Chen len dau thay vi nap lai ca danh sach: nguoi dung thay ngay cau vua
       // gui, va khong mat vi tri cuon.
-      setDanhSach((cu) => [kq.cauHoi, ...cu]);
-      setCauMoi("");
+      setList((old) => [outcome.cauHoi, ...old]);
+      setNewQuestion("");
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không đăng được câu hỏi.");
+      setErr(e instanceof Error ? e.message : "Không đăng được câu hỏi.");
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
-  const guiTraLoi = async (id: string) => {
-    const cau = chuTraLoi.trim();
-    if (!cau || dangGui) return;
+  const sendReply = async (id: string) => {
+    const questionItem = replyText.trim();
+    if (!questionItem || sending) return;
 
-    setDangGui(true);
-    setLoi("");
+    setSending(true);
+    setErr("");
 
     try {
-      const kq = await traLoiCauHoi(id, cau);
-      setDanhSach((cu) => cu.map((c) => (c._id === id ? kq.cauHoi : c)));
-      setChuTraLoi("");
-      setDangTraLoi(null);
+      const outcome = await replyQuestion(id, questionItem);
+      setList((old) => old.map((c) => (c._id === id ? outcome.cauHoi : c)));
+      setReplyText("");
+      setReplying(null);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không gửi được câu trả lời.");
+      setErr(e instanceof Error ? e.message : "Không gửi được câu trả lời.");
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
-  const xoa = async (id: string) => {
+  const remove = async (id: string) => {
     // Bo khoi danh sach ngay roi moi goi may chu. Hong thi nap lai - trang thai
     // that luon o may chu, cai tren man hinh chi la ban sao.
-    const cu = danhSach;
-    setDanhSach((ds) => ds.filter((c) => c._id !== id));
+    const old = list;
+    setList((items) => items.filter((c) => c._id !== id));
 
     try {
-      await xoaCauHoi(id);
+      await deleteQuestion(id);
     } catch {
-      setDanhSach(cu);
-      setLoi("Không xóa được câu hỏi.");
+      setList(old);
+      setErr("Không xóa được câu hỏi.");
     }
   };
 
@@ -144,8 +144,8 @@ export default function HoiDapBaiHoc({
       <div className={styles.box2}>
         <textarea
           id="hoi-dap-cau-moi"
-          value={cauMoi}
-          onChange={(e) => setCauMoi(e.target.value.slice(0, DAI_TOI_DA))}
+          value={newQuestion}
+          onChange={(e) => setNewQuestion(e.target.value.slice(0, MAX_LENGTH))}
           rows={3}
           placeholder="Bạn chưa hiểu chỗ nào trong bài này?"
           className={styles.textarea}
@@ -153,13 +153,13 @@ export default function HoiDapBaiHoc({
 
         <div className={styles.row2}>
           <span className={styles.label}>
-            {cauMoi.length}/{DAI_TOI_DA}
+            {newQuestion.length}/{MAX_LENGTH}
           </span>
 
           <button
             type="button"
-            onClick={guiCauHoi}
-            disabled={cauMoi.trim().length < 5 || dangGui}
+            onClick={sendQuestion}
+            disabled={newQuestion.trim().length < 5 || sending}
             className={styles.row3}
           >
             <Send size={16} /> Gửi câu hỏi
@@ -167,31 +167,31 @@ export default function HoiDapBaiHoc({
         </div>
       </div>
 
-      {loi && <p className={styles.text2}>{loi}</p>}
+      {err && <p className={styles.text2}>{err}</p>}
 
-      {dangTai && <p className={styles.text3}>Đang tải…</p>}
+      {loading && <p className={styles.text3}>Đang tải…</p>}
 
-      {!dangTai && danhSach.length === 0 && (
+      {!loading && list.length === 0 && (
         <p className={styles.text3}>
           Chưa có câu hỏi nào cho bài này. Bạn hỏi câu đầu tiên nhé.
         </p>
       )}
 
       <div className={styles.col}>
-        {danhSach.map((c) => (
+        {list.map((c) => (
           <article key={c._id} className={styles.article}>
             <div className={styles.row4}>
-              <AnhDaiDien
+              <Avatar
                 src={c.student?.avatar}
-                ten={tenCua(c.student)}
+                ten={nameOf(c.student)}
                 size={36}
-                nenChuCai={styles.box5}
+                letterBackground={styles.box5}
               />
 
               <div className={styles.box3}>
                 <div className={styles.row5}>
-                  <span className={styles.label2}>{tenCua(c.student)}</span>
-                  <span className={styles.label3}>{khoangCach(c.createdAt)}</span>
+                  <span className={styles.label2}>{nameOf(c.student)}</span>
+                  <span className={styles.label3}>{gap(c.createdAt)}</span>
 
                   {c.daGiaiQuyet && (
                     <span className={styles.row6}>
@@ -208,8 +208,8 @@ export default function HoiDapBaiHoc({
                   <button
                     type="button"
                     onClick={() => {
-                      setDangTraLoi(dangTraLoi === c._id ? null : c._id);
-                      setChuTraLoi("");
+                      setReplying(replying === c._id ? null : c._id);
+                      setReplyText("");
                     }}
                     className={styles.button}
                   >
@@ -218,10 +218,10 @@ export default function HoiDapBaiHoc({
 
                   {/* Nut xoa chi hien voi nguoi co the xoa duoc. May chu van kiem
                       lai lan nua - an nut khong phai la kiem quyen. */}
-                  {vaiTro !== "hocVien" && (
+                  {role !== "hocVien" && (
                     <button
                       type="button"
-                      onClick={() => xoa(c._id)}
+                      onClick={() => remove(c._id)}
                       className={styles.button2}
                     >
                       <Trash2 size={12} /> Xóa
@@ -232,27 +232,25 @@ export default function HoiDapBaiHoc({
                 {c.traLoi.length > 0 && (
                   <div className={styles.col2}>
                     {c.traLoi.map((t) => {
-                      const nhan = NHAN_VAI_TRO[t.vaiTro];
+                      const label = ROLE_LABELS[t.vaiTro];
 
                       return (
                         <div key={t._id} className={styles.row8}>
-                          <AnhDaiDien
+                          <Avatar
                             src={t.user?.avatar}
-                            ten={tenCua(t.user)}
+                            ten={nameOf(t.user)}
                             size={28}
-                            nenChuCai={styles.box5}
+                            letterBackground={styles.box5}
                           />
                           <div className={styles.box3}>
                             <div className={styles.row5}>
-                              <span className={styles.label2}>{tenCua(t.user)}</span>
-                              {nhan && (
-                                <span className={`${styles.label4} ${nhan.lop}`}>
-                                  {nhan.chu}
+                              <span className={styles.label2}>{nameOf(t.user)}</span>
+                              {label && (
+                                <span className={`${styles.label4} ${label.className}`}>
+                                  {label.chu}
                                 </span>
                               )}
-                              <span className={styles.label3}>
-                                {khoangCach(t.createdAt)}
-                              </span>
+                              <span className={styles.label3}>{gap(t.createdAt)}</span>
                             </div>
                             <p className={styles.text5}>{t.noiDung}</p>
                           </div>
@@ -262,12 +260,12 @@ export default function HoiDapBaiHoc({
                   </div>
                 )}
 
-                {dangTraLoi === c._id && (
+                {replying === c._id && (
                   <div className={styles.box4}>
                     <textarea
                       id={`hoi-dap-tra-loi-${c._id}`}
-                      value={chuTraLoi}
-                      onChange={(e) => setChuTraLoi(e.target.value.slice(0, DAI_TOI_DA))}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value.slice(0, MAX_LENGTH))}
                       rows={2}
                       placeholder="Nhập câu trả lời…"
                       className={styles.textarea2}
@@ -275,15 +273,15 @@ export default function HoiDapBaiHoc({
                     <div className={styles.row9}>
                       <button
                         type="button"
-                        onClick={() => setDangTraLoi(null)}
+                        onClick={() => setReplying(null)}
                         className={styles.button3}
                       >
                         Hủy
                       </button>
                       <button
                         type="button"
-                        onClick={() => guiTraLoi(c._id)}
-                        disabled={!chuTraLoi.trim() || dangGui}
+                        onClick={() => sendReply(c._id)}
+                        disabled={!replyText.trim() || sending}
                         className={styles.button4}
                       >
                         Gửi

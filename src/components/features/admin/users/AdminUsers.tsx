@@ -56,9 +56,9 @@ export default function AdminUsers() {
           className={`${styles.input2} ${styles.select}`}
         >
           <option value="">{F.allStatuses}</option>
-          {F.statuses.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
+          {F.statuses.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
             </option>
           ))}
         </select>
@@ -103,7 +103,7 @@ export default function AdminUsers() {
                     u={u}
                     isSelf={u._id === s.myId}
                     busy={s.busyId === u._id}
-                    onViewAvatar={s.setXemAnh}
+                    onViewAvatar={s.setViewImage}
                     onEdit={s.openEdit}
                     onToggle={s.toggleStatus}
                     onDelete={s.remove}
@@ -127,10 +127,10 @@ export default function AdminUsers() {
         />
       </div>
 
-      {s.xemAnh?.avatar && (
+      {s.viewImage?.avatar && (
         <AvatarViewer
-          user={{ ...s.xemAnh, avatar: s.xemAnh.avatar }}
-          onClose={() => s.setXemAnh(null)}
+          user={{ ...s.viewImage, avatar: s.viewImage.avatar }}
+          onClose={() => s.setViewImage(null)}
         />
       )}
 

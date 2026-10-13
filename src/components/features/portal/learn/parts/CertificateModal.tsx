@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useStoredUser } from "@/src/hooks/userStore";
 import { getErrorMessage } from "@/src/services/apiHelper";
 
 import styles from "./CertificateModal.module.scss";
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import {
   certificateService,
-  duongDanPdfChungChi,
+  certificatePdfUrl,
   Certificate,
 } from "@/src/services/certificate";
 
@@ -46,7 +46,7 @@ export default function CertificateModal({
   // Ten hoc vien uu tien lay tu localStorage (moi hon ban ghi chung chi neu
   // nguoi dung vua doi ho so). Doc bang useSyncExternalStore chu khong bang
   // useEffect + setState, xem src/hooks/userStore.ts.
-  const localUserInfo = useNguoiDungLuu();
+  const localUserInfo = useStoredUser();
 
   const certificateRef = useRef<HTMLDivElement>(null);
 
@@ -251,7 +251,7 @@ export default function CertificateModal({
                   chu, co in mau nen hay khong) va quan tri thi khong co cach
                   nao xem lai dung ban hoc vien cam. */}
               <a
-                href={duongDanPdfChungChi(certificate._id)}
+                href={certificatePdfUrl(certificate._id)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.link}

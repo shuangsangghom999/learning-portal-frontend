@@ -24,7 +24,7 @@ export default function ReviewRow({
   const courseTitle =
     (typeof review.course === "object" ? review.course?.title : "") ||
     C.row.courseFallback;
-  const ngay = new Date(review.createdAt);
+  const day = new Date(review.createdAt);
 
   return (
     <tr className={styles.row3}>
@@ -35,8 +35,8 @@ export default function ReviewRow({
             <span className={styles.label}>{studentName}</span>
           </div>
           <p className={styles.text3}>
-            {ngay.toLocaleDateString("vi-VN")} {C.row.at}{" "}
-            {ngay.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+            {day.toLocaleDateString("vi-VN")} {C.row.at}{" "}
+            {day.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
       </td>

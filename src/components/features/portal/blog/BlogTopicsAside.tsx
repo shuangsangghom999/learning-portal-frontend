@@ -24,13 +24,13 @@ export default function BlogTopicsAside({
       <h2 className={styles.heading}>{T.heading}</h2>
       <ul className={styles.list}>
         {topics.map((t) => {
-          const dangChon = t.slug === topic;
+          const selected = t.slug === topic;
           return (
             <li key={t.slug}>
               <Link
-                href={dangChon ? BLOG.listHref : hrefForTopic(t.slug)}
-                aria-current={dangChon ? "page" : undefined}
-                className={[styles.box2, dangChon ? styles.box3 : styles.box4].join(" ")}
+                href={selected ? BLOG.listHref : hrefForTopic(t.slug)}
+                aria-current={selected ? "page" : undefined}
+                className={[styles.box2, selected ? styles.box3 : styles.box4].join(" ")}
               >
                 {t.name}
               </Link>

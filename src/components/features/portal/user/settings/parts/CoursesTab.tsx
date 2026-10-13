@@ -16,9 +16,9 @@ const K = USER_SETTINGS.courses;
 // Kieu nay truoc day khai lai o day mot ban rieng. Nay dung chung voi tang
 // service de khi backend doi hinh dang thi chi phai sua mot cho.
 const STATUS_LABEL: Record<EnrollmentStatus, { text: string; cls: string }> = {
-  active: { text: K.status.active, cls: styles.nhanDangHoc },
-  completed: { text: K.status.completed, cls: styles.nhanHoanThanh },
-  dropped: { text: K.status.dropped, cls: styles.nhanDaDung },
+  active: { text: K.status.active, cls: styles.learningLabel },
+  completed: { text: K.status.completed, cls: styles.completedLabel },
+  dropped: { text: K.status.dropped, cls: styles.usedLabel },
 };
 
 /* ==========================================================================

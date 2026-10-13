@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { khoaTuTenMon } from "@/src/lib/document/file-info";
+import { keyFromSubjectName } from "@/src/lib/document/file-info";
 import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin/documents-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
@@ -19,75 +19,79 @@ import {
  * mot cho nhin duoc ca kho thay vi phai di tung trang chi tiet.
  */
 export function useAdminDocuments() {
-  const [danhSach, setDanhSach] = useState<SharedDocument[]>([]);
-  const [tong, setTong] = useState(0);
-  const [trang, setTrang] = useState(1);
-  const [tongTrang, setTongTrang] = useState(1);
+  const [list, setList] = useState<SharedDocument[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState<string | null>(null);
-  const [baoThanhCong, setBaoThanhCong] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState<string | null>(null);
 
   // O tim: giu rieng voi tu khoa DANG AP DUNG. Goi API theo tung phim go thi
   // moi chu la mot luot goi; o day phai bam Tim (hoac Enter) moi goi.
-  const [oTim, setOTim] = useState("");
-  const [tuKhoa, setTuKhoa] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [keyword, setKeyword] = useState("");
 
-  const [dangXoa, setDangXoa] = useState<string | null>(null);
-  const [hoiXoa, setHoiXoa] = useState<SharedDocument | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SharedDocument | null>(null);
 
   // Sua mon hoc ngay tren bang. Can cho tai lieu dang TRUOC khi co truong mon:
   // chung khong co mon nao nen khong bao gio duoc goi y "cung mon".
-  // giaTriMon la mang KHOA mon (chon trong danh sach), khong phai chu go tu do.
-  const [dsMon, setDsMon] = useState<DocumentSubject[]>([]);
-  const [dangSuaMon, setDangSuaMon] = useState<string | null>(null);
-  const [giaTriMon, setGiaTriMon] = useState<string[]>([]);
-  const [dangLuuMon, setDangLuuMon] = useState(false);
-  const [dangDoiAn, setDangDoiAn] = useState<string | null>(null);
+  // subjectValue la mang KHOA mon (chon trong danh sach), khong phai chu go tu do.
+  const [subjectList, setSubjectList] = useState<DocumentSubject[]>([]);
+  const [editingSubject, setEditingSubject] = useState<string | null>(null);
+  const [subjectValue, setSubjectValue] = useState<string[]>([]);
+  const [savingSubject, setSavingSubject] = useState(false);
+  const [togglingHidden, setTogglingHidden] = useState<string | null>(null);
 
-  const batDauSuaMon = (d: SharedDocument) => {
-    setDangSuaMon(d._id);
+  const startEditSubject = (d: SharedDocument) => {
+    setEditingSubject(d._id);
     // Tai lieu luu TEN mon chuan lay tu danh sach, nen so khop ten la ra khoa.
-    setGiaTriMon(khoaTuTenMon(dsMon, d.monHoc));
+    setSubjectValue(keyFromSubjectName(subjectList, d.monHoc));
   };
 
-  const luuMon = async (d: SharedDocument) => {
-    if (!giaTriMon.length) return setLoi(C.messages.needSubject);
+  const saveSubject = async (d: SharedDocument) => {
+    if (!subjectValue.length) return setErrorMessage(C.messages.needSubject);
     try {
-      setDangLuuMon(true);
-      setLoi(null);
-      const { monHoc } = await documentService.updateDocument(d._id, {
-        monHoc: giaTriMon,
+      setSavingSubject(true);
+      setErrorMessage(null);
+      const { monHoc: subject } = await documentService.updateDocument(d._id, {
+        monHoc: subjectValue,
       });
       // Cap nhat tai cho thay vi tai lai ca bang: giu nguyen vi tri cuon va
       // khong nhap nhay trong khi admin dang gan mon cho nhieu dong lien tiep.
-      setDanhSach((ds) => ds.map((x) => (x._id === d._id ? { ...x, monHoc } : x)));
-      setDangSuaMon(null);
-      setBaoThanhCong(C.messages.subjectsSaved((monHoc ?? []).join(", "), d.title));
+      setList((items) =>
+        items.map((x) => (x._id === d._id ? { ...x, monHoc: subject } : x)),
+      );
+      setEditingSubject(null);
+      setShowSuccess(C.messages.subjectsSaved((subject ?? []).join(", "), d.title));
     } catch (err) {
-      setLoi(getErrorMessage(err, C.messages.subjectsFailed));
+      setErrorMessage(getErrorMessage(err, C.messages.subjectsFailed));
     } finally {
-      setDangLuuMon(false);
+      setSavingSubject(false);
     }
   };
 
-  const doiAn = async (d: SharedDocument) => {
+  const toggleHidden = async (d: SharedDocument) => {
     try {
-      setDangDoiAn(d._id);
-      setLoi(null);
-      const { daAn } = await documentService.setHidden(d._id, !d.daAn);
-      setDanhSach((ds) => ds.map((x) => (x._id === d._id ? { ...x, daAn } : x)));
-      setBaoThanhCong(daAn ? C.messages.hidden(d.title) : C.messages.shown(d.title));
+      setTogglingHidden(d._id);
+      setErrorMessage(null);
+      const { daAn: hidden } = await documentService.setHidden(d._id, !d.daAn);
+      setList((items) =>
+        items.map((x) => (x._id === d._id ? { ...x, daAn: hidden } : x)),
+      );
+      setShowSuccess(hidden ? C.messages.hidden(d.title) : C.messages.shown(d.title));
     } catch (err) {
-      setLoi(getErrorMessage(err, C.messages.toggleFailed));
+      setErrorMessage(getErrorMessage(err, C.messages.toggleFailed));
     } finally {
-      setDangDoiAn(null);
+      setTogglingHidden(null);
     }
   };
 
-  const taiDsMon = useCallback(async () => {
+  const loadSubjects = useCallback(async () => {
     try {
-      setDsMon(await documentService.getSubjects());
+      setSubjectList(await documentService.getSubjects());
     } catch {
       // Thieu danh sach thi chi khong gan mon duoc - bang van dung.
     }
@@ -95,105 +99,105 @@ export function useAdminDocuments() {
 
   useEffect(() => {
     // Hoan mot vong microtask - xem ghi chu o effect tai danh sach ben duoi.
-    void Promise.resolve().then(taiDsMon);
-  }, [taiDsMon]);
+    void Promise.resolve().then(loadSubjects);
+  }, [loadSubjects]);
 
-  const tai = useCallback(async () => {
+  const download = useCallback(async () => {
     try {
-      setDangTai(true);
-      setLoi(null);
+      setLoading(true);
+      setErrorMessage(null);
       // Duong QUAN TRI: gom ca tai lieu da an. Duong cong khai khong bao gio
       // tra chung - an roi thi admin phai co cho de hien lai.
       const res = await documentService.getDocumentsAdmin({
-        page: trang,
+        page: page,
         limit: C.pageSize,
-        q: tuKhoa,
+        q: keyword,
       });
-      setDanhSach(res.documents ?? []);
-      setTong(res.total ?? 0);
-      setTongTrang(res.totalPages || 1);
+      setList(res.documents ?? []);
+      setTotal(res.total ?? 0);
+      setTotalPages(res.totalPages || 1);
     } catch (err) {
-      setLoi(getErrorMessage(err, C.messages.loadFailed));
+      setErrorMessage(getErrorMessage(err, C.messages.loadFailed));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
-  }, [trang, tuKhoa]);
+  }, [page, keyword]);
 
   useEffect(() => {
     // Goi qua mot vong microtask thay vi goi thang. Ham tai() bat dau bang
-    // setDangTai(true), nen goi thang la setState dong bo ngay trong than
+    // setLoading(true), nen goi thang la setState dong bo ngay trong than
     // effect: React phai chay them mot vong ve lai truoc khi hien man hinh
     // (rule react-hooks/set-state-in-effect canh bao dung cho nay). Hoan mot
     // vong microtask thi mat thuong khong thay khac, ma vong ve thua het.
-    void Promise.resolve().then(tai);
-  }, [tai]);
+    void Promise.resolve().then(download);
+  }, [download]);
 
-  const xacNhanXoa = async () => {
-    if (!hoiXoa) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      setDangXoa(hoiXoa._id);
-      await documentService.deleteDocument(hoiXoa._id);
-      setBaoThanhCong(C.messages.deleted(hoiXoa.title));
-      setHoiXoa(null);
+      setDeleting(pendingDelete._id);
+      await documentService.deleteDocument(pendingDelete._id);
+      setShowSuccess(C.messages.deleted(pendingDelete.title));
+      setPendingDelete(null);
 
       // Xoa muc cuoi cung cua mot trang thi trang do thanh rong. Lui mot trang
       // thay vi de admin nhin mot bang trong roi tuong mat het du lieu.
-      if (danhSach.length === 1 && trang > 1) setTrang((t) => t - 1);
-      else await tai();
+      if (list.length === 1 && page > 1) setPage((t) => t - 1);
+      else await download();
     } catch (err) {
-      setLoi(getErrorMessage(err, C.messages.deleteFailed));
-      setHoiXoa(null);
+      setErrorMessage(getErrorMessage(err, C.messages.deleteFailed));
+      setPendingDelete(null);
     } finally {
-      setDangXoa(null);
+      setDeleting(null);
     }
   };
 
-  const timKiem = (e: React.FormEvent) => {
+  const search = (e: React.FormEvent) => {
     e.preventDefault();
-    setTrang(1); // ket qua moi thi phai ve trang 1, khong giu so trang cu
-    setTuKhoa(oTim);
+    setPage(1); // ket qua moi thi phai ve trang 1, khong giu so trang cu
+    setKeyword(searchInput);
   };
 
-  const xoaTim = () => {
-    setOTim("");
-    setTuKhoa("");
-    setTrang(1);
+  const clearSearch = () => {
+    setSearchInput("");
+    setKeyword("");
+    setPage(1);
   };
 
-  const tongLuotTai = danhSach.reduce((s, d) => s + (d.downloadCount || 0), 0);
-  const soChuaCoMon = danhSach.filter((d) => !d.monHoc?.length).length;
+  const totalDownloads = list.reduce((s, d) => s + (d.downloadCount || 0), 0);
+  const missingSubjectCount = list.filter((d) => !d.monHoc?.length).length;
 
   return {
-    danhSach,
-    tong,
-    trang,
-    setTrang,
-    tongTrang,
-    dangTai,
-    loi,
-    baoThanhCong,
-    dongBao: () => setBaoThanhCong(null),
-    oTim,
-    setOTim,
-    tuKhoa,
-    dangXoa,
-    hoiXoa,
-    setHoiXoa,
-    dsMon,
-    dangSuaMon,
-    huySuaMon: () => setDangSuaMon(null),
-    giaTriMon,
-    setGiaTriMon,
-    dangLuuMon,
-    dangDoiAn,
-    batDauSuaMon,
-    luuMon,
-    doiAn,
-    xacNhanXoa,
-    timKiem,
-    xoaTim,
-    tongLuotTai,
-    soChuaCoMon,
+    danhSach: list,
+    tong: total,
+    trang: page,
+    setPage,
+    totalPages,
+    loading,
+    loi: errorMessage,
+    showSuccess,
+    closeNotice: () => setShowSuccess(null),
+    searchInput,
+    setSearchInput,
+    tuKhoa: keyword,
+    deleting,
+    pendingDelete,
+    setPendingDelete,
+    subjectList,
+    editingSubject,
+    cancelEditSubject: () => setEditingSubject(null),
+    subjectValue,
+    setSubjectValue,
+    savingSubject,
+    togglingHidden,
+    startEditSubject,
+    saveSubject,
+    toggleHidden,
+    confirmDelete,
+    search,
+    clearSearch,
+    tongLuotTai: totalDownloads,
+    missingSubjectCount,
   };
 }
 

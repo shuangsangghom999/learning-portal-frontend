@@ -33,9 +33,9 @@ export default function PriceLevelFields({
       <div className={styles.stack}>
         <label className={styles.fieldLabel3}>{C.level.label}</label>
         <select name="level" className={styles.select} value={level} onChange={onChange}>
-          {C.level.options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
+          {C.level.options.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
             </option>
           ))}
         </select>

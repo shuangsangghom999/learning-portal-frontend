@@ -36,7 +36,7 @@ export default function AdminPosts() {
 
       <PostFilters s={s} />
 
-      {s.dangTai ? (
+      {s.loading ? (
         <div className={styles.card3}>
           <Loader2 className={styles.spinner} size={32} />
           <p className={styles.text2}>{C.loading}</p>
@@ -51,7 +51,7 @@ export default function AdminPosts() {
         <div className={styles.card5}>
           <FileText className={styles.box3} size={48} />
           <p className={styles.text5}>
-            {s.tuKhoaDangDung || s.trangThai || s.chuDe ? C.emptyFiltered : C.empty}
+            {s.activeKeyword || s.status || s.topic ? C.emptyFiltered : C.empty}
           </p>
           <p className={styles.text6}>{C.emptyHint}</p>
         </div>
@@ -61,28 +61,28 @@ export default function AdminPosts() {
             <PostCard
               key={p._id}
               p={p}
-              topicName={s.tenChuDe(p.topic)}
+              topicName={s.topicName(p.topic)}
               onDelete={s.xoa}
             />
           ))}
         </div>
       )}
 
-      {s.tongTrang > 1 && (
+      {s.totalPages > 1 && (
         <div className={styles.row6}>
           <button
             type="button"
-            disabled={s.trang <= 1 || s.dangTai}
-            onClick={() => s.sangTrang(s.trang - 1)}
+            disabled={s.trang <= 1 || s.loading}
+            onClick={() => s.goToPage(s.trang - 1)}
             className={styles.card7}
           >
             {C.pager.prev}
           </button>
-          <span className={styles.label6}>{C.pager.info(s.trang, s.tongTrang)}</span>
+          <span className={styles.label6}>{C.pager.info(s.trang, s.totalPages)}</span>
           <button
             type="button"
-            disabled={s.trang >= s.tongTrang || s.dangTai}
-            onClick={() => s.sangTrang(s.trang + 1)}
+            disabled={s.trang >= s.totalPages || s.loading}
+            onClick={() => s.goToPage(s.trang + 1)}
             className={styles.card7}
           >
             {C.pager.next}

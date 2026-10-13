@@ -3,13 +3,13 @@
 import { Suspense } from "react";
 import { Play } from "lucide-react";
 
-import HopChatTroLy from "@/src/components/features/portal/assistant/AssistantChat";
+import AssistantChatBox from "@/src/components/features/portal/assistant/AssistantChat";
 import CertificateModal from "@/src/components/features/portal/learn/parts/CertificateModal";
-import GhiChuBaiHoc from "@/src/components/features/portal/learn/parts/LessonNotes";
-import HoiDapBaiHoc from "@/src/components/features/portal/learn/parts/LessonQuestions";
+import LessonNote from "@/src/components/features/portal/learn/parts/LessonNotes";
+import LessonQa from "@/src/components/features/portal/learn/parts/LessonQuestions";
 import StudentQuizView from "@/src/components/features/portal/learn/parts/StudentQuizView";
 import { LEARN } from "@/src/constants/portal/learn-page";
-import { daDangKy } from "@/src/lib/enrollment";
+import { registered } from "@/src/lib/enrollment";
 
 import { useCourseLearn } from "./hooks/useCourseLearn";
 import CourseLearnSkeleton from "./parts/CourseLearnSkeleton";
@@ -55,12 +55,16 @@ function CourseLearnContent() {
               <LessonPlayer
                 lesson={activeLesson}
                 videoRef={s.videoRef}
-                nhungVideo={s.nhungVideo}
+                embedVideo={s.embedVideo}
                 videoError={s.videoError}
                 onLoadedMetadata={s.handleLoadedMetadata}
                 onEnded={s.handleVideoEnded}
                 onVideoError={s.setVideoError}
                 onOpenCourse={() => router.push(LEARN.courseHref(s.courseSlug))}
+                expired={Boolean(enrollment?.isEnrolled && enrollment.expired)}
+                watermark={
+                  s.user ? `${s.user.email} · ${(s.user._id ?? "").slice(-6)}` : undefined
+                }
               />
               <LessonInfo s={s} lesson={activeLesson} />
             </div>
@@ -80,20 +84,23 @@ function CourseLearnContent() {
                 - !isDoingQuiz: dang lam bai kiem tra ma cuon xuong thay o hoi
                   dap la moi nguoi ta di hoi bai - xem loi nhac cua tro ly, luat
                   "khong lam ho bai danh gia" cung tu do ra. */}
-          {daDangKy(enrollment) && course?._id && activeLesson?._id && !s.isDoingQuiz && (
-            <>
-              {/* Ghi chu dat TREN hoi dap: ghi chu la viec lam trong luc xem,
+          {registered(enrollment) &&
+            course?._id &&
+            activeLesson?._id &&
+            !s.isDoingQuiz && (
+              <>
+                {/* Ghi chu dat TREN hoi dap: ghi chu la viec lam trong luc xem,
                   con hoi dap la viec lam khi da xem xong ma van khong hieu. */}
-              <GhiChuBaiHoc
-                courseId={course._id}
-                lessonId={activeLesson._id}
-                layViTriVideo={s.layViTriVideo}
-                nhayToi={s.nhayToi}
-              />
+                <LessonNote
+                  courseId={course._id}
+                  lessonId={activeLesson._id}
+                  getVideoPosition={s.getVideoPosition}
+                  jumpTo={s.jumpTo}
+                />
 
-              <HoiDapBaiHoc courseId={course._id} lessonId={activeLesson._id} />
-            </>
-          )}
+                <LessonQa courseId={course._id} lessonId={activeLesson._id} />
+              </>
+            )}
         </div>
 
         <LessonSidebar s={s} />
@@ -101,7 +108,7 @@ function CourseLearnContent() {
 
       {/* Chi dung khi thuc su co ban ghi dang ky: CertificateModal lay chung
           chi theo enrollmentId, dua chuoi rong vao la no goi API vo ich. */}
-      {daDangKy(enrollment) && (
+      {registered(enrollment) && (
         <CertificateModal
           isOpen={s.showCertificate}
           onClose={() => s.setShowCertificate(false)}
@@ -112,8 +119,8 @@ function CourseLearnContent() {
       {/* Tro giang chi hien khi DA ghi danh. May chu van kiem quyen lai mot lan
           nua (duocXemNoiDung trong troLyController) — day chi la de khong bay
           ra mot cai nut bam vao chi de an 403. */}
-      {daDangKy(enrollment) && course?._id && (
-        <HopChatTroLy
+      {registered(enrollment) && course?._id && (
+        <AssistantChatBox
           courseId={course._id}
           lessonId={activeLesson?._id}
           tenBai={activeLesson?.title}

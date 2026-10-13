@@ -11,7 +11,7 @@ export function useCourseCollection() {
   // Lay slug tu query string: /collection?slug=most-popular-courses
   const searchParams = useSearchParams();
   const collectionSlug = searchParams.get("slug") || "";
-  const muc = COLLECTIONS[collectionSlug];
+  const item = COLLECTIONS[collectionSlug];
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,10 +21,10 @@ export function useCourseCollection() {
       try {
         setLoading(true);
         const response = await getHomeSections();
-        const dinhNghia = COLLECTIONS[collectionSlug];
+        const definition = COLLECTIONS[collectionSlug];
 
-        if (response?.success && response.data && dinhNghia) {
-          setCourses(response.data[dinhNghia.lay] || []);
+        if (response?.success && response.data && definition) {
+          setCourses(response.data[definition.get] || []);
         } else {
           setCourses([]);
         }
@@ -38,5 +38,5 @@ export function useCourseCollection() {
     loadCollection();
   }, [collectionSlug]);
 
-  return { muc, courses, loading };
+  return { muc: item, courses, loading };
 }

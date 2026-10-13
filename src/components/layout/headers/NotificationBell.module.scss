@@ -246,31 +246,31 @@
    khong phai mau nhan dien cua trang. Truoc day la chuoi lop Tailwind dat
    thang trong bang KIEU o file .tsx; go Tailwind xong thi ca bay loai thong
    bao deu mot mau den, va don bi tu choi khong con doc duoc bang mau nua. */
-.mauDuyet {
+.approvedColor {
   color: var(--color-emerald-600);
 }
-.mauTuChoi {
+.rejectColor {
   color: var(--color-red-600);
 }
-.mauMoKhoa {
+.unlockColor {
   color: var(--color-blue-600);
 }
-.mauChungNhan {
+.certificateColor {
   color: var(--color-amber-600);
 }
-.mauTraLoi {
+.replyColor {
   color: var(--color-indigo-600);
 }
-.mauCoin {
+.coinColor {
   color: var(--color-amber-600);
 }
-.mauHeThong {
+.systemColor {
   color: var(--color-slate-500);
 }
 
 /* Mot dong trong danh sach thong bao. Truoc day la mot chuoi lop Tailwind dai
    ghep thang trong JSX - lop duy nhat con sot lai kieu do sau khi chuyen. */
-.dong {
+.rows {
   display: flex;
   width: 100%;
   gap: calc(var(--spacing) * 3);

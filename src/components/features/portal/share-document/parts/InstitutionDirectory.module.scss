@@ -6,7 +6,7 @@
   padding: calc(var(--spacing) * 20) calc(var(--spacing) * 4) calc(var(--spacing) * 24);
 }
 
-.dauNoiDung {
+.contentStart {
   margin-inline: auto;
   max-width: 40rem;
   display: flex;
@@ -15,7 +15,7 @@
   text-align: center;
 }
 
-.minhHoa {
+.illustration {
   width: 120px;
   height: 120px;
   background: url("/images/share-document/truong-minh-hoa.svg") center / contain no-repeat;
@@ -28,14 +28,14 @@
   color: #2f3e4e;
 }
 
-.giaiThich {
+.explanation {
   margin-top: calc(var(--spacing) * 5);
   font-size: 0.9rem;
   color: #4c5966;
 }
 
 // ---- o tim + goi y
-.oTim {
+.searchInput {
   position: relative;
   width: 100%;
   margin-top: calc(var(--spacing) * 3);
@@ -67,7 +67,7 @@
   }
 }
 
-.nutTim {
+.searchButton {
   position: absolute;
   top: 50%;
   right: calc(var(--spacing) * 3);
@@ -87,7 +87,7 @@
   }
 }
 
-.goiY {
+.suggest {
   position: absolute;
   z-index: 20;
   top: calc(100% + 8px);
@@ -103,7 +103,7 @@
   text-align: left;
 }
 
-.goiYMuc {
+.suggestionItem {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 3);
@@ -122,11 +122,11 @@
   }
 }
 
-.goiYDangTro {
+.activeSuggestion {
   background-color: #e2effd;
 }
 
-.khongCo {
+.empty {
   padding: calc(var(--spacing) * 3);
   font-size: 0.9rem;
   color: #4c5966;
@@ -139,7 +139,7 @@
   padding: calc(var(--spacing) * 10) calc(var(--spacing) * 6) calc(var(--spacing) * 16);
 }
 
-.tieuDeMuc {
+.sectionTitle {
   font-size: 1.35rem;
   font-weight: 700;
   color: #2f3e4e;
@@ -152,7 +152,7 @@
   gap: calc(var(--spacing) * 1) calc(var(--spacing) * 6);
 }
 
-.dong {
+.rows {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 3);
@@ -164,7 +164,7 @@
     &:hover {
       background-color: #f1f7fe;
 
-      .tenTruong {
+      .schoolName {
         color: #1168c3;
       }
     }
@@ -189,7 +189,7 @@
   background: center / contain no-repeat;
 }
 
-.tenTruong {
+.schoolName {
   min-width: 0;
   font-size: 1rem;
   color: #5b8def;
@@ -203,7 +203,7 @@
 }
 
 // ---- bang chu cai
-.mucChu {
+.letterItem {
   margin-top: calc(var(--spacing) * 12);
 }
 
@@ -213,7 +213,7 @@
   color: #2f3e4e;
 }
 
-.chuCai {
+.letter {
   margin-top: calc(var(--spacing) * 3);
   display: flex;
   flex-wrap: wrap;
@@ -242,7 +242,7 @@
   }
 }
 
-.chuOn {
+.filterLabel {
   background-color: #3092fa;
   color: #fff;
 
@@ -253,7 +253,7 @@
   }
 }
 
-.luoiChu {
+.letterGrid {
   margin-top: calc(var(--spacing) * 5);
 }
 

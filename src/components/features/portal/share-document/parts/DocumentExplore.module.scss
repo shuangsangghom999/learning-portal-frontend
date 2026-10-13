@@ -125,7 +125,7 @@
   }
 }
 
-.dauThe {
+.cardHead {
   display: flex;
   align-items: flex-start;
   gap: calc(var(--spacing) * 3);
@@ -176,7 +176,7 @@
   transition: translate 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.xemThem {
+.viewMore {
   margin-top: calc(var(--spacing) * 10);
   display: inline-flex;
   align-items: center;

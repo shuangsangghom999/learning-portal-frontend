@@ -24,7 +24,7 @@ export default function RetryModal({
 }: RetryModalProps) {
   return (
     <div className={styles.overlay}>
-      <div className={`${styles.hienPhongTo} ${styles.card5}`}>
+      <div className={`${styles.showZoom} ${styles.card5}`}>
         <div className={styles.row4}>
           <div className={styles.card6}>
             <MessageSquare size={20} />

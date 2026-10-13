@@ -13,28 +13,28 @@ export default function InstructorQuestions() {
   return (
     <div className={styles.container}>
       <QuestionsToolbar
-        dangTai={q.dangTai}
+        loading={q.loading}
         tatCa={q.tatCa}
         tong={q.tong}
-        onTatCa={q.setTatCa}
+        onAll={q.setAll}
       />
 
       {q.loi && <p className={styles.text2}>{q.loi}</p>}
 
-      {!q.dangTai && q.danhSach.length === 0 && <QuestionsEmpty tatCa={q.tatCa} />}
+      {!q.loading && q.danhSach.length === 0 && <QuestionsEmpty tatCa={q.tatCa} />}
 
       <div className={styles.col}>
         {q.danhSach.map((c) => (
           <QuestionCard
             key={c._id}
             c={c}
-            dangMo={q.dangTraLoi === c._id}
-            chuTraLoi={q.chuTraLoi}
-            dangGui={q.dangGui}
-            onBatTat={() => q.batTatTraLoi(c._id)}
-            onChu={q.setChuTraLoi}
-            onHuy={() => q.setDangTraLoi(null)}
-            onGui={() => q.gui(c._id)}
+            openId={q.replying === c._id}
+            replyText={q.replyText}
+            sending={q.sending}
+            onToggle={() => q.toggleReply(c._id)}
+            onText={q.setReplyText}
+            onCancel={() => q.setReplying(null)}
+            onSend={() => q.gui(c._id)}
           />
         ))}
       </div>

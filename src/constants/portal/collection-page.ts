@@ -12,22 +12,22 @@ export type CollectionSource = "mostPopular" | "newReleases" | "trendingNow";
 // HANG, va thu hang chi co nghia khi biet no xep theo cai gi.
 export const COLLECTIONS: Record<
   string,
-  { ten: string; moTa: string; lay: CollectionSource }
+  { ten: string; moTa: string; get: CollectionSource }
 > = {
   "most-popular-courses": {
     ten: "Phổ biến nhất",
     moTa: "Xếp theo số lượt ghi danh, nhiều nhất lên đầu.",
-    lay: "mostPopular",
+    get: "mostPopular",
   },
   "hot-releases-courses": {
     ten: "Mới phát hành",
     moTa: "Xếp theo ngày phát hành, khoá ra sau lên đầu.",
-    lay: "newReleases",
+    get: "newReleases",
   },
   "trending-now-courses": {
     ten: "Đang thịnh hành",
     moTa: "Xếp theo lượt xem gần đây, nhiều nhất lên đầu.",
-    lay: "trendingNow",
+    get: "trendingNow",
   },
 };
 

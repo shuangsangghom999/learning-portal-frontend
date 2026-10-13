@@ -485,18 +485,163 @@
 }
 
 /* Mau nhan trang thai ghi danh, truoc day la chuoi lop Tailwind trong STATUS_STYLE. */
-.nhanDangHoc {
+.learningLabel {
   background-color: var(--color-blue-50);
   color: var(--color-blue-700);
   border-color: var(--color-blue-200);
 }
-.nhanHoanThanh {
+.completedLabel {
   background-color: var(--color-emerald-50);
   color: var(--color-emerald-700);
   border-color: var(--color-emerald-200);
 }
-.nhanDaBo {
+.droppedLabel {
   background-color: var(--color-slate-100);
   color: var(--color-slate-700);
   border-color: var(--color-slate-200);
+}
+
+// ---- The tang khoa hoc (chuyen tu trang coin cu sang, 08/10/2026) ----
+.giftCard {
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-slate-200);
+  background-color: var(--color-white);
+  padding: calc(var(--spacing) * 5);
+}
+.giftHead {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+.giftIcon {
+  color: var(--color-blue-600);
+}
+.giftTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-slate-900);
+}
+.giftHint {
+  margin-top: calc(var(--spacing) * 1);
+  font-size: var(--text-sm);
+  color: var(--color-slate-500);
+}
+.giftRow {
+  margin-top: calc(var(--spacing) * 4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 3);
+}
+.giftPicker {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+  max-width: 420px;
+}
+.giftSearch {
+  position: relative;
+}
+.giftSearchIcon {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--spacing) * 3);
+  transform: translateY(-50%);
+  color: var(--color-slate-400);
+  pointer-events: none;
+}
+.giftInput {
+  width: 100%;
+  padding-left: calc(var(--spacing) * 9);
+}
+.giftList {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-slate-200);
+  background-color: var(--color-white);
+  box-shadow: 0 10px 25px -5px #0000001f;
+}
+.giftItem {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--color-slate-900);
+  cursor: pointer;
+
+  span {
+    font-size: var(--text-xs);
+    color: var(--color-slate-500);
+  }
+  &:hover,
+  &:focus-visible {
+    background-color: var(--color-slate-50);
+  }
+}
+.giftEmpty {
+  padding: calc(var(--spacing) * 3);
+  font-size: var(--text-sm);
+  color: var(--color-slate-500);
+}
+.giftChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 3);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-blue-200);
+  background-color: var(--color-blue-50);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  font-size: var(--text-sm);
+  color: var(--color-slate-900);
+}
+.giftChipText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.giftLink {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-blue-700);
+  cursor: pointer;
+}
+.giftButton {
+  border-radius: var(--radius-xl);
+  background-color: var(--color-blue-600);
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-blue-700);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+.giftOk,
+.giftError {
+  margin-top: calc(var(--spacing) * 3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+.giftOk {
+  color: var(--color-emerald-700);
+}
+.giftError {
+  color: var(--color-red-700);
 }

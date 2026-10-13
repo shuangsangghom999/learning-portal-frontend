@@ -1,5 +1,5 @@
 import { AdminOrders } from "@/src/components/features/admin/orders";
 
-export default function TrangDonHang() {
+export default function OrderPage() {
   return <AdminOrders />;
 }

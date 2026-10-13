@@ -1,11 +1,11 @@
 import { FileText, Landmark, UserRound, type LucideIcon } from "lucide-react";
 
-import type { DocumentStats as ThongKe } from "@/src/services/document";
+import type { DocumentStats as Stats } from "@/src/services/document";
 
 import styles from "./DocumentStats.module.scss";
 
 // So gon kieu mang xa hoi: 1.234 -> "1,2K", 2.500.000 -> "2,5M".
-const soGon = (n: number) =>
+const compactNumber = (n: number) =>
   new Intl.NumberFormat("vi-VN", {
     notation: "compact",
     maximumFractionDigits: 1,
@@ -18,8 +18,8 @@ const soGon = (n: number) =>
  *
  * Component MAY CHU - so lieu lay san o page.tsx.
  */
-export default function DocumentStats({ tk }: { tk: ThongKe }) {
-  const the: { so: number; Icon: LucideIcon; nhan: string; tag: string; mau: string }[] =
+export default function DocumentStats({ tk }: { tk: Stats }) {
+  const card: { so: number; Icon: LucideIcon; nhan: string; tag: string; mau: string }[] =
     [
       {
         so: tk.soTaiLieu,
@@ -27,7 +27,7 @@ export default function DocumentStats({ tk }: { tk: ThongKe }) {
         nhan: "Tài liệu học tập",
         tag:
           tk.moiTuanNay > 0
-            ? `${soGon(tk.moiTuanNay)} tài liệu mới tuần này`
+            ? `${compactNumber(tk.moiTuanNay)} tài liệu mới tuần này`
             : `${tk.soMon} môn học`,
         mau: styles.tim,
       },
@@ -42,17 +42,17 @@ export default function DocumentStats({ tk }: { tk: ThongKe }) {
         so: tk.soNguoiChiaSe,
         Icon: UserRound,
         nhan: "Người chia sẻ",
-        tag: `${soGon(tk.tongLuotTai)} lượt tải`,
+        tag: `${compactNumber(tk.tongLuotTai)} lượt tải`,
         mau: styles.cam,
       },
     ];
 
   return (
     <section className={styles.bang} aria-labelledby="tieu-de-so-lieu">
-      <span aria-hidden className={`${styles.hinh} ${styles.trenTrai}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.duoiTrai}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.trenPhai}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.duoiPhai}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.topLeft}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.bottomLeft}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.topRight}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.bottomRight}`} />
 
       <div className={styles.khung}>
         <h2 id="tieu-de-so-lieu" className={styles.tieuDe}>
@@ -63,12 +63,12 @@ export default function DocumentStats({ tk }: { tk: ThongKe }) {
         </p>
 
         <ul className={styles.ds}>
-          {the.map(({ so, Icon, nhan, tag, mau }) => (
-            <li key={nhan} className={styles.the}>
-              <span className={styles.so}>{soGon(so)}</span>
+          {card.map(({ so: count, Icon, nhan: label, tag, mau }) => (
+            <li key={label} className={styles.the}>
+              <span className={styles.so}>{compactNumber(count)}</span>
               <span className={styles.nhan}>
                 <Icon size={20} aria-hidden />
-                {nhan}
+                {label}
               </span>
               <span className={`${styles.tag} ${mau}`}>{tag}</span>
             </li>

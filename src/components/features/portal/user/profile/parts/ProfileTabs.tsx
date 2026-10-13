@@ -5,15 +5,15 @@ import { Bookmark, FileText, LayoutGrid } from "lucide-react";
 
 import styles from "./ProfileTabs.module.scss";
 
-export type TabHoSo = "tong-quan" | "tai-lieu" | "da-luu";
+export type ProfileTab = "tong-quan" | "tai-lieu" | "da-luu";
 
-const CAC_TAB: { khoa: TabHoSo; nhan: string; Icon: typeof LayoutGrid }[] = [
+const TABS: { khoa: ProfileTab; nhan: string; Icon: typeof LayoutGrid }[] = [
   { khoa: "tong-quan", nhan: "Tổng quan", Icon: LayoutGrid },
   { khoa: "tai-lieu", nhan: "Tài liệu của tôi", Icon: FileText },
   { khoa: "da-luu", nhan: "Đã lưu", Icon: Bookmark },
 ];
 
-const laTab = (v: string | null): v is TabHoSo => CAC_TAB.some((t) => t.khoa === v);
+const laTab = (v: string | null): v is ProfileTab => TABS.some((t) => t.khoa === v);
 
 /**
  * Tab dang mo cua trang ca nhan, GHI TREN DIA CHI (?tab=da-luu) - nhu TikTok /
@@ -23,8 +23,8 @@ const laTab = (v: string | null): v is TabHoSo => CAC_TAB.some((t) => t.khoa ===
  * Nhan ca neo cu (#tai-lieu-cua-toi, #da-luu) - trang chi tiet tai lieu tung
  * dan chu bai toi day bang neo.
  */
-export function useTabHoSo(): [TabHoSo, (t: TabHoSo) => void] {
-  const [tab, setTab] = useState<TabHoSo>("tong-quan");
+export function useProfileTab(): [ProfileTab, (t: ProfileTab) => void] {
+  const [tab, setTab] = useState<ProfileTab>("tong-quan");
 
   useEffect(() => {
     // Doc tu window chu khong dung useSearchParams: hook do bat trang phai boc
@@ -39,7 +39,7 @@ export function useTabHoSo(): [TabHoSo, (t: TabHoSo) => void] {
     });
   }, []);
 
-  const doiTab = (t: TabHoSo) => {
+  const changeTab = (t: ProfileTab) => {
     setTab(t);
     const u = new URL(window.location.href);
     if (t === "tong-quan") u.searchParams.delete("tab");
@@ -51,32 +51,32 @@ export function useTabHoSo(): [TabHoSo, (t: TabHoSo) => void] {
     window.history.replaceState(null, "", u.toString());
   };
 
-  return [tab, doiTab];
+  return [tab, changeTab];
 }
 
 /** Thanh tab kieu mang xa hoi: bieu tuong + chu, gach chan tab dang mo. */
 export default function ProfileTabs({
   tab,
-  doiTab,
+  changeTab,
 }: {
-  tab: TabHoSo;
-  doiTab: (t: TabHoSo) => void;
+  tab: ProfileTab;
+  changeTab: (t: ProfileTab) => void;
 }) {
   return (
     <div className={styles.thanh} role="tablist" aria-label="Mục trong trang cá nhân">
-      {CAC_TAB.map(({ khoa, nhan, Icon }) => (
+      {TABS.map(({ khoa: course, nhan: label, Icon }) => (
         <button
-          key={khoa}
+          key={course}
           type="button"
           role="tab"
-          id={`tab-${khoa}`}
-          aria-selected={tab === khoa}
-          aria-controls={`bang-${khoa}`}
-          onClick={() => doiTab(khoa)}
-          className={`${styles.tab} ${tab === khoa ? styles.tabOn : ""}`}
+          id={`tab-${course}`}
+          aria-selected={tab === course}
+          aria-controls={`bang-${course}`}
+          onClick={() => changeTab(course)}
+          className={`${styles.tab} ${tab === course ? styles.tabOn : ""}`}
         >
           <Icon size={17} />
-          <span>{nhan}</span>
+          <span>{label}</span>
         </button>
       ))}
     </div>

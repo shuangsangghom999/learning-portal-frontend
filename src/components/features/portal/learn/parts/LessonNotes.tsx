@@ -4,26 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 import { Clock, NotebookPen, Pencil, Trash2 } from "lucide-react";
 
 import styles from "./LessonNotes.module.scss";
-import {
-  layGhiChu,
-  suaGhiChu,
-  themGhiChu,
-  xoaGhiChu,
-  type GhiChu,
-} from "@/src/services/note";
+import { getNotes, editNote, addNote, deleteNote, type Note } from "@/src/services/note";
 
-const DAI_TOI_DA = 5000;
+const MAX_LENGTH = 5000;
 
 /** Giay -> "12:07" hoac "1:02:07". Khong bao gio hien "NaN:NaN". */
-const dinhDangMoc = (giay: number): string => {
-  const g = Math.max(0, Math.floor(giay));
-  const gio = Math.floor(g / 3600);
-  const phut = Math.floor((g % 3600) / 60);
-  const con = g % 60;
+const formatTimestamp = (seconds: number): string => {
+  const g = Math.max(0, Math.floor(seconds));
+  const hour = Math.floor(g / 3600);
+  const minutes = Math.floor((g % 3600) / 60);
+  const left = g % 60;
 
-  const hai = (n: number) => String(n).padStart(2, "0");
+  const pad2 = (n: number) => String(n).padStart(2, "0");
 
-  return gio > 0 ? `${gio}:${hai(phut)}:${hai(con)}` : `${phut}:${hai(con)}`;
+  return hour > 0 ? `${hour}:${pad2(minutes)}:${pad2(left)}` : `${minutes}:${pad2(left)}`;
 };
 
 interface Props {
@@ -36,105 +30,105 @@ interface Props {
    * Trang hoc truyen ham chu khong truyen con so: con so chup mot thoi diem,
    * ma thoi diem can biet la LUC BAM NUT, khong phai luc ve lai component.
    */
-  layViTriVideo?: () => number | null;
+  getVideoPosition?: () => number | null;
   /** Nhay video toi mot moc. Khong co thi moc chi la nhan doc, khong bam duoc. */
-  nhayToi?: (giay: number) => void;
+  jumpTo?: (seconds: number) => void;
 }
 
-export default function GhiChuBaiHoc({
+export default function LessonNote({
   courseId,
   lessonId,
-  layViTriVideo,
-  nhayToi,
+  getVideoPosition,
+  jumpTo,
 }: Props) {
-  const [danhSach, setDanhSach] = useState<GhiChu[]>([]);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [list, setList] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  const [chuMoi, setChuMoi] = useState("");
-  const [dangGui, setDangGui] = useState(false);
+  const [newText, setNewText] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const [dangSua, setDangSua] = useState<string | null>(null);
-  const [chuSua, setChuSua] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
-  const nap = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
 
     try {
-      const kq = await layGhiChu(courseId, lessonId);
-      setDanhSach(kq.danhSach);
+      const outcome = await getNotes(courseId, lessonId);
+      setList(outcome.danhSach);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không tải được ghi chú.");
+      setErr(e instanceof Error ? e.message : "Không tải được ghi chú.");
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, [courseId, lessonId]);
 
   useEffect(() => {
     if (!courseId || !lessonId) return;
-    // Day sang microtask - xem ghi chu cung kieu o ChuongThongBao.
-    queueMicrotask(nap);
-  }, [courseId, lessonId, nap]);
+    // Day sang microtask - xem ghi chu cung kieu o NotificationBell.
+    queueMicrotask(load);
+  }, [courseId, lessonId, load]);
 
   const them = async () => {
-    const chu = chuMoi.trim();
-    if (!chu || dangGui) return;
+    const text = newText.trim();
+    if (!text || sending) return;
 
-    setDangGui(true);
-    setLoi("");
+    setSending(true);
+    setErr("");
 
     try {
       // Doc vi tri video NGAY LUC NAY, khong phai luc ve component.
-      const moc = layViTriVideo?.() ?? null;
+      const moc = getVideoPosition?.() ?? null;
 
-      const kq = await themGhiChu({ courseId, lessonId, noiDung: chu, mocGiay: moc });
+      const outcome = await addNote({ courseId, lessonId, noiDung: text, mocGiay: moc });
 
       // Chen dung cho theo moc thoi gian de danh sach luon khop voi video.
       // Nap lai ca danh sach cho chuyen nay la mot luot mang thua.
-      setDanhSach((cu) =>
-        [...cu, kq.ghiChu].sort((a, b) => {
-          const ma = a.mocGiay ?? Number.MAX_SAFE_INTEGER;
+      setList((old) =>
+        [...old, outcome.ghiChu].sort((a, b) => {
+          const code = a.mocGiay ?? Number.MAX_SAFE_INTEGER;
           const mb = b.mocGiay ?? Number.MAX_SAFE_INTEGER;
-          if (ma !== mb) return ma - mb;
+          if (code !== mb) return code - mb;
           return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         }),
       );
-      setChuMoi("");
+      setNewText("");
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không lưu được ghi chú.");
+      setErr(e instanceof Error ? e.message : "Không lưu được ghi chú.");
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
-  const luuSua = async (id: string) => {
-    const chu = chuSua.trim();
-    if (!chu || dangGui) return;
+  const saveEdit = async (id: string) => {
+    const text = editText.trim();
+    if (!text || sending) return;
 
-    setDangGui(true);
+    setSending(true);
 
     try {
-      const kq = await suaGhiChu(id, chu);
-      setDanhSach((cu) => cu.map((g) => (g._id === id ? kq.ghiChu : g)));
-      setDangSua(null);
-      setChuSua("");
+      const outcome = await editNote(id, text);
+      setList((old) => old.map((g) => (g._id === id ? outcome.ghiChu : g)));
+      setEditing(null);
+      setEditText("");
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không sửa được ghi chú.");
+      setErr(e instanceof Error ? e.message : "Không sửa được ghi chú.");
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
-  const xoa = async (id: string) => {
-    const cu = danhSach;
-    setDanhSach((ds) => ds.filter((g) => g._id !== id));
+  const remove = async (id: string) => {
+    const old = list;
+    setList((items) => items.filter((g) => g._id !== id));
 
     try {
-      await xoaGhiChu(id);
+      await deleteNote(id);
     } catch {
-      setDanhSach(cu);
-      setLoi("Không xóa được ghi chú.");
+      setList(old);
+      setErr("Không xóa được ghi chú.");
     }
   };
 
@@ -156,8 +150,8 @@ export default function GhiChuBaiHoc({
       <div className={styles.box2}>
         <textarea
           id="ghi-chu-moi"
-          value={chuMoi}
-          onChange={(e) => setChuMoi(e.target.value.slice(0, DAI_TOI_DA))}
+          value={newText}
+          onChange={(e) => setNewText(e.target.value.slice(0, MAX_LENGTH))}
           rows={2}
           placeholder="Ghi lại điều bạn muốn nhớ…"
           className={styles.textarea}
@@ -165,13 +159,13 @@ export default function GhiChuBaiHoc({
 
         <div className={styles.row2}>
           <span className={styles.label}>
-            {chuMoi.length}/{DAI_TOI_DA}
+            {newText.length}/{MAX_LENGTH}
           </span>
 
           <button
             type="button"
             onClick={them}
-            disabled={!chuMoi.trim() || dangGui}
+            disabled={!newText.trim() || sending}
             className={styles.button}
           >
             Lưu ghi chú
@@ -179,38 +173,38 @@ export default function GhiChuBaiHoc({
         </div>
       </div>
 
-      {loi && <p className={styles.text2}>{loi}</p>}
+      {err && <p className={styles.text2}>{err}</p>}
 
-      {dangTai && <p className={styles.text3}>Đang tải…</p>}
+      {loading && <p className={styles.text3}>Đang tải…</p>}
 
-      {!dangTai && danhSach.length === 0 && (
+      {!loading && list.length === 0 && (
         <p className={styles.text3}>Chưa có ghi chú nào cho bài này.</p>
       )}
 
       <div className={styles.col}>
-        {danhSach.map((g) => (
+        {list.map((g) => (
           <div key={g._id} className={styles.card}>
-            {dangSua === g._id ? (
+            {editing === g._id ? (
               <>
                 <textarea
                   id={`ghi-chu-sua-${g._id}`}
-                  value={chuSua}
-                  onChange={(e) => setChuSua(e.target.value.slice(0, DAI_TOI_DA))}
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value.slice(0, MAX_LENGTH))}
                   rows={3}
                   className={styles.textarea2}
                 />
                 <div className={styles.row3}>
                   <button
                     type="button"
-                    onClick={() => setDangSua(null)}
+                    onClick={() => setEditing(null)}
                     className={styles.button2}
                   >
                     Hủy
                   </button>
                   <button
                     type="button"
-                    onClick={() => luuSua(g._id)}
-                    disabled={!chuSua.trim() || dangGui}
+                    onClick={() => saveEdit(g._id)}
+                    disabled={!editText.trim() || sending}
                     className={styles.button3}
                   >
                     Lưu
@@ -223,17 +217,17 @@ export default function GhiChuBaiHoc({
                   {/* Moc thoi gian chi bam duoc khi trang hoc co truyen nhayToi.
                       Khong co thi ve <span> - mot cai nut bam vao khong lam gi
                       te hon han mot cai nhan doc. */}
-                  {g.mocGiay !== null && nhayToi ? (
+                  {g.mocGiay !== null && jumpTo ? (
                     <button
                       type="button"
-                      onClick={() => nhayToi(g.mocGiay as number)}
+                      onClick={() => jumpTo(g.mocGiay as number)}
                       className={styles.button4}
                     >
-                      <Clock size={11} /> {dinhDangMoc(g.mocGiay)}
+                      <Clock size={11} /> {formatTimestamp(g.mocGiay)}
                     </button>
                   ) : g.mocGiay !== null ? (
                     <span className={styles.row5}>
-                      <Clock size={11} /> {dinhDangMoc(g.mocGiay)}
+                      <Clock size={11} /> {formatTimestamp(g.mocGiay)}
                     </span>
                   ) : (
                     <span className={styles.label2}>
@@ -245,8 +239,8 @@ export default function GhiChuBaiHoc({
                     <button
                       type="button"
                       onClick={() => {
-                        setDangSua(g._id);
-                        setChuSua(g.noiDung);
+                        setEditing(g._id);
+                        setEditText(g.noiDung);
                       }}
                       aria-label="Sửa ghi chú"
                       className={styles.button5}
@@ -255,7 +249,7 @@ export default function GhiChuBaiHoc({
                     </button>
                     <button
                       type="button"
-                      onClick={() => xoa(g._id)}
+                      onClick={() => remove(g._id)}
                       aria-label="Xóa ghi chú"
                       className={styles.button6}
                     >

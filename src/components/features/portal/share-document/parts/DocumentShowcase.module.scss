@@ -84,7 +84,7 @@
 }
 
 // The trai: o nhap mo phong, vien xanh + vong sang ngoai.
-.theTrai {
+.leftCard {
   position: relative;
   z-index: 2;
   display: flex;
@@ -106,7 +106,7 @@
   }
 }
 
-.chuTim {
+.searchText {
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -117,7 +117,7 @@
   color: #0a0a0a;
 }
 
-.conTro {
+.cursor {
   display: inline-block;
   width: 3px;
   height: 1.2em;
@@ -127,13 +127,13 @@
   background-color: #3092fa;
 }
 
-.hangNut {
+.buttonRow {
   margin-top: calc(var(--spacing) * 6);
   display: flex;
   justify-content: space-between;
 }
 
-.nutTron {
+.roundButton {
   display: grid;
   place-items: center;
   width: 36px;
@@ -143,7 +143,7 @@
   color: #2f3e4e;
 }
 
-.nutDen {
+.darkButton {
   border-color: #0a0a0a;
   background-color: #0a0a0a;
   color: #fff;
@@ -160,7 +160,7 @@
 }
 
 // The phai: tai lieu that.
-.thePhai {
+.rightCard {
   position: relative;
   z-index: 2;
   display: flex;
@@ -186,7 +186,7 @@
   color: #4c5966;
 }
 
-.tenTaiLieu {
+.documentTitle {
   margin-top: calc(var(--spacing) * 4);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -236,7 +236,7 @@
   }
 }
 
-.duoi {
+.extension {
   border-radius: 6px;
   background-color: #fff4f2;
   padding: 2px 8px;
@@ -244,7 +244,7 @@
   color: #bd251c;
 }
 
-.nutXem {
+.viewButton {
   margin-top: calc(var(--spacing) * 10);
   border-radius: 999px;
   border: 1px solid #aad2ff;
@@ -269,11 +269,11 @@
 // Chi chay khi may KHONG bat "giam chuyen dong".
 @media (prefers-reduced-motion: no-preference) {
   // Doi tab: hai the truot vao tu hai phia.
-  .noiDung .theTrai {
+  .noiDung .leftCard {
     animation: vaoTrai 0.5s cubic-bezier(0.23, 1, 0.32, 1) backwards;
   }
 
-  .noiDung .thePhai {
+  .noiDung .rightCard {
     animation: vaoPhai 0.5s 0.08s cubic-bezier(0.23, 1, 0.32, 1) backwards;
   }
 
@@ -281,7 +281,7 @@
     animation: tho 3.2s ease-in-out infinite;
   }
 
-  .conTro {
+  .cursor {
     animation: nhay 1s steps(1) infinite;
   }
 }
@@ -332,11 +332,11 @@
     display: none;
   }
 
-  .theTrai {
+  .leftCard {
     width: min(100%, 310px);
   }
 
-  .thePhai {
+  .rightCard {
     width: min(100%, 474px);
     min-height: 0;
   }
@@ -365,11 +365,11 @@
     flex-shrink: 0;
   }
 
-  .thePhai {
+  .rightCard {
     padding: calc(var(--spacing) * 5);
   }
 
-  .tenTaiLieu {
+  .documentTitle {
     font-size: 1.2rem;
   }
 }

@@ -2,25 +2,28 @@
 
 import { useState } from "react";
 
-import { cauHoiTrong } from "@/src/lib/quiz-draft";
-import type { CauHoiSoan, PhuongAn } from "@/src/types/quiz-draft";
+import { emptyQuestion } from "@/src/lib/quiz-draft";
+import type { DraftQuestion, Option } from "@/src/types/quiz-draft";
 
 /**
  * State bo cau hoi dang soan cua mot quiz - dung chung cho trang tao va sua
  * quiz cua ca admin lan giang vien.
  *
- * @param khoiTao danh sach ban dau
- * @param baoItNhatMotCau cau bao khi xoa cau cuoi cung (moi trang mot cach noi)
+ * @param initialize danh sach ban dau
+ * @param requireAtLeastOneQuestion cau bao khi xoa cau cuoi cung (moi trang mot cach noi)
  */
-export function useQuizQuestions(khoiTao: CauHoiSoan[], baoItNhatMotCau: string) {
-  const [questions, setQuestions] = useState<CauHoiSoan[]>(khoiTao);
+export function useQuizQuestions(
+  initialize: DraftQuestion[],
+  requireAtLeastOneQuestion: string,
+) {
+  const [questions, setQuestions] = useState<DraftQuestion[]>(initialize);
 
   const addQuestion = () => {
-    setQuestions([...questions, cauHoiTrong()]);
+    setQuestions([...questions, emptyQuestion()]);
   };
 
   const removeQuestion = (qIndex: number) => {
-    if (questions.length === 1) return alert(baoItNhatMotCau);
+    if (questions.length === 1) return alert(requireAtLeastOneQuestion);
     setQuestions(questions.filter((_, idx) => idx !== qIndex));
   };
 
@@ -28,24 +31,24 @@ export function useQuizQuestions(khoiTao: CauHoiSoan[], baoItNhatMotCau: string)
   //
   // Kieu generic K buoc field va value phai khop nhau: goi
   // handleQuestionChange(i, "points", "abc") se bi tu choi ngay luc bien dich.
-  const handleQuestionChange = <K extends keyof CauHoiSoan>(
+  const handleQuestionChange = <K extends keyof DraftQuestion>(
     qIndex: number,
     field: K,
-    value: CauHoiSoan[K],
+    value: DraftQuestion[K],
   ) => {
-    setQuestions((truoc) =>
-      truoc.map((q, idx) => (idx === qIndex ? { ...q, [field]: value } : q)),
+    setQuestions((before) =>
+      before.map((q, idx) => (idx === qIndex ? { ...q, [field]: value } : q)),
     );
   };
 
-  const handleOptionChange = <K extends keyof PhuongAn>(
+  const handleOptionChange = <K extends keyof Option>(
     qIndex: number,
     oIndex: number,
     field: K,
-    value: PhuongAn[K],
+    value: Option[K],
   ) => {
-    setQuestions((truoc) =>
-      truoc.map((q, idx) => {
+    setQuestions((before) =>
+      before.map((q, idx) => {
         if (idx !== qIndex) return q;
         // Danh dau mot phuong an la dung -> tat cac phuong an dung khac cua
         // chinh cau hoi do, vi day la dang chon mot.
@@ -66,8 +69,8 @@ export function useQuizQuestions(khoiTao: CauHoiSoan[], baoItNhatMotCau: string)
   };
 
   const addOption = (qIndex: number) => {
-    setQuestions((truoc) =>
-      truoc.map((q, idx) =>
+    setQuestions((before) =>
+      before.map((q, idx) =>
         idx === qIndex
           ? { ...q, options: [...q.options, { text: "", isCorrect: false }] }
           : q,

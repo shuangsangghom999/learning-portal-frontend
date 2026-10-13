@@ -5,18 +5,18 @@ import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-
 import styles from "../InstructorQuestions.module.scss";
 
 interface QuestionsToolbarProps {
-  dangTai: boolean;
+  loading: boolean;
   tatCa: boolean;
   tong: number;
-  onTatCa: (v: boolean) => void;
+  onAll: (v: boolean) => void;
 }
 
 /** Tieu de, dong tom tat so cau va hai tab Cho tra loi / Tat ca. */
 export default function QuestionsToolbar({
-  dangTai,
-  tatCa,
-  tong,
-  onTatCa,
+  loading,
+  tatCa: all,
+  tong: total,
+  onAll,
 }: QuestionsToolbarProps) {
   return (
     <>
@@ -26,25 +26,25 @@ export default function QuestionsToolbar({
       </div>
 
       <p className={styles.text}>
-        {dangTai
+        {loading
           ? C.summary.loading
-          : tatCa
-            ? C.summary.all(tong)
-            : C.summary.pending(tong)}
+          : all
+            ? C.summary.all(total)
+            : C.summary.pending(total)}
       </p>
 
       <div className={styles.row2}>
         <button
           type="button"
-          onClick={() => onTatCa(false)}
-          className={`${styles.button6} ${!tatCa ? styles.button : styles.button2}`}
+          onClick={() => onAll(false)}
+          className={`${styles.button6} ${!all ? styles.button : styles.button2}`}
         >
           {C.tabs.pending}
         </button>
         <button
           type="button"
-          onClick={() => onTatCa(true)}
-          className={`${styles.button6} ${tatCa ? styles.button : styles.button2}`}
+          onClick={() => onAll(true)}
+          className={`${styles.button6} ${all ? styles.button : styles.button2}`}
         >
           {C.tabs.all}
         </button>

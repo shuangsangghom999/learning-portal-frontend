@@ -4,41 +4,46 @@ import Link from "next/link";
 import { useState } from "react";
 import { AlarmClock, ChevronRight, CircleCheck, CircleHelp, Clock } from "lucide-react";
 
-import { lichSuBaiLam, type BaiLamTomTat } from "@/src/services/practice";
+import { attemptHistory, type AttemptSummary } from "@/src/services/practice";
 
-import { diem10, ngayGio, thoiLuong } from "./practiceSettings";
+import { diem10, dateTime, duration } from "./practiceSettings";
 
 import styles from "./PracticeHistory.module.scss";
 
 // "Xem lich su lam bai" o trang thiet lap de, theo mau trang thi cua chu du an:
 // bam nut moi tai (khong ai can lich su moi lan mo de), roi hien tung the diem.
 
-export default function PracticeHistory({ deId }: { deId: string }) {
-  const [ds, setDs] = useState<BaiLamTomTat[] | null>(null);
-  const [dangTai, setDangTai] = useState(false);
-  const [loi, setLoi] = useState("");
+export default function PracticeHistory({ deId: quizId }: { deId: string }) {
+  const [items, setDs] = useState<AttemptSummary[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
-  const tai = async () => {
-    setDangTai(true);
-    setLoi("");
+  const download = async () => {
+    setLoading(true);
+    setErr("");
     try {
-      setDs((await lichSuBaiLam(deId)).danhSach);
+      setDs((await attemptHistory(quizId)).danhSach);
     } catch (e) {
-      setLoi((e as Error).message || "Không tải được lịch sử làm bài.");
+      setErr((e as Error).message || "Không tải được lịch sử làm bài.");
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   };
 
-  if (!ds) {
+  if (!items) {
     return (
-      <div className={styles.moDau}>
-        <button type="button" className={styles.nutMo} onClick={tai} disabled={dangTai}>
-          {dangTai ? "Đang tải…" : "Xem lịch sử làm bài"}
+      <div className={styles.intro}>
+        <button
+          type="button"
+          className={styles.openButton}
+          onClick={download}
+          disabled={loading}
+        >
+          {loading ? "Đang tải…" : "Xem lịch sử làm bài"}
         </button>
-        {loi && (
+        {err && (
           <p className={styles.loi} role="alert">
-            {loi}
+            {err}
           </p>
         )}
       </div>
@@ -50,28 +55,28 @@ export default function PracticeHistory({ deId }: { deId: string }) {
       <h2 id="lich-su-tieu-de" className={styles.tieuDe}>
         Lịch sử làm bài của bạn
       </h2>
-      {ds.length === 0 ? (
+      {items.length === 0 ? (
         <p className={styles.trong}>Bạn chưa làm bài nào ở đề này.</p>
       ) : (
         <ul className={styles.ds}>
-          {ds.map((b) => (
+          {items.map((b) => (
             <li key={b._id} className={styles.the}>
               <p className={styles.diem}>
                 <span>Điểm của bạn:</span>
                 <strong>{diem10(b.soDung, b.soCau)}</strong>
               </p>
-              <dl className={styles.thongTin}>
+              <dl className={styles.info}>
                 <div>
                   <dt>
                     <Clock size={16} aria-hidden="true" /> Thời gian làm bài:
                   </dt>
-                  <dd>{thoiLuong(b.giay)}</dd>
+                  <dd>{duration(b.giay)}</dd>
                 </div>
                 <div>
                   <dt>
                     <AlarmClock size={16} aria-hidden="true" /> Thời gian nộp bài:
                   </dt>
-                  <dd>{ngayGio(Date.parse(b.createdAt))}</dd>
+                  <dd>{dateTime(Date.parse(b.createdAt))}</dd>
                 </div>
                 <div>
                   <dt>
@@ -87,8 +92,8 @@ export default function PracticeHistory({ deId }: { deId: string }) {
                 </div>
               </dl>
               <Link
-                href={`/practice/${deId}/result?lan=${b._id}`}
-                className={styles.nutXem}
+                href={`/practice/${quizId}/result?lan=${b._id}`}
+                className={styles.viewButton}
               >
                 Xem chi tiết bài làm <ChevronRight size={16} aria-hidden="true" />
               </Link>

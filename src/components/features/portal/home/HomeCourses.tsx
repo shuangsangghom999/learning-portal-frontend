@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Filter, RotateCcw } from "lucide-react";
-import { getCourses, layIdChuDe, type Course } from "@/src/services/course";
+import { getCourses, getCategoryId, type Course } from "@/src/services/course";
 import { getCategories, Category } from "@/src/services/categoryService";
-import { locKhoaDaDang } from "@/src/lib/filter-courses";
-import TieuDeMuc from "@/src/components/common/SectionHeading";
-import TheKhoaHoc from "@/src/components/common/CourseCard";
+import { filterPublished } from "@/src/lib/filter-courses";
+import SectionTitle from "@/src/components/common/SectionHeading";
+import CourseCard from "@/src/components/common/CourseCard";
 import type { HomeCoursesData } from "@/src/types/home";
 
 import styles from "./HomeCourses.module.scss";
@@ -92,7 +92,7 @@ export default function HomeCourses({
       .then(([coursesRes, categoriesRes]) => {
         // filteredCourses tu suy ra tu courses qua useMemo ben duoi,
         // khong can set rieng nua.
-        setCourses(locKhoaDaDang(coursesRes));
+        setCourses(filterPublished(coursesRes));
         if (Array.isArray(categoriesRes)) setCategories(categoriesRes);
       })
       .catch((error) => console.error("Lỗi khi tải dữ liệu:", error))
@@ -104,10 +104,10 @@ export default function HomeCourses({
 
     // Lọc theo Category
     if (selectedCategory !== "all") {
-      // layIdChuDe xu ly ca ba hinh dang cua course.category (mang id, mang doi
+      // getCategoryId xu ly ca ba hinh dang cua course.category (mang id, mang doi
       // tuong da populate, dang { $oid }) - xem ghi chu tai dinh nghia Course.
       result = result.filter((course) =>
-        layIdChuDe(course.category).includes(selectedCategory),
+        getCategoryId(course.category).includes(selectedCategory),
       );
     }
 
@@ -139,7 +139,7 @@ export default function HomeCourses({
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <TieuDeMuc tieuDe={heading} moTa={description} />
+        <SectionTitle tieuDe={heading} moTa={description} />
 
         {/* THANH BỘ LỌC (Giữ nguyên cấu trúc để UI không bị trống trải khi đang tải) */}
         <div className={styles.card2}>
@@ -172,9 +172,9 @@ export default function HomeCourses({
                 onChange={(e) => setSelectedLevel(e.target.value)}
                 className={styles.select}
               >
-                {levels.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {levels.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
                   </option>
                 ))}
               </select>
@@ -187,9 +187,9 @@ export default function HomeCourses({
                 onChange={(e) => setSelectedPrice(e.target.value)}
                 className={styles.select}
               >
-                {prices.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {prices.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
                   </option>
                 ))}
               </select>
@@ -225,7 +225,7 @@ export default function HomeCourses({
         ) : (
           <div className={styles.grid2}>
             {filteredCourses.map((course) => (
-              <TheKhoaHoc key={course._id} khoa={course} sizes={cardSizes} />
+              <CourseCard key={course._id} khoa={course} sizes={cardSizes} />
             ))}
           </div>
         )}

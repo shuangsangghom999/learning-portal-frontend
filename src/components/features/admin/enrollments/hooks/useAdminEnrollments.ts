@@ -108,5 +108,6 @@ export function useAdminEnrollments() {
     busyId,
     error,
     changeStatus,
+    reload: load,
   };
 }

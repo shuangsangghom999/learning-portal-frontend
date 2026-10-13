@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 
-import type { BoLoc } from "@/src/components/features/portal/share-document/parts/ShareDocumentClient";
+import type { Filters } from "@/src/components/features/portal/share-document/parts/ShareDocumentClient";
 import {
-  docLoai,
-  docTuKhoa,
-  doiKhoa,
-} from "@/src/components/features/portal/share-document/taiLieuMayChu";
+  readType,
+  readKeyword,
+  swapKey,
+} from "@/src/components/features/portal/share-document/serverDocuments";
 import {
   DocumentBrowser,
-  layDuLieuTruongLinhVuc,
-  timPhamVi,
+  getSchoolFieldData,
+  findScope,
 } from "@/src/components/features/portal/share-document";
 import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
@@ -17,13 +17,13 @@ type Params = Promise<{ truong: string; linhVuc: string }>;
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 /** Truong + linh vuc tren dia chi -> ban ghi that; khong co thi null (404). */
-async function phamViTuDiaChi(params: Params) {
+async function scopeFromParams(params: Params) {
   const p = await params;
-  return timPhamVi(doiKhoa(p.truong), doiKhoa(p.linhVuc));
+  return findScope(swapKey(p.truong), swapKey(p.linhVuc));
 }
 
 export async function generateMetadata({ params }: { params: Params }) {
-  const pv = await phamViTuDiaChi(params);
+  const pv = await scopeFromParams(params);
   const C = SHARE_DOCUMENT.institutionCategory;
   if (!pv) return { title: C.notFoundTitle };
   return {
@@ -45,27 +45,27 @@ export default async function InstitutionCategoryPage({
   params: Params;
   searchParams: SearchParams;
 }) {
-  const [pv, sp] = await Promise.all([phamViTuDiaChi(params), searchParams]);
+  const [pv, sp] = await Promise.all([scopeFromParams(params), searchParams]);
   if (!pv) notFound();
 
-  const loc: BoLoc = {
-    q: docTuKhoa(sp.q),
-    mon: doiKhoa(sp.mon),
+  const query: Filters = {
+    q: readKeyword(sp.q),
+    mon: swapKey(sp.mon),
     nhom: pv.nhom.key,
     truong: pv.truong.key,
-    loai: docLoai(sp.loai),
+    loai: readType(sp.loai),
   };
-  const d = await layDuLieuTruongLinhVuc(pv, loc);
+  const d = await getSchoolFieldData(pv, query);
 
   return (
     <DocumentBrowser
       initialData={d.initialData}
-      boLocBanDau={loc}
-      dsNhom={pv.dsNhom}
-      dsTruong={pv.dsTruong}
-      dsMonBanDau={d.dsMon}
-      phamVi={{ truong: pv.truong.key, nhom: pv.nhom.key }}
-      monPhamVi={d.monPhamVi}
+      initialFilters={query}
+      groupList={pv.groupList}
+      schoolList={pv.schoolList}
+      initialSubjects={d.subjectList}
+      scope={{ truong: pv.truong.key, nhom: pv.nhom.key }}
+      scopedSubjects={d.scopedSubjects}
     />
   );
 }

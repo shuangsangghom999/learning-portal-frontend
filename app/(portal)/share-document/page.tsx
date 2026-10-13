@@ -5,7 +5,7 @@ import {
   DocumentShowcase,
   DocumentStats,
   DocumentUniversities,
-  layDuLieuTrangTaiLieu,
+  getDocumentPageData,
   ShareDocumentIndex,
   ShareDocumentShell,
 } from "@/src/components/features/portal/share-document";
@@ -21,16 +21,16 @@ export const revalidate = 60;
  * Danh sach tat ca tai lieu nam o /share-document/all-document.
  */
 export default async function ShareDocumentPage() {
-  const d = await layDuLieuTrangTaiLieu();
+  const d = await getDocumentPageData();
 
   return (
     <ShareDocumentShell>
-      <ShareDocumentIndex dsMon={d.dsMon} />
-      <DocumentShowcase dsMuc={d.dsTrinhBay} />
+      <ShareDocumentIndex subjectList={d.subjectList} />
+      <DocumentShowcase itemList={d.dsTrinhBay} />
       <DocumentExplore dsTab={d.dsTabKhamPha} />
       {d.thongKe && <DocumentStats tk={d.thongKe} />}
-      <DocumentUniversities dsTruong={d.dsTruong} dsTaiLieu={d.moiNhat} />
-      <DocumentCategories dsNhom={d.dsNhom} />
+      <DocumentUniversities schoolList={d.schoolList} documentList={d.latest} />
+      <DocumentCategories groupList={d.groupList} />
       {/* Cuoi trang: FAQ rieng cua khu tai lieu (admin: /admin/faqs, tab
           "Chia se tai lieu"). Loi mang thi truyen null de component tu goi lai. */}
       <FaqSection viTri="taiLieu" initialData={d.faqs} />

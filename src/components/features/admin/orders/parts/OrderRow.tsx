@@ -1,18 +1,18 @@
 import { ADMIN_ORDERS as C } from "@/src/constants/admin/orders-page";
-import { dinhDangTien, type DonHangAdmin, type TrangThaiDon } from "@/src/services/order";
+import { formatMoney, type AdminOrder, type OrderStatus } from "@/src/services/order";
 
 import styles from "../AdminOrders.module.scss";
 
 // Mau nhan trang thai don. Truoc day la chuoi lop Tailwind dat thang o day;
 // go Tailwind xong thi bon trang thai don nhin y het nhau.
-const KIEU_NHAN: Record<TrangThaiDon, string> = {
-  pending: styles.nhanCho,
-  paid: styles.nhanXong,
-  cancelled: styles.nhanHuy,
-  expired: styles.nhanQuaHan,
+const LABEL_STYLES: Record<OrderStatus, string> = {
+  pending: styles.pendingLabel,
+  paid: styles.doneLabel,
+  cancelled: styles.cancelledLabel,
+  expired: styles.expiredLabel,
 };
 
-const ngayGio = (chuoi: string) =>
+const dateTime = (chuoi: string) =>
   new Date(chuoi).toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -22,58 +22,63 @@ const ngayGio = (chuoi: string) =>
   });
 
 interface OrderRowProps {
-  don: DonHangAdmin;
+  don: AdminOrder;
   busy: boolean;
-  onConfirm: (don: DonHangAdmin) => void;
-  onCancel: (don: DonHangAdmin) => void;
+  onConfirm: (order: AdminOrder) => void;
+  onCancel: (order: AdminOrder) => void;
 }
 
 /** Mot don: ma, hoc vien, khoa (ca gio hang), tien, trang thai, thao tac. */
-export default function OrderRow({ don, busy, onConfirm, onCancel }: OrderRowProps) {
+export default function OrderRow({
+  don: order,
+  busy,
+  onConfirm,
+  onCancel,
+}: OrderRowProps) {
   return (
     <tr className={styles.row4}>
-      <td className={styles.cell2}>{don.code}</td>
+      <td className={styles.cell2}>{order.code}</td>
       <td className={styles.headCell}>
-        <div className={styles.box2}>{don.student?.name ?? C.row.none}</div>
-        <div className={styles.box3}>{don.student?.email ?? ""}</div>
+        <div className={styles.box2}>{order.student?.name ?? C.row.none}</div>
+        <div className={styles.box3}>{order.student?.email ?? ""}</div>
       </td>
       <td className={styles.cell3}>
         {/* Don gio hang: hien du ten moi khoa - quan tri doi chieu
             mot dong sao ke voi CA don, can biet don tra cho nhung gi. */}
         <div className={styles.box4}>
-          {don.courses && don.courses.length > 1
+          {order.courses && order.courses.length > 1
             ? C.row.cartCourses(
-                don.courses.length,
-                don.courses.map((k) => k.title).join(", "),
+                order.courses.length,
+                order.courses.map((k) => k.title).join(", "),
               )
-            : (don.course?.title ?? C.row.none)}
+            : (order.course?.title ?? C.row.none)}
         </div>
       </td>
-      <td className={styles.cell4}>{dinhDangTien(don.amount)}</td>
+      <td className={styles.cell4}>{formatMoney(order.amount)}</td>
       <td className={styles.headCell}>
-        <span className={`${styles.label4} ${KIEU_NHAN[don.status]}`}>
-          {C.statusLabel[don.status]}
+        <span className={`${styles.label4} ${LABEL_STYLES[order.status]}`}>
+          {C.statusLabel[order.status]}
         </span>
-        {don.confirmedBy && (
-          <div className={styles.box5}>{C.row.confirmedBy(don.confirmedBy.name)}</div>
+        {order.confirmedBy && (
+          <div className={styles.box5}>{C.row.confirmedBy(order.confirmedBy.name)}</div>
         )}
-        {don.daBaoChuyenKhoanLuc && don.status !== "paid" && (
+        {order.daBaoChuyenKhoanLuc && order.status !== "paid" && (
           <div className={styles.box6}>
-            {C.row.reportedAt(ngayGio(don.daBaoChuyenKhoanLuc))}
+            {C.row.reportedAt(dateTime(order.daBaoChuyenKhoanLuc))}
           </div>
         )}
       </td>
-      <td className={styles.cell5}>{ngayGio(don.createdAt)}</td>
+      <td className={styles.cell5}>{dateTime(order.createdAt)}</td>
       <td className={styles.cell6}>
-        {don.status === "paid" ? (
+        {order.status === "paid" ? (
           <span className={styles.label3}>{C.row.processed}</span>
-        ) : don.status === "cancelled" ? (
+        ) : order.status === "cancelled" ? (
           <span className={styles.label3}>{C.row.cancelled}</span>
         ) : (
           <div className={styles.row5}>
             <button
               type="button"
-              onClick={() => onConfirm(don)}
+              onClick={() => onConfirm(order)}
               disabled={busy}
               className={styles.button3}
             >
@@ -81,7 +86,7 @@ export default function OrderRow({ don, busy, onConfirm, onCancel }: OrderRowPro
             </button>
             <button
               type="button"
-              onClick={() => onCancel(don)}
+              onClick={() => onCancel(order)}
               disabled={busy}
               className={styles.button4}
             >

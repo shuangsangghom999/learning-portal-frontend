@@ -95,7 +95,7 @@
 }
 
 /* Khong co tai lieu lien quan thi mot cot tran het chieu rong. */
-.layoutMot {
+.singleLayout {
   display: block;
 }
 
@@ -420,7 +420,7 @@
 }
 
 /* Nut "Sua tai lieu" - chi chu bai va admin thay. */
-.nutSua {
+.editButton {
   margin-top: calc(var(--spacing) * 4);
   display: inline-flex;
   align-items: center;
@@ -451,7 +451,7 @@
   overflow: hidden;
 }
 
-.tepTieuDe {
+.fileTitle {
   padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
   background-color: #f8fafc;
   border-bottom: 1px solid var(--color-slate-200);
@@ -460,7 +460,7 @@
   color: var(--color-slate-900);
 }
 
-.tepMuc {
+.fileItem {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 3);
@@ -471,7 +471,7 @@
   }
 }
 
-.tepDuoi {
+.fileExt {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -484,26 +484,26 @@
   color: #b91c1c;
 }
 
-.tepThongTin {
+.fileInfo {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.tepTen {
+.fileName {
   overflow-wrap: anywhere;
   font-weight: 600;
   color: var(--color-slate-900);
 }
 
-.tepCo {
+.fileSize {
   font-size: 0.8rem;
   color: var(--color-slate-500);
 }
 
-.tepXem,
-.tepTai {
+.fileView,
+.fileDownload {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -514,7 +514,7 @@
   font-weight: 600;
 }
 
-.tepXem {
+.fileView {
   border: 1px solid var(--color-slate-300);
   color: var(--color-slate-700);
 
@@ -526,7 +526,7 @@
   }
 }
 
-.tepTai {
+.fileDownload {
   background-color: var(--color-blue-600);
   color: #fff;
 
@@ -538,11 +538,11 @@
 }
 
 @media (max-width: 30rem) {
-  .tepMuc {
+  .fileItem {
     flex-wrap: wrap;
   }
 
-  .tepXem {
+  .fileView {
     margin-left: calc(42px + var(--spacing) * 3);
   }
 }

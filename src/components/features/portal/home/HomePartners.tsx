@@ -4,7 +4,7 @@ import type { ProviderData } from "@/src/services/provider";
 import SafeImage from "@/src/components/ui/SafeImage";
 
 import styles from "./HomePartners.module.scss";
-import { LOGO_DON_VI } from "./partnerLogos";
+import { providerLogo } from "./partnerLogos";
 /**
  * Dai ten don vi dao tao chay ngang, dat ngay duoi phan mo dau.
  *
@@ -22,18 +22,21 @@ import { LOGO_DON_VI } from "./partnerLogos";
  */
 
 interface Props {
-  donVi: ProviderData[];
+  unit: ProviderData[];
 }
 
-export default function HomePartners({ donVi }: Props) {
-  if (!donVi.length) return null;
+export default function HomePartners({ unit }: Props) {
+  if (!unit.length) return null;
 
   // Lap cho du dai de mot vong chay khong lo ra khoang trong o man hinh rong.
-  const coAnh = donVi.map((d) => ({
-    ...d,
-    logo: d.logo || LOGO_DON_VI[d.slug]?.src || "",
-  }));
-  const day = [...coAnh, ...coAnh, ...coAnh].slice(0, Math.max(6, coAnh.length * 2));
+  const withImage = unit.map((d) => {
+    const l = providerLogo(d);
+    return { ...d, logo: l.src, logoFallback: l.fallback };
+  });
+  const day = [...withImage, ...withImage, ...withImage].slice(
+    0,
+    Math.max(6, withImage.length * 2),
+  );
 
   // Thoi gian chay mot vong phai suy ra tu BE RONG cua dai, khong duoc ghi cung.
   //
@@ -47,8 +50,8 @@ export default function HomePartners({ donVi }: Props) {
   //     ("Đại học Bách Khoa Hà Nội") sang viet tat ("HUST"), moi muc hep di gan
   //     mot nua ma thoi gian giu nguyen -> dai bo cham nhu dung yen.
   //
-  // Nen o day uoc luong be rong that: moi ten ton PX_MOI_KY_TU cho phan chu,
-  // cong PX_MOI_MUC co dinh cho phan khong doi theo do dai ten. Chia cho toc do
+  // Nen o day uoc luong be rong that: moi ten ton PX_PER_CHAR cho phan chu,
+  // cong PX_PER_ITEM co dinh cho phan khong doi theo do dai ten. Chia cho toc do
   // mong muon la ra thoi gian. Doi co chu, khoang cach hay co logo o duoi thi
   // PHAI DO LAI hai hang so nay - chung khong suy ra duoc tu CSS.
   //
@@ -66,16 +69,16 @@ export default function HomePartners({ donVi }: Props) {
   // Lan do truoc ra 125 khi logo con tha truc tiep (cao 32, khong de). Them de
   // trang 48px thi moi muc rong them ~20px - day dung la loai thay doi bat buoc
   // phai do lai chu khong suy ra duoc.
-  const PX_MOI_KY_TU = 9; // phan chu, o co chu clamp(.9rem,1.3vw,.95rem) semibold
-  const PX_MOI_MUC = 146; // phan co dinh: de logo 48+ + gap trong 12 + gap ngoai 72
-  const PX_MOI_GIAY = 81; // toc do doc duoc, giu nguyen nhu ban cu
+  const PX_PER_CHAR = 9; // phan chu, o co chu clamp(.9rem,1.3vw,.95rem) semibold
+  const PX_PER_ITEM = 146; // phan co dinh: de logo 48+ + gap trong 12 + gap ngoai 72
+  const PX_PER_SECOND = 81; // toc do doc duoc, giu nguyen nhu ban cu
 
-  const tongKyTu = day.reduce((tong, d) => tong + d.name.length, 0);
-  const rongUocTinh = day.length * PX_MOI_MUC + tongKyTu * PX_MOI_KY_TU;
-  const giayMotVong = Math.max(20, Math.round(rongUocTinh / PX_MOI_GIAY));
+  const totalChars = day.reduce((total, d) => total + d.name.length, 0);
+  const estimatedWidth = day.length * PX_PER_ITEM + totalChars * PX_PER_CHAR;
+  const secondsPerLoop = Math.max(20, Math.round(estimatedWidth / PX_PER_SECOND));
 
-  const mot = (an: boolean) => (
-    <div className={styles.row} aria-hidden={an || undefined}>
+  const one = (hidden: boolean) => (
+    <div className={styles.row} aria-hidden={hidden || undefined}>
       {day.map((d, i) => (
         <span key={`${d._id ?? d.name}-${i}`} className={styles.item}>
           {/* Thieu logo thi bo han o anh, khong de khung rong hay anh vo:
@@ -85,6 +88,8 @@ export default function HomePartners({ donVi }: Props) {
             <span className={styles.logoBox}>
               <SafeImage
                 src={d.logo}
+                fallbackSrc={d.logoFallback}
+                hideOnError
                 // alt rong CO Y: ten don vi nam ngay ben canh duoi dang chu
                 // that. De alt="Logo FPT" nua thi trinh doc man hinh doc ten
                 // hai lan.
@@ -113,10 +118,10 @@ export default function HomePartners({ donVi }: Props) {
 
         <div
           className={styles.row3}
-          style={{ "--nhip": `${giayMotVong}s` } as CSSProperties}
+          style={{ "--nhip": `${secondsPerLoop}s` } as CSSProperties}
         >
-          {mot(false)}
-          {mot(true)}
+          {one(false)}
+          {one(true)}
         </div>
       </div>
     </section>

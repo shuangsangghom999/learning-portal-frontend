@@ -13,7 +13,7 @@ import styles from "./Cart.module.scss";
 export default function Cart() {
   const s = useCart();
 
-  if (s.soMon === 0) return <EmptyCart xong={s.xong} />;
+  if (s.soMon === 0) return <EmptyCart />;
 
   return (
     <div className={styles.page2}>
@@ -31,19 +31,11 @@ export default function Cart() {
                 title={m.title}
                 thumbnail={m.thumbnail}
                 gia={m.gia}
-                status={s.trangThai[m.courseId]}
-                error={s.loiTheoMon[m.courseId]}
-                disabled={s.dangMua}
-                onRemove={() => s.boMon(m.courseId)}
+                onRemove={() => s.removeItem(m.courseId)}
               />
             ))}
 
-            <button
-              type="button"
-              onClick={s.doSachHet}
-              disabled={s.dangMua}
-              className={styles.button2}
-            >
+            <button type="button" onClick={s.clearAll} className={styles.button2}>
               {CART.clearAll}
             </button>
           </div>

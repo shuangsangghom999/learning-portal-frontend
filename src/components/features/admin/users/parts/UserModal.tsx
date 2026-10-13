@@ -1,8 +1,8 @@
 import { Loader2, X } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
-import { DAI_MAT_KHAU_TOI_THIEU } from "@/src/services/rules";
+import { MIN_PASSWORD_LENGTH } from "@/src/services/rules";
 
 import type { AdminUser, AdminUsersState } from "../hooks/useAdminUsers";
 import styles from "../AdminUsers.module.scss";
@@ -10,25 +10,25 @@ import styles from "../AdminUsers.module.scss";
 /** Hop tao / sua nguoi dung. Khong cho tu doi quyen / tu khoa chinh minh. */
 export default function UserModal({ s }: { s: AdminUsersState }) {
   const M = C.modal;
-  const { form, setForm, editingId, dangSua } = s;
-  const laChinhMinh = editingId === s.myId && editingId !== "";
+  const { form, setForm, editingId, editing } = s;
+  const isSelf = editingId === s.myId && editingId !== "";
 
   return (
     <div className={styles.overlay2}>
       <div className={styles.card4}>
         <div className={styles.row8}>
           <div className={styles.row10}>
-            {editingId && dangSua && (
-              <AnhDaiDien src={dangSua.avatar} ten={dangSua.name} size={40} />
+            {editingId && editing && (
+              <Avatar src={editing.avatar} ten={editing.name} size={40} />
             )}
             <div className={styles.box3}>
               <h2 className={styles.heading2}>
                 {editingId ? M.editTitle : M.createTitle}
               </h2>
-              {editingId && dangSua && (
+              {editingId && editing && (
                 <p className={styles.text5}>
-                  {dangSua.avatar
-                    ? dangSua.avatarPublicId
+                  {editing.avatar
+                    ? editing.avatarPublicId
                       ? M.avatarUploaded
                       : M.avatarExternal
                     : M.noAvatar}
@@ -73,7 +73,7 @@ export default function UserModal({ s }: { s: AdminUsersState }) {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className={styles.input2}
               placeholder={
-                editingId ? M.passwordKeep : M.passwordMin(DAI_MAT_KHAU_TOI_THIEU)
+                editingId ? M.passwordKeep : M.passwordMin(MIN_PASSWORD_LENGTH)
               }
             />
           </div>
@@ -96,7 +96,7 @@ export default function UserModal({ s }: { s: AdminUsersState }) {
                 onChange={(e) =>
                   setForm({ ...form, role: e.target.value as AdminUser["role"] })
                 }
-                disabled={laChinhMinh}
+                disabled={isSelf}
                 className={`${styles.input2} ${styles.select2}`}
               >
                 {C.roles.map((r) => (
@@ -113,19 +113,19 @@ export default function UserModal({ s }: { s: AdminUsersState }) {
                 onChange={(e) =>
                   setForm({ ...form, status: e.target.value === "active" })
                 }
-                disabled={laChinhMinh}
+                disabled={isSelf}
                 className={`${styles.input2} ${styles.select2}`}
               >
-                {M.statuses.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {M.statuses.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {laChinhMinh && <p className={styles.text6}>{M.selfNote}</p>}
+          {isSelf && <p className={styles.text6}>{M.selfNote}</p>}
 
           <div className={styles.row11}>
             <button type="button" onClick={s.closeModal} className={styles.button7}>

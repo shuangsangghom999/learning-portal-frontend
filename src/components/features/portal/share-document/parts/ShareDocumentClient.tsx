@@ -18,34 +18,34 @@ import {
   X,
 } from "lucide-react";
 import DocumentUploadForm, { type DocumentUploadFormHandle } from "./DocumentUploadForm";
-import CacHangTaiLieu from "./CacHangTaiLieu";
-import TheTaiLieuDoc from "./TheTaiLieuDoc";
-import { DUOI_CHO_PHEP, MAX_MB } from "@/src/lib/document/file-info";
+import DocumentShelves from "./DocumentShelves";
+import DocumentCard from "./DocumentCard";
+import { ALLOWED_EXTENSIONS, MAX_MB } from "@/src/lib/document/file-info";
 import {
-  DUONG_TAT_CA,
-  DUONG_TRANG_CHU,
-  DUONG_TRUONG,
-  duongDanhMucTruong,
-  duongTatCa,
-  duongTruong,
-} from "@/src/lib/document/duong-dan";
+  ALL_PATH,
+  HOME_PATH,
+  SCHOOLS_PATH,
+  schoolCategoryPath,
+  allPath,
+  schoolPath,
+} from "@/src/lib/document/paths";
 import {
   documentService,
   type DocumentCategory,
   type DocumentListResponse,
   type DocumentSubject,
   type DocumentUniversity,
-  type LoaiTaiLieu,
-  type ThongKeDanhSach,
+  type DocumentType,
+  type ListStats,
 } from "@/src/services/document";
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
 import { getErrorMessage } from "@/src/services/apiHelper";
 
 import styles from "./ShareDocumentClient.module.scss";
 import b from "./ShareDocumentBrowse.module.scss";
 
 /** Bo loc dang ap dung - dong bo voi dia chi ?q=&mon=&nhom=&truong=&loai=. */
-export interface BoLoc {
+export interface Filters {
   q: string;
   /** Khoa mon (DocumentSubject.key), "" = moi mon. */
   mon: string;
@@ -54,38 +54,38 @@ export interface BoLoc {
   /** Khoa truong dai hoc (DocumentUniversity.key), "" = moi truong. */
   truong: string;
   /** Tab loai tai lieu, "" = tat ca. */
-  loai: LoaiTaiLieu | "";
+  loai: DocumentType | "";
 }
 
 interface Props {
   /** Trang dau lay san tu server theo dung bo loc tren dia chi - xem page.tsx */
   initialData: DocumentListResponse;
-  boLocBanDau: BoLoc;
-  dsNhom: DocumentCategory[];
-  dsTruong: DocumentUniversity[];
+  initialFilters: Filters;
+  groupList: DocumentCategory[];
+  schoolList: DocumentUniversity[];
   /** Danh sach mon lay san tu server - tieu de trang dung ngay, khong nhay. */
-  dsMonBanDau: DocumentSubject[];
+  initialSubjects: DocumentSubject[];
   /**
    * Trang linh vuc cua mot truong (/institution/<truong>/<linh-vuc>): con dung
    * truong + linh vuc nay thi dia chi giu dang do; doi sang bo loc khac thi
    * ve /all-document.
    */
-  phamVi?: { truong: string; nhom: string };
+  scope?: { truong: string; nhom: string };
   /** Mon cua truong thuoc linh vuc dang xem (danh muc truong) - trang linh vuc cua truong. */
-  monPhamVi?: { key: string; ten: string; soTaiLieu: number }[];
+  scopedSubjects?: { key: string; ten: string; soTaiLieu: number }[];
 }
 
 // 4 hang x 6 cot tren man rong.
-const SO_MOI_TRANG = 24;
+const PAGE_SIZE = 24;
 
-const TAB_LOAI: { khoa: LoaiTaiLieu | ""; nhan: string; dem: keyof ThongKeDanhSach }[] = [
+const TAB_LOAI: { khoa: DocumentType | ""; nhan: string; dem: keyof ListStats }[] = [
   { khoa: "", nhan: "Tất cả", dem: "tong" },
   { khoa: "pdf", nhan: "PDF", dem: "pdf" },
   { khoa: "word", nhan: "Word", dem: "word" },
   { khoa: "baiViet", nhan: "Bài viết hướng dẫn", dem: "baiViet" },
 ];
 
-const dinhSo = (n: number) => n.toLocaleString("vi-VN");
+const formatNumber = (n: number) => n.toLocaleString("vi-VN");
 
 /**
  * Trang TAT CA tai lieu (/share-document/browse), bo cuc theo trang mon hoc
@@ -96,113 +96,115 @@ const dinhSo = (n: number) => n.toLocaleString("vi-VN");
  */
 export default function ShareDocumentClient({
   initialData,
-  boLocBanDau,
-  dsNhom,
-  dsTruong,
-  dsMonBanDau,
-  phamVi,
-  monPhamVi,
+  initialFilters,
+  groupList,
+  schoolList,
+  initialSubjects,
+  scope,
+  scopedSubjects,
 }: Props) {
   const [data, setData] = useState<DocumentListResponse>(initialData);
   // So lieu tach rieng: doi tab loai thi danh sach doi nhung so cua ca bon tab giu nguyen.
-  const [thongKe, setThongKe] = useState<ThongKeDanhSach | undefined>(
-    initialData.thongKe,
-  );
-  const [dangTai, setDangTai] = useState(false);
-  const [loiDanhSach, setLoiDanhSach] = useState("");
+  const [stats, setStats] = useState<ListStats | undefined>(initialData.thongKe);
+  const [loading, setLoading] = useState(false);
+  const [listError, setListError] = useState("");
 
-  const [tuKhoa, setTuKhoa] = useState(boLocBanDau.q);
-  const [boLoc, setBoLoc] = useState<BoLoc>(boLocBanDau);
+  const [keyword, setKeyword] = useState(initialFilters.q);
+  const [filter, setFilter] = useState<Filters>(initialFilters);
 
-  const user = useNguoiDungLuu();
-  const dangTaiUser = useDangTaiNguoiDung();
-  const [moForm, setMoForm] = useState(false);
+  const user = useStoredUser();
+  const loadingUser = useUserLoading();
+  const [openForm, setOpenForm] = useState(false);
   const formRef = useRef<DocumentUploadFormHandle>(null);
 
-  const [dsMon, setDsMon] = useState<DocumentSubject[]>(dsMonBanDau);
-  const nhomDangLoc = dsNhom.find((n) => n.key === boLoc.nhom);
-  const truongDangLoc = dsTruong.find((t) => t.key === boLoc.truong);
+  const [subjectList, setSubjectList] = useState<DocumentSubject[]>(initialSubjects);
+  const activeGroup = groupList.find((n) => n.key === filter.nhom);
+  const activeSchool = schoolList.find((t) => t.key === filter.truong);
   // Con dung truong + linh vuc cua trang linh vuc truong: mon lay theo danh
   // muc cua truong (ke ca mon chua co bai), khong theo ca kho.
-  const trongPhamVi = Boolean(
-    phamVi && boLoc.truong === phamVi.truong && boLoc.nhom === phamVi.nhom,
+  const inScope = Boolean(
+    scope && filter.truong === scope.truong && filter.nhom === scope.nhom,
   );
-  const monDangLoc =
-    dsMon.find((m) => m.key === boLoc.mon) ?? monPhamVi?.find((m) => m.key === boLoc.mon);
+  const activeSubject =
+    subjectList.find((m) => m.key === filter.mon) ??
+    scopedSubjects?.find((m) => m.key === filter.mon);
   // Ten trang: mon > truong > linh vuc > "Tat ca tai lieu".
   // Ten trang: cu the nhat truoc - mon > linh vuc > truong > "Tat ca tai lieu".
-  const tenTrang =
-    monDangLoc?.ten ?? nhomDangLoc?.ten ?? truongDangLoc?.ten ?? "Tất cả tài liệu";
+  const pageName =
+    activeSubject?.ten ?? activeGroup?.ten ?? activeSchool?.ten ?? "Tất cả tài liệu";
   // Dang loc mot linh vuc thi o chon mon chi con cac mon cua linh vuc do.
-  const monCoTaiLieu: { key: string; ten: string; soTaiLieu: number }[] =
-    trongPhamVi && monPhamVi
-      ? monPhamVi
-      : dsMon.filter(
-          (m) => m.soTaiLieu > 0 && (!nhomDangLoc || m.nhom === nhomDangLoc._id),
+  const subjectsWithDocuments: { key: string; ten: string; soTaiLieu: number }[] =
+    inScope && scopedSubjects
+      ? scopedSubjects
+      : subjectList.filter(
+          (m) => m.soTaiLieu > 0 && (!activeGroup || m.nhom === activeGroup._id),
         );
   // Linh vuc dang loc luon co trong o chon, ke ca khi chua co bai nao (vd.
   // trang "Kinh te" cua mot truong) - khong thi o chon hien sai "Moi linh vuc".
-  const nhomCoTaiLieu = dsNhom.filter((n) => n.soTaiLieu > 0 || n.key === boLoc.nhom);
+  const groupsWithDocuments = groupList.filter(
+    (n) => n.soTaiLieu > 0 || n.key === filter.nhom,
+  );
 
-  const taiDsMon = useCallback(async () => {
+  const loadSubjects = useCallback(async () => {
     try {
-      setDsMon(await documentService.getSubjects());
+      setSubjectList(await documentService.getSubjects());
     } catch {
       // Khong co danh sach mon thi o chon mon an di - phan phu.
     }
   }, []);
 
   // Server khong lay duoc danh sach mon (backend cham...) thi tai lai o day.
-  const coMonBanDau = dsMonBanDau.length > 0;
+  const hasInitialSubject = initialSubjects.length > 0;
   useEffect(() => {
     // Hoan mot vong microtask - tranh setState dong bo trong than effect.
-    if (!coMonBanDau) void Promise.resolve().then(taiDsMon);
-  }, [coMonBanDau, taiDsMon]);
+    if (!hasInitialSubject) void Promise.resolve().then(loadSubjects);
+  }, [hasInitialSubject, loadSubjects]);
 
   /**
    * Tai trang `page` voi bo loc moi, va GHI bo loc len dia chi - gui link cho
    * nguoi khac la ho thay dung danh sach dang xem. replaceState: doi bo loc
    * khong lap day nut Back.
    */
-  const truongPv = phamVi?.truong;
-  const nhomPv = phamVi?.nhom;
-  const taiLai = useCallback(
-    async (page: number, loc: BoLoc) => {
-      setBoLoc(loc);
-      const giuPhamVi = truongPv && loc.truong === truongPv && loc.nhom === nhomPv;
+  const scopeSchool = scope?.truong;
+  const scopeGroup = scope?.nhom;
+  const reload = useCallback(
+    async (page: number, query: Filters) => {
+      setFilter(query);
+      const keepScope =
+        scopeSchool && query.truong === scopeSchool && query.nhom === scopeGroup;
       window.history.replaceState(
         null,
         "",
-        giuPhamVi ? duongDanhMucTruong(loc.truong, loc.nhom, loc) : duongTatCa(loc),
+        keepScope ? schoolCategoryPath(query.truong, query.nhom, query) : allPath(query),
       );
-      setDangTai(true);
-      setLoiDanhSach("");
+      setLoading(true);
+      setListError("");
       try {
-        const kq = await documentService.getDocuments({
+        const outcome = await documentService.getDocuments({
           page,
-          limit: SO_MOI_TRANG,
-          ...loc,
+          limit: PAGE_SIZE,
+          ...query,
           thongKe: true,
         });
-        setData(kq);
-        setThongKe(kq.thongKe);
+        setData(outcome);
+        setStats(outcome.thongKe);
       } catch (err) {
-        setLoiDanhSach(getErrorMessage(err, "Không tải được danh sách tài liệu."));
+        setListError(getErrorMessage(err, "Không tải được danh sách tài liệu."));
       } finally {
-        setDangTai(false);
+        setLoading(false);
       }
     },
-    [truongPv, nhomPv],
+    [scopeSchool, scopeGroup],
   );
 
   // ---------------------------------------------------------------- thanh dinh
   // Dai dau ra khoi man hinh -> thanh tab hien them ten trang + nut dang.
   const moc = useRef<HTMLDivElement>(null);
-  const [daDinh, setDaDinh] = useState(false);
+  const [pinned, setPinned] = useState(false);
   useEffect(() => {
     const el = moc.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setDaDinh(!e.isIntersecting), {
+    const io = new IntersectionObserver(([e]) => setPinned(!e.isIntersecting), {
       // Tru chieu cao header co dinh cua trang (104px).
       rootMargin: "-104px 0px 0px 0px",
     });
@@ -210,15 +212,15 @@ export default function ShareDocumentClient({
     return () => io.disconnect();
   }, []);
 
-  const timKiem = (e: React.FormEvent) => {
+  const search = (e: React.FormEvent) => {
     e.preventDefault();
-    taiLai(1, { ...boLoc, q: tuKhoa });
+    reload(1, { ...filter, q: keyword });
     // Ghi lai de goi y hoc duoc nguoi nay quan tam gi. Loi ghi lich su khong
     // duoc lam hong viec tim.
-    if (user && tuKhoa.trim()) documentService.logSearch(tuKhoa).catch(() => {});
+    if (user && keyword.trim()) documentService.logSearch(keyword).catch(() => {});
   };
 
-  const moDangBai = useCallback(() => {
+  const openUpload = useCallback(() => {
     if (!user) {
       // Mo hop dang nhap ngay tren trang (AuthModalGate nghe ?auth).
       const u = new URL(window.location.href);
@@ -227,45 +229,45 @@ export default function ShareDocumentClient({
       window.history.pushState(null, "", u.toString());
       return;
     }
-    setMoForm(true);
-    requestAnimationFrame(() => formRef.current?.cuonToi());
+    setOpenForm(true);
+    requestAnimationFrame(() => formRef.current?.scrollTo());
   }, [user]);
 
   // ?dang=1 (vd. nut "Chia se tai lieu" o trang mot truong): mo san form. Doi
   // biet nguoi xem la ai da - mo luc con dang hoi may chu thi nguoi da dang
   // nhap cung bi bat dang nhap lai. Xoa tham so ngay de F5 khong mo lai.
   useEffect(() => {
-    if (dangTaiUser) return;
+    if (loadingUser) return;
     const u = new URL(window.location.href);
     if (u.searchParams.get("dang") !== "1") return;
     u.searchParams.delete("dang");
     window.history.replaceState(null, "", u.toString());
-    void Promise.resolve().then(moDangBai);
-  }, [dangTaiUser, moDangBai]);
+    void Promise.resolve().then(openUpload);
+  }, [loadingUser, openUpload]);
 
   // Chia se: bang chia se cua may neu co (dien thoai), khong thi chep link.
-  const [daChep, setDaChep] = useState(false);
-  const chiaSe = async () => {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: tenTrang, url });
+        await navigator.share({ title: pageName, url });
         return;
       }
       await navigator.clipboard.writeText(url);
-      setDaChep(true);
-      setTimeout(() => setDaChep(false), 2000);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       // Nguoi dung huy bang chia se - khong can bao gi.
     }
   };
 
-  const dangLocGi = Boolean(boLoc.q || boLoc.mon || boLoc.nhom || boLoc.truong);
-  const LOC_TRONG: BoLoc = { q: "", mon: "", nhom: "", truong: "", loai: "" };
+  const activeFilter = Boolean(filter.q || filter.mon || filter.nhom || filter.truong);
+  const EMPTY_FILTERS: Filters = { q: "", mon: "", nhom: "", truong: "", loai: "" };
 
   // Hang cuon ngang chi hien khi KHONG tim tu khoa - dang tim thi nguoi dung
   // can ket qua tim ngay, khong phai cuon qua cac hang goi y.
-  const hienHang = !boLoc.q;
+  const showRow = !filter.q;
 
   return (
     <div className={b.trang}>
@@ -275,68 +277,68 @@ export default function ShareDocumentClient({
       <header className={b.dau}>
         <div className={b.khung}>
           <nav className={b.duongDan} aria-label="Đường dẫn">
-            <Link href={DUONG_TRANG_CHU}>Chia sẻ tài liệu</Link>
+            <Link href={HOME_PATH}>Chia sẻ tài liệu</Link>
             {/* Loc theo truong: di qua "Truong dai hoc" > ten truong. Khong
                 thi qua "Tat ca tai lieu". */}
-            {truongDangLoc ? (
+            {activeSchool ? (
               <>
                 <ChevronRight size={14} aria-hidden />
-                <Link href={DUONG_TRUONG}>Trường đại học</Link>
-                {(monDangLoc || nhomDangLoc) && (
+                <Link href={SCHOOLS_PATH}>Trường đại học</Link>
+                {(activeSubject || activeGroup) && (
                   <>
                     <ChevronRight size={14} aria-hidden />
-                    <Link href={duongTruong(truongDangLoc.key)}>{truongDangLoc.ten}</Link>
+                    <Link href={schoolPath(activeSchool.key)}>{activeSchool.ten}</Link>
                   </>
                 )}
               </>
             ) : (
-              (monDangLoc || nhomDangLoc) && (
+              (activeSubject || activeGroup) && (
                 <>
                   <ChevronRight size={14} aria-hidden />
-                  <Link href={DUONG_TAT_CA}>Tất cả tài liệu</Link>
+                  <Link href={ALL_PATH}>Tất cả tài liệu</Link>
                 </>
               )
             )}
-            {nhomDangLoc && monDangLoc && (
+            {activeGroup && activeSubject && (
               <>
                 <ChevronRight size={14} aria-hidden />
                 <Link
                   href={
-                    truongDangLoc
-                      ? duongDanhMucTruong(truongDangLoc.key, nhomDangLoc.key)
-                      : duongTatCa({ nhom: nhomDangLoc.key })
+                    activeSchool
+                      ? schoolCategoryPath(activeSchool.key, activeGroup.key)
+                      : allPath({ nhom: activeGroup.key })
                   }
                 >
-                  {nhomDangLoc.ten}
+                  {activeGroup.ten}
                 </Link>
               </>
             )}
             <ChevronRight size={14} aria-hidden />
-            <span aria-current="page">{tenTrang}</span>
+            <span aria-current="page">{pageName}</span>
           </nav>
 
-          <div className={b.hangTieuDe}>
-            <Folder size={56} className={b.iconThuMuc} aria-hidden />
-            <div className={b.chuTieuDe}>
-              <h1 className={b.tieuDe}>{tenTrang}</h1>
-              {thongKe && (
-                <ul className={b.soLieu} aria-label="Số liệu">
-                  <li className={b.oSo}>
+          <div className={b.titleRow}>
+            <Folder size={56} className={b.folderIcon} aria-hidden />
+            <div className={b.titleText}>
+              <h1 className={b.tieuDe}>{pageName}</h1>
+              {stats && (
+                <ul className={b.figures} aria-label="Số liệu">
+                  <li className={b.numberCell}>
                     <FileText size={16} aria-hidden />
-                    <strong>{dinhSo(thongKe.tong)}</strong> tài liệu
+                    <strong>{formatNumber(stats.tong)}</strong> tài liệu
                   </li>
-                  <li className={b.oSo}>
+                  <li className={b.numberCell}>
                     <Download size={16} aria-hidden />
-                    <strong>{dinhSo(thongKe.luotTai)}</strong> lượt tải
+                    <strong>{formatNumber(stats.luotTai)}</strong> lượt tải
                   </li>
-                  <li className={b.oSo}>
+                  <li className={b.numberCell}>
                     <Users size={16} aria-hidden />
-                    <strong>{dinhSo(thongKe.soNguoiChiaSe)}</strong> người chia sẻ
+                    <strong>{formatNumber(stats.soNguoiChiaSe)}</strong> người chia sẻ
                   </li>
-                  {!boLoc.mon && monCoTaiLieu.length > 0 && (
-                    <li className={b.oSo}>
+                  {!filter.mon && subjectsWithDocuments.length > 0 && (
+                    <li className={b.numberCell}>
                       <BookOpen size={16} aria-hidden />
-                      <strong>{monCoTaiLieu.length}</strong> môn học
+                      <strong>{subjectsWithDocuments.length}</strong> môn học
                     </li>
                   )}
                 </ul>
@@ -344,94 +346,95 @@ export default function ShareDocumentClient({
             </div>
           </div>
 
-          <div className={b.hangNut}>
-            <button type="button" onClick={moDangBai} className={b.nutDen}>
+          <div className={b.buttonRow}>
+            <button type="button" onClick={openUpload} className={b.darkButton}>
               <Upload size={17} aria-hidden />
               Đăng tài liệu
             </button>
-            <button type="button" onClick={chiaSe} className={b.nutTrang}>
-              {daChep ? (
+            <button type="button" onClick={share} className={b.pageButton}>
+              {copied ? (
                 <Check size={17} aria-hidden />
               ) : (
                 <Share2 size={17} aria-hidden />
               )}
-              {daChep ? "Đã chép liên kết" : "Chia sẻ"}
+              {copied ? "Đã chép liên kết" : "Chia sẻ"}
             </button>
-            <form onSubmit={timKiem} role="search" className={b.oTim}>
+            <form onSubmit={search} role="search" className={b.searchInput}>
               <input
                 type="search"
-                value={tuKhoa}
-                onChange={(e) => setTuKhoa(e.target.value)}
-                placeholder={`Tìm trong ${tenTrang}`}
-                aria-label={`Tìm trong ${tenTrang}`}
-                className={b.nhapTim}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder={`Tìm trong ${pageName}`}
+                aria-label={`Tìm trong ${pageName}`}
+                className={b.searchInput}
               />
-              <button type="submit" aria-label="Tìm" className={b.nutTim}>
+              <button type="submit" aria-label="Tìm" className={b.searchButton}>
                 <Search size={18} />
               </button>
             </form>
           </div>
 
           {/* Bo loc dang o chon gon - thay cot loc ben trai truoc day. */}
-          <div className={b.hangLoc} role="group" aria-label="Bộ lọc">
-            {nhomCoTaiLieu.length > 0 && (
+          <div className={b.filterRow} role="group" aria-label="Bộ lọc">
+            {groupsWithDocuments.length > 0 && (
               <select
                 aria-label="Lọc theo lĩnh vực"
-                value={boLoc.nhom}
+                value={filter.nhom}
                 // Doi linh vuc thi bo mon cu: mon do co the khong thuoc linh vuc moi.
-                onChange={(e) => taiLai(1, { ...boLoc, nhom: e.target.value, mon: "" })}
-                className={`${b.chon} ${boLoc.nhom ? b.chonOn : ""}`}
+                onChange={(e) => reload(1, { ...filter, nhom: e.target.value, mon: "" })}
+                className={`${b.chon} ${filter.nhom ? b.pickedFilter : ""}`}
               >
                 <option value="">Mọi lĩnh vực</option>
-                {nhomCoTaiLieu.map((n) => (
+                {groupsWithDocuments.map((n) => (
                   <option key={n._id} value={n.key}>
                     {n.ten} ({n.soTaiLieu})
                   </option>
                 ))}
               </select>
             )}
-            {monCoTaiLieu.length > 0 && (
+            {subjectsWithDocuments.length > 0 && (
               <select
                 aria-label="Lọc theo môn học"
-                value={boLoc.mon}
-                onChange={(e) => taiLai(1, { ...boLoc, mon: e.target.value })}
-                className={`${b.chon} ${boLoc.mon ? b.chonOn : ""}`}
+                value={filter.mon}
+                onChange={(e) => reload(1, { ...filter, mon: e.target.value })}
+                className={`${b.chon} ${filter.mon ? b.pickedFilter : ""}`}
               >
                 <option value="">Mọi môn học</option>
                 {/* Mon dang loc nhung khong con trong danh sach (vd. doi linh vuc). */}
-                {boLoc.mon && !monCoTaiLieu.some((m) => m.key === boLoc.mon) && (
-                  <option value={boLoc.mon}>{monDangLoc?.ten ?? boLoc.mon}</option>
-                )}
-                {monCoTaiLieu.map((m) => (
+                {filter.mon &&
+                  !subjectsWithDocuments.some((m) => m.key === filter.mon) && (
+                    <option value={filter.mon}>{activeSubject?.ten ?? filter.mon}</option>
+                  )}
+                {subjectsWithDocuments.map((m) => (
                   <option key={m.key} value={m.key}>
                     {m.ten} ({m.soTaiLieu})
                   </option>
                 ))}
               </select>
             )}
-            {dsTruong.length > 0 && (
+            {schoolList.length > 0 && (
               <select
                 aria-label="Lọc theo trường"
-                value={boLoc.truong}
-                onChange={(e) => taiLai(1, { ...boLoc, truong: e.target.value })}
-                className={`${b.chon} ${boLoc.truong ? b.chonOn : ""}`}
+                value={filter.truong}
+                onChange={(e) => reload(1, { ...filter, truong: e.target.value })}
+                className={`${b.chon} ${filter.truong ? b.pickedFilter : ""}`}
               >
                 <option value="">Mọi trường</option>
-                {dsTruong.map((t) => (
+                {schoolList.map((t) => (
                   <option key={t._id} value={t.key}>
                     {t.ten}
                   </option>
                 ))}
               </select>
             )}
-            {(dangLocGi || boLoc.loai) && (
+            {(activeFilter || filter.loai) && (
               <button
                 type="button"
                 onClick={() => {
-                  setTuKhoa("");
-                  void taiLai(1, LOC_TRONG);
+                  setKeyword("");
+                  void reload(1, EMPTY_FILTERS);
                 }}
-                className={b.boHet}
+                className={b.clearAll}
               >
                 <X size={14} aria-hidden />
                 Xóa bộ lọc
@@ -446,28 +449,28 @@ export default function ShareDocumentClient({
       {/* Dai dau THU GON: cuon qua dai dau thi no hien thanh mot thanh dinh
           duy nhat - ten trang, nut dang, chia se, o tim. inert khi an: nut
           trong thanh an khong duoc nhan Tab vao. */}
-      <div className={`${b.gon} ${daDinh ? b.gonOn : ""}`} inert={!daDinh}>
-        <div className={`${b.khung} ${b.gonTrong}`}>
+      <div className={`${b.gon} ${pinned ? b.compactActive : ""}`} inert={!pinned}>
+        <div className={`${b.khung} ${b.compactEmpty}`}>
           <Folder size={26} className={b.gonIcon} aria-hidden />
-          <p className={b.gonTen}>{tenTrang}</p>
-          <button type="button" onClick={moDangBai} className={b.nutDenNho}>
+          <p className={b.compactName}>{pageName}</p>
+          <button type="button" onClick={openUpload} className={b.smallDarkButton}>
             <Upload size={15} aria-hidden />
-            <span className={b.chuNut}>Đăng tài liệu</span>
+            <span className={b.buttonLabel}>Đăng tài liệu</span>
           </button>
-          <button type="button" onClick={chiaSe} className={b.nutTrangNho}>
-            {daChep ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
-            <span className={b.chuNut}>{daChep ? "Đã chép" : "Chia sẻ"}</span>
+          <button type="button" onClick={share} className={b.smallPageButton}>
+            {copied ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
+            <span className={b.buttonLabel}>{copied ? "Đã chép" : "Chia sẻ"}</span>
           </button>
-          <form onSubmit={timKiem} role="search" className={b.gonTim}>
+          <form onSubmit={search} role="search" className={b.compactSearch}>
             <input
               type="search"
-              value={tuKhoa}
-              onChange={(e) => setTuKhoa(e.target.value)}
-              placeholder={`Tìm trong ${tenTrang}`}
-              aria-label={`Tìm trong ${tenTrang}`}
-              className={b.gonNhap}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder={`Tìm trong ${pageName}`}
+              aria-label={`Tìm trong ${pageName}`}
+              className={b.compactInput}
             />
-            <button type="submit" aria-label="Tìm" className={b.nutTim}>
+            <button type="submit" aria-label="Tìm" className={b.searchButton}>
               <Search size={16} />
             </button>
           </form>
@@ -475,26 +478,26 @@ export default function ShareDocumentClient({
       </div>
 
       <div className={b.khung}>
-        {user && moForm && (
+        {user && openForm && (
           <div className={b.oForm}>
-            <div className={b.theQuyDinh}>
+            <div className={b.rulesCard}>
               <ShieldAlert size={18} aria-hidden />
               <p>
                 Hệ thống tự động từ chối bài có nội dung{" "}
                 <strong>chửi thề, tục tĩu</strong>, <strong>kỳ thị</strong> hoặc{" "}
                 <strong>kích động gây hấn</strong>. File{" "}
-                {DUOI_CHO_PHEP.map((d) => d.toUpperCase()).join(" · ")}, tối đa 5 file,{" "}
-                {MAX_MB}MB/file — hoặc viết bài hướng dẫn chỉ gồm chữ và ảnh.
+                {ALLOWED_EXTENSIONS.map((d) => d.toUpperCase()).join(" · ")}, tối đa 5
+                file, {MAX_MB}MB/file — hoặc viết bài hướng dẫn chỉ gồm chữ và ảnh.
               </p>
             </div>
             <DocumentUploadForm
               ref={formRef}
-              dsMon={dsMon}
-              khiDong={() => setMoForm(false)}
-              truongMacDinh={boLocBanDau.truong}
-              khiDangXong={() => {
-                void taiLai(1, boLoc);
-                void taiDsMon();
+              subjectList={subjectList}
+              onClose={() => setOpenForm(false)}
+              defaultSchool={initialFilters.truong}
+              onPosted={() => {
+                void reload(1, filter);
+                void loadSubjects();
               }}
             />
           </div>
@@ -504,25 +507,27 @@ export default function ShareDocumentClient({
       {/* ============================================================ */}
       {/* Tat ca tai lieu: tab loai + luoi                               */}
       {/* ============================================================ */}
-      <section aria-labelledby="tat-ca-tai-lieu" className={b.phanDs}>
+      <section aria-labelledby="tat-ca-tai-lieu" className={b.listPart}>
         <div className={b.khung}>
-          <div className={b.hangTab}>
-            <h2 id="tat-ca-tai-lieu" className={b.anChu}>
+          <div className={b.tabRow}>
+            <h2 id="tat-ca-tai-lieu" className={b.hideText}>
               Tất cả tài liệu
             </h2>
             <div className={b.tabs} role="group" aria-label="Loại tài liệu">
               {TAB_LOAI.filter(
-                (t) => !t.khoa || t.khoa === boLoc.loai || (thongKe?.[t.dem] ?? 0) > 0,
+                (t) => !t.khoa || t.khoa === filter.loai || (stats?.[t.dem] ?? 0) > 0,
               ).map((t) => (
                 <button
                   key={t.khoa || "tatCa"}
                   type="button"
-                  aria-pressed={boLoc.loai === t.khoa}
-                  onClick={() => taiLai(1, { ...boLoc, loai: t.khoa })}
-                  className={`${b.tab} ${boLoc.loai === t.khoa ? b.tabOn : ""}`}
+                  aria-pressed={filter.loai === t.khoa}
+                  onClick={() => reload(1, { ...filter, loai: t.khoa })}
+                  className={`${b.tab} ${filter.loai === t.khoa ? b.tabOn : ""}`}
                 >
                   {t.nhan}
-                  {thongKe && <span className={b.soTab}>{dinhSo(thongKe[t.dem])}</span>}
+                  {stats && (
+                    <span className={b.tabCount}>{formatNumber(stats[t.dem])}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -530,50 +535,50 @@ export default function ShareDocumentClient({
         </div>
 
         <div className={b.khung}>
-          {boLoc.q && (
-            <p className={b.ketQuaTim} role="status">
-              <strong>{dinhSo(data.total)}</strong> kết quả cho “{boLoc.q}”
+          {filter.q && (
+            <p className={b.searchResults} role="status">
+              <strong>{formatNumber(data.total)}</strong> kết quả cho “{filter.q}”
               <button
                 type="button"
                 onClick={() => {
-                  setTuKhoa("");
-                  void taiLai(1, { ...boLoc, q: "" });
+                  setKeyword("");
+                  void reload(1, { ...filter, q: "" });
                 }}
-                className={b.nutChu}
+                className={b.textButton}
               >
                 Bỏ tìm
               </button>
             </p>
           )}
 
-          {loiDanhSach && (
+          {listError && (
             <p role="alert" className={styles.text10}>
-              {loiDanhSach}
+              {listError}
             </p>
           )}
 
-          {dangTai ? (
+          {loading ? (
             <div className={b.trong}>
               <Loader2 size={20} className={styles.spinner} />
               Đang tải...
             </div>
           ) : data.documents.length === 0 &&
-            trongPhamVi &&
-            !boLoc.q &&
-            !boLoc.mon &&
-            !boLoc.loai ? (
+            inScope &&
+            !filter.q &&
+            !filter.mon &&
+            !filter.loai ? (
             // Trang linh vuc cua truong chua co bai nao: moi dang bai dau tien,
             // truong chon san trong form.
             <div className={b.trong}>
               <FileText size={32} aria-hidden />
-              <p className={b.trongTieuDe}>
-                Chưa có tài liệu {tenTrang} nào của {truongDangLoc?.ten ?? "trường này"}
+              <p className={b.inTitle}>
+                Chưa có tài liệu {pageName} nào của {activeSchool?.ten ?? "trường này"}
               </p>
               <p>
                 Bạn học ở đây? Hãy là người đầu tiên chia sẻ đề cương, đề thi hoặc bài
                 giải.
               </p>
-              <button type="button" onClick={moDangBai} className={b.nutDen}>
+              <button type="button" onClick={openUpload} className={b.darkButton}>
                 <Upload size={17} aria-hidden />
                 Chia sẻ tài liệu đầu tiên
               </button>
@@ -581,13 +586,13 @@ export default function ShareDocumentClient({
           ) : data.documents.length === 0 ? (
             <div className={b.trong}>
               <FileText size={32} aria-hidden />
-              <p className={b.trongTieuDe}>
-                {dangLocGi || boLoc.loai
+              <p className={b.inTitle}>
+                {activeFilter || filter.loai
                   ? "Không tìm thấy tài liệu phù hợp"
                   : "Chưa có tài liệu nào"}
               </p>
               <p>
-                {dangLocGi || boLoc.loai
+                {activeFilter || filter.loai
                   ? "Thử từ khóa hoặc bộ lọc khác xem sao."
                   : "Hãy là người đầu tiên chia sẻ."}
               </p>
@@ -599,7 +604,7 @@ export default function ShareDocumentClient({
                   {/* Khong co nut xoa o day: trang nay de xem / tim, bam nham la
                       mat bai. Chu bai xoa o ho so (Tai lieu cua toi), admin
                       xoa o trang quan tri. */}
-                  <TheTaiLieuDoc doc={doc} chan="thoiGian" />
+                  <DocumentCard doc={doc} chan="thoiGian" />
                 </li>
               ))}
             </ul>
@@ -609,9 +614,9 @@ export default function ShareDocumentClient({
             <nav className={b.phanTrang} aria-label="Phân trang">
               <button
                 type="button"
-                disabled={data.page <= 1 || dangTai}
-                onClick={() => taiLai(data.page - 1, boLoc)}
-                className={b.nutTrangSo}
+                disabled={data.page <= 1 || loading}
+                onClick={() => reload(data.page - 1, filter)}
+                className={b.pageNumberButton}
               >
                 ← Trước
               </button>
@@ -620,9 +625,9 @@ export default function ShareDocumentClient({
               </span>
               <button
                 type="button"
-                disabled={data.page >= data.totalPages || dangTai}
-                onClick={() => taiLai(data.page + 1, boLoc)}
-                className={b.nutTrangSo}
+                disabled={data.page >= data.totalPages || loading}
+                onClick={() => reload(data.page + 1, filter)}
+                className={b.pageNumberButton}
               >
                 Sau →
               </button>
@@ -633,10 +638,10 @@ export default function ShareDocumentClient({
 
       {/* Cac hang cuon ngang - DUOI danh sach tat ca. */}
       <div className={b.khung}>
-        {hienHang && (
-          <CacHangTaiLieu
-            loc={{ truong: boLoc.truong, nhom: boLoc.nhom, mon: boLoc.mon }}
-            tenPhamVi={boLoc.truong || boLoc.nhom || boLoc.mon ? tenTrang : undefined}
+        {showRow && (
+          <DocumentShelves
+            query={{ truong: filter.truong, nhom: filter.nhom, mon: filter.mon }}
+            scopeName={filter.truong || filter.nhom || filter.mon ? pageName : undefined}
           />
         )}
       </div>

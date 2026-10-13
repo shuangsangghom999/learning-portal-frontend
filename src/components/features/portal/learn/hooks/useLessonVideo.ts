@@ -5,7 +5,7 @@ import type Hls from "hls.js";
 
 import { LEARN } from "@/src/constants/portal/learn-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
-import { layDuongDanNhung } from "@/src/services/videoEmbed";
+import { getEmbedUrl } from "@/src/services/videoEmbed";
 
 const V = LEARN.video;
 
@@ -28,7 +28,7 @@ export function useLessonVideo(
     // ben trong closure bat dong bo ben duoi.
     if (!videoUrl || !videoRef.current) return;
     // Bai dung YouTube/Vimeo khong dung the <video> nen khong co gi de nap.
-    if (layDuongDanNhung(videoUrl)) return;
+    if (getEmbedUrl(videoUrl)) return;
 
     const setupVideo = async () => {
       try {

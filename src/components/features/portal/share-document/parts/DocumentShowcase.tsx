@@ -4,15 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Download, Plus } from "lucide-react";
 
-import { tomTatHtml } from "@/src/lib/post-html";
+import { summaryHtml } from "@/src/lib/post-html";
 import type { DocumentCategory, SharedDocument } from "@/src/services/document";
-import { duongTatCa, duongTaiLieu } from "@/src/lib/document/duong-dan";
-import { nhanDinhDang } from "@/src/lib/document/file-info";
+import { allPath, documentPath } from "@/src/lib/document/paths";
+import { formatLabel } from "@/src/lib/document/file-info";
 
 import styles from "./DocumentShowcase.module.scss";
 
 /** Mot tab: linh vuc + mot tai lieu tieu bieu cua no (lay san o may chu). */
-export interface MucTrinhBay {
+export interface DisplayItem {
   nhom: DocumentCategory;
   taiLieu: SharedDocument;
 }
@@ -27,13 +27,14 @@ export interface MucTrinhBay {
  * Chi nhan linh vuc CO tai lieu (page.tsx loc san) - tab trong khong co gi de
  * trinh bay.
  */
-export default function DocumentShowcase({ dsMuc }: { dsMuc: MucTrinhBay[] }) {
-  const [dangChon, setDangChon] = useState(0);
-  if (!dsMuc.length) return null;
+export default function DocumentShowcase({ itemList }: { itemList: DisplayItem[] }) {
+  const [selected, setSelected] = useState(0);
+  if (!itemList.length) return null;
 
-  const { nhom, taiLieu } = dsMuc[Math.min(dangChon, dsMuc.length - 1)];
-  const mon = nhom.monTieuBieu[0]?.ten ?? nhom.ten;
-  const cacMon = taiLieu.monHoc?.length ? taiLieu.monHoc.join(", ") : nhom.ten;
+  const { nhom: group, taiLieu: document } =
+    itemList[Math.min(selected, itemList.length - 1)];
+  const subjectItem = group.monTieuBieu[0]?.ten ?? group.ten;
+  const subjects = document.monHoc?.length ? document.monHoc.join(", ") : group.ten;
 
   return (
     <section className={styles.bang} aria-labelledby="tieu-de-trinh-bay">
@@ -43,15 +44,15 @@ export default function DocumentShowcase({ dsMuc }: { dsMuc: MucTrinhBay[] }) {
         </h2>
 
         <div className={styles.tabs} role="tablist" aria-label="Chọn lĩnh vực">
-          {dsMuc.map((m, i) => (
+          {itemList.map((m, i) => (
             <button
               key={m.nhom._id}
               type="button"
               role="tab"
-              aria-selected={i === dangChon}
+              aria-selected={i === selected}
               aria-controls="bang-trinh-bay"
-              onClick={() => setDangChon(i)}
-              className={`${styles.tab} ${i === dangChon ? styles.tabOn : ""}`}
+              onClick={() => setSelected(i)}
+              className={`${styles.tab} ${i === selected ? styles.tabOn : ""}`}
             >
               {m.nhom.ten}
             </button>
@@ -61,23 +62,23 @@ export default function DocumentShowcase({ dsMuc }: { dsMuc: MucTrinhBay[] }) {
         {/* key theo linh vuc: doi tab thi khoi nay dung lai -> chay lai hieu
             ung hien ra, nguoi xem thay ro noi dung vua doi. */}
         <div
-          key={nhom._id}
+          key={group._id}
           id="bang-trinh-bay"
           role="tabpanel"
-          aria-label={nhom.ten}
+          aria-label={group.ten}
           className={styles.noiDung}
         >
           {/* The trai: o "tim kiem" mo phong - chi de minh hoa. */}
-          <Link href={duongTatCa({ nhom: nhom.key })} className={styles.theTrai}>
-            <span className={styles.chuTim}>
-              Tìm tài liệu {mon}
-              <span className={styles.conTro} aria-hidden />
+          <Link href={allPath({ nhom: group.key })} className={styles.leftCard}>
+            <span className={styles.searchText}>
+              Tìm tài liệu {subjectItem}
+              <span className={styles.cursor} aria-hidden />
             </span>
-            <span className={styles.hangNut} aria-hidden>
-              <span className={styles.nutTron}>
+            <span className={styles.buttonRow} aria-hidden>
+              <span className={styles.roundButton}>
                 <Plus size={16} />
               </span>
-              <span className={`${styles.nutTron} ${styles.nutDen}`}>
+              <span className={`${styles.roundButton} ${styles.darkButton}`}>
                 <ArrowUp size={16} />
               </span>
             </span>
@@ -86,29 +87,29 @@ export default function DocumentShowcase({ dsMuc }: { dsMuc: MucTrinhBay[] }) {
           <span className={styles.song} aria-hidden />
 
           {/* The phai: tai lieu THAT cua linh vuc. */}
-          <Link href={duongTaiLieu(taiLieu._id)} className={styles.thePhai}>
+          <Link href={documentPath(document._id)} className={styles.rightCard}>
             <span className={styles.nhan}>Tài liệu</span>
-            <span className={styles.tenTaiLieu}>{taiLieu.title}</span>
-            <span className={styles.mon}>{cacMon}</span>
+            <span className={styles.documentTitle}>{document.title}</span>
+            <span className={styles.mon}>{subjects}</span>
             <span
               className={styles.trich}
-              // tomTatHtml chi giu 6 the dinh dang tran, moi "<" con lai thanh
+              // summaryHtml chi giu 6 the dinh dang tran, moi "<" con lai thanh
               // &lt; - xem ham do.
-              dangerouslySetInnerHTML={{ __html: tomTatHtml(taiLieu.description) }}
+              dangerouslySetInnerHTML={{ __html: summaryHtml(document.description) }}
             />
             <span className={styles.meta}>
-              <span className={styles.duoi}>{nhanDinhDang(taiLieu.files)}</span>
+              <span className={styles.extension}>{formatLabel(document.files)}</span>
               <span>
                 <Download size={14} />
-                {taiLieu.downloadCount} lượt tải
+                {document.downloadCount} lượt tải
               </span>
-              {taiLieu.uploader?.name && <span>bởi {taiLieu.uploader.name}</span>}
+              {document.uploader?.name && <span>bởi {document.uploader.name}</span>}
             </span>
           </Link>
         </div>
 
-        <Link href={duongTatCa({ nhom: nhom.key })} className={styles.nutXem}>
-          Xem tài liệu {nhom.ten}
+        <Link href={allPath({ nhom: group.key })} className={styles.viewButton}>
+          Xem tài liệu {group.ten}
         </Link>
       </div>
     </section>

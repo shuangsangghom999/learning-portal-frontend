@@ -18,19 +18,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { BieuTuongLinhVuc, DocumentCategory } from "@/src/services/document";
-import { DUONG_TAT_CA, duongTatCa } from "@/src/lib/document/duong-dan";
+import type { FieldIcon, DocumentCategory } from "@/src/services/document";
+import { ALL_PATH, allPath } from "@/src/lib/document/paths";
 
 import styles from "./DocumentCategories.module.scss";
 
 /**
- * Bieu tuong + mau cua tung loai linh vuc. Khoa khop BIEU_TUONG ben backend
+ * Bieu tuong + mau cua tung loai linh vuc. Khoa khop ICONS ben backend
  * (models/DocumentCategory.js) - admin chon trong danh sach nay.
  */
-export const BIEU_TUONG: Record<
-  BieuTuongLinhVuc,
-  { Icon: LucideIcon; mau: string; nhan: string }
-> = {
+export const ICONS: Record<FieldIcon, { Icon: LucideIcon; mau: string; nhan: string }> = {
   sach: { Icon: BookOpen, mau: "xanh", nhan: "Sách" },
   luat: { Icon: Scale, mau: "tim", nhan: "Luật" },
   "kinh-doanh": { Icon: Briefcase, mau: "cam", nhan: "Kinh doanh" },
@@ -54,7 +51,11 @@ export const BIEU_TUONG: Record<
  *
  * Component MAY CHU - khong co trang thai, du lieu lay san o page.tsx.
  */
-export default function DocumentCategories({ dsNhom }: { dsNhom: DocumentCategory[] }) {
+export default function DocumentCategories({
+  groupList,
+}: {
+  groupList: DocumentCategory[];
+}) {
   return (
     <section className={styles.bang} aria-labelledby="tieu-de-linh-vuc">
       <div className={styles.khung}>
@@ -68,23 +69,26 @@ export default function DocumentCategories({ dsNhom }: { dsNhom: DocumentCategor
               liệu thuộc về nó.
             </p>
           </div>
-          <Link href={DUONG_TAT_CA} className={styles.xemTatCa}>
+          <Link href={ALL_PATH} className={styles.viewAll}>
             Xem tất cả tài liệu
             <ArrowRight size={16} />
           </Link>
         </div>
 
-        {dsNhom.length === 0 ? (
+        {groupList.length === 0 ? (
           <p className={styles.trong}>Chưa có lĩnh vực nào.</p>
         ) : (
           <ul className={styles.luoi}>
-            {dsNhom.map((n) => {
-              const bt = BIEU_TUONG[n.bieuTuong] ?? BIEU_TUONG.sach;
+            {groupList.map((n) => {
+              const icon = ICONS[n.bieuTuong] ?? ICONS.sach;
               return (
                 <li key={n._id}>
-                  <Link href={duongTatCa({ nhom: n.key })} className={styles.o}>
-                    <span className={`${styles.bieuTuong} ${styles[bt.mau]}`} aria-hidden>
-                      <bt.Icon size={22} />
+                  <Link href={allPath({ nhom: n.key })} className={styles.o}>
+                    <span
+                      className={`${styles.bieuTuong} ${styles[icon.mau]}`}
+                      aria-hidden
+                    >
+                      <icon.Icon size={22} />
                     </span>
                     <span className={styles.ten}>{n.ten}</span>
                     <span className={styles.dem}>

@@ -4,26 +4,26 @@ import { useState } from "react";
 
 import { ADMIN_FAQS as C } from "@/src/constants/admin/faqs-page";
 import { useFaqManager } from "@/src/hooks/useFaqManager";
-import { faqService, type ViTriFaq } from "@/src/services/faq";
+import { faqService, type FaqArea } from "@/src/services/faq";
 
-const taiTheoKhuVuc = (khuVuc: ViTriFaq) =>
-  khuVuc === "taiLieu" ? faqService.getDocumentFaqs() : faqService.getHomepageFaqs();
+const loadForArea = (faqArea: FaqArea) =>
+  faqArea === "taiLieu" ? faqService.getDocumentFaqs() : faqService.getHomepageFaqs();
 
 // courseId null: day la FAQ khong gan khoa hoc
-const taoTheoKhuVuc = (khuVuc: ViTriFaq, question: string, answer: string) =>
-  faqService.createFaq({ courseId: null, viTri: khuVuc, question, answer });
+const createForArea = (faqArea: FaqArea, question: string, answer: string) =>
+  faqService.createFaq({ courseId: null, viTri: faqArea, question, answer });
 
 /** FAQ theo khu vuc (Trang chu / Chia se tai lieu). */
 export function useAdminFaqs() {
-  const [khuVuc, setKhuVuc] = useState<ViTriFaq>("trangChu");
-  const area = C.areas.find((k) => k.khoa === khuVuc);
+  const [faqArea, setFaqArea] = useState<FaqArea>("trangChu");
+  const area = C.areas.find((k) => k.khoa === faqArea);
 
   const manager = useFaqManager({
-    scope: khuVuc,
-    load: taiTheoKhuVuc,
-    create: taoTheoKhuVuc,
+    scope: faqArea,
+    load: loadForArea,
+    create: createForArea,
     messages: { ...C.messages, created: C.messages.created(area?.nhan) },
   });
 
-  return { khuVuc, setKhuVuc, area, ...manager };
+  return { faqArea, setFaqArea, area, ...manager };
 }

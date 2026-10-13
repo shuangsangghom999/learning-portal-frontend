@@ -31,7 +31,7 @@
   }
 }
 
-.nutTrong {
+.ghostButton {
   @extend %nut;
   padding: 6px 8px;
   border: 0;
@@ -46,7 +46,7 @@
   }
 }
 
-.cuon {
+.scroll {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -54,7 +54,7 @@
 }
 
 /* ---------- Man tom tat ---------- */
-.tomTat {
+.summary {
   display: grid;
   width: min(100%, 36rem);
   margin-inline: auto;
@@ -72,7 +72,7 @@
   text-wrap: balance;
 }
 
-.diemDong {
+.closeScore {
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -90,7 +90,7 @@
   }
 }
 
-.tenDe {
+.quizName {
   margin: 12px 0 0;
   padding-inline: 16px;
   font-size: 15px;
@@ -108,11 +108,11 @@
   color: var(--color-slate-500);
 }
 
-.luuLoi {
+.saveMistakes {
   color: var(--color-red-600);
 }
 
-.thongTin {
+.info {
   display: grid;
   gap: 10px;
   margin: 14px 0 0;
@@ -140,13 +140,13 @@
   }
 }
 
-.nutDuoi {
+.bottomButton {
   display: grid;
   gap: 8px;
   padding: 16px;
 }
 
-.nutXem {
+.viewButton {
   @extend %nut;
   width: 100%;
   padding: 10px 14px;
@@ -162,7 +162,7 @@
   }
 }
 
-.nutLamLai {
+.retryButton {
   @extend %nut;
   width: 100%;
   padding: 10px 14px;
@@ -190,7 +190,7 @@
   }
 }
 
-.khungAn {
+.hiddenFrame {
   @media (min-width: 64rem) {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -207,7 +207,7 @@
   }
 }
 
-.benDiem {
+.scorePanel {
   margin: 0;
   padding: 12px;
   border-bottom: 1px solid var(--color-slate-200);
@@ -221,11 +221,11 @@
   }
 }
 
-.chiTiet {
+.detail {
   padding: 12px;
 }
 
-.chiTietDau {
+.detailHead {
   margin: 0;
   padding: 12px;
   border-radius: 6px 6px 0 0;
@@ -234,7 +234,7 @@
   font-weight: var(--font-weight-normal);
 }
 
-.chiTietThan {
+.detailBody {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -257,7 +257,7 @@
   }
 }
 
-.nutChu {
+.textButton {
   @extend %nut;
   margin-top: 10px;
   padding: 2px 0;
@@ -279,7 +279,7 @@
   min-width: 0;
 }
 
-.thanhDe {
+.quizBar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -289,7 +289,7 @@
   box-shadow: 0 3px 20px #0000000b;
 }
 
-.nutAn {
+.hideButton {
   @extend %nut;
   width: 32px;
   height: 32px;
@@ -302,7 +302,7 @@
   }
 }
 
-.thanhDeTen {
+.quizBarName {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -315,7 +315,7 @@
 }
 
 // Nut loc 3 trang thai: tat ca (xanh ngoc) / dung (xanh la) / sai (do)
-.loc {
+.query {
   display: inline-flex;
   align-items: center;
   border-radius: 6px;
@@ -325,22 +325,22 @@
   color: var(--color-white);
 }
 
-.locTong {
+.filterTotal {
   // cyan-600 / lime-600 ghi thang ma: Tailwind v4 chi xuat bien mau da dung
   // o dau do, var(--color-cyan-600) o day se rong.
   background-color: #0891b2;
 }
 
-.locDung {
+.filterCorrect {
   background-color: #65a30d;
 }
 
-.locSai {
+.filterWrong {
   background-color: var(--color-red-600);
 }
 
-.locNut,
-.locBo {
+.filterButton,
+.filterReset {
   @extend %nut;
   border: 0;
   background: none;
@@ -348,21 +348,21 @@
   color: inherit;
 }
 
-.locNut {
+.filterButton {
   padding: 7px 10px;
 }
 
-.locBo {
+.filterReset {
   margin-left: -6px;
   padding: 7px 8px 7px 2px;
   color: #fef08a;
 
-  .locDung & {
+  .filterCorrect & {
     color: var(--color-red-600);
   }
 }
 
-.baiLam {
+.attempt {
   border-radius: 8px;
   background-color: var(--color-white);
   box-shadow: 0 3px 20px #0000000b;
@@ -374,7 +374,7 @@
   border-bottom: 1px solid var(--color-slate-200);
 }
 
-.tabChon {
+.activeTab {
   padding: 14px 12px 12px;
   border-bottom: 2px solid var(--color-blue-700);
   margin-bottom: -1px;
@@ -384,7 +384,7 @@
   color: var(--color-blue-700);
 }
 
-.dsCau {
+.questionList {
   display: grid;
   margin: 0;
   padding: 4px 12px 32px;
@@ -401,7 +401,7 @@
   }
 }
 
-.cauSo {
+.questionNumber {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -409,7 +409,7 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.nhanBo {
+.skippedLabel {
   padding: 0 8px;
   border-radius: 999px;
   background-color: var(--color-slate-100);
@@ -418,7 +418,7 @@
   color: var(--color-slate-600);
 }
 
-.cauChu {
+.questionText {
   font-size: 14px;
   overflow-wrap: anywhere;
 }
@@ -458,7 +458,7 @@
 }
 
 // "Dap an dung: C" + day A B C D, dat sat phai nhu ban goc
-.hopDapAn {
+.answerBox {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -469,20 +469,20 @@
   --mau: var(--color-slate-400);
 }
 
-.hopDung {
+.correctBox {
   --mau: var(--color-emerald-600);
 }
 
-.hopSai {
+.wrongBox {
   --mau: var(--color-red-600);
 }
 
-.dapAnDung {
+.correctAnswer {
   font-size: 15px;
   color: var(--mau);
 }
 
-.dayChu {
+.textRow {
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -504,11 +504,11 @@
   color: var(--color-slate-800);
 }
 
-.tickDung {
+.correctTick {
   color: var(--color-emerald-600);
 }
 
-.tickSai {
+.wrongTick {
   color: var(--color-red-600);
 }
 

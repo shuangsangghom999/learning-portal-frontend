@@ -31,4 +31,20 @@ export const ADMIN_ENROLLMENTS = {
     loadFailed: "Không tải được danh sách ghi danh",
     changeFailed: "Không đổi được trạng thái",
   },
+
+  gift: {
+    heading: "Tặng khóa học",
+    hint: "Mở khóa miễn phí cho một học viên, không cần đơn hàng. Học viên nhận thông báo ngay.",
+    searchPlaceholder: "Tìm học viên theo tên hoặc email",
+    searching: "Đang tìm…",
+    noMatch: "Không có ai khớp.",
+    change: "Đổi",
+    chooseCourse: "— Chọn khóa học —",
+    submit: "Tặng khóa",
+    busy: "Đang tặng…",
+    failed: "Không tặng được khóa học",
+    /** Cho bao lau sau lan go cuoi moi tim nguoi (ms). */
+    searchDelay: 350,
+    searchLimit: 6,
+  },
 } as const;

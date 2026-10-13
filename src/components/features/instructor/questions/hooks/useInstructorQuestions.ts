@@ -4,94 +4,96 @@ import { useCallback, useEffect, useState } from "react";
 
 import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-page";
 import {
-  layCauHoiChoGiangVien,
-  traLoiCauHoi,
-  type CauHoiChoGiangVien,
+  getInstructorQuestions,
+  replyQuestion,
+  type InstructorQuestion,
 } from "@/src/services/question";
 
 /** Danh sach cau hoi (cho tra loi / tat ca), mo o tra loi va gui tra loi. */
 export function useInstructorQuestions() {
-  const [danhSach, setDanhSach] = useState<CauHoiChoGiangVien[]>([]);
-  const [tong, setTong] = useState(0);
-  const [tatCa, setTatCa] = useState(false);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [list, setList] = useState<InstructorQuestion[]>([]);
+  const [total, setTotal] = useState(0);
+  const [all, setAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  const [dangTraLoi, setDangTraLoi] = useState<string | null>(null);
-  const [chuTraLoi, setChuTraLoi] = useState("");
-  const [dangGui, setDangGui] = useState(false);
+  const [replying, setReplying] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const nap = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
 
     try {
-      const kq = await layCauHoiChoGiangVien(1, tatCa);
-      setDanhSach(kq.danhSach);
-      setTong(kq.tong);
+      const outcome = await getInstructorQuestions(1, all);
+      setList(outcome.danhSach);
+      setTotal(outcome.tong);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.errors.load);
+      setErr(e instanceof Error ? e.message : C.errors.load);
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
-  }, [tatCa]);
+  }, [all]);
 
   useEffect(() => {
     // Day sang microtask thay vi goi thang trong than effect - xem ghi chu
-    // cung kieu o ChuongThongBao va HoiDapBaiHoc.
-    queueMicrotask(nap);
-  }, [nap]);
+    // cung kieu o NotificationBell va LessonQa.
+    queueMicrotask(load);
+  }, [load]);
 
   /** Bam "Tra loi" lan nua tren cung cau thi dong lai. */
-  const batTatTraLoi = (id: string) => {
-    setDangTraLoi(dangTraLoi === id ? null : id);
-    setChuTraLoi("");
+  const toggleReply = (id: string) => {
+    setReplying(replying === id ? null : id);
+    setReplyText("");
   };
 
-  const gui = async (id: string) => {
-    const cau = chuTraLoi.trim();
-    if (!cau || dangGui) return;
+  const send = async (id: string) => {
+    const questionItem = replyText.trim();
+    if (!questionItem || sending) return;
 
-    setDangGui(true);
+    setSending(true);
 
     try {
-      const kq = await traLoiCauHoi(id, cau);
-      setChuTraLoi("");
-      setDangTraLoi(null);
+      const outcome = await replyQuestion(id, questionItem);
+      setReplyText("");
+      setReplying(null);
 
       // Dang o che do "chua tra loi" thi cau vua tra loi phai BIEN KHOI danh
       // sach: day la hang doi viec, tra loi xong la xong viec. Che do "tat ca"
       // thi giu lai va cap nhat tai cho.
-      if (!tatCa) {
-        setDanhSach((cu) => cu.filter((c) => c._id !== id));
-        setTong((n) => Math.max(0, n - 1));
+      if (!all) {
+        setList((old) => old.filter((c) => c._id !== id));
+        setTotal((n) => Math.max(0, n - 1));
       } else {
-        setDanhSach((cu) =>
-          cu.map((c) =>
-            c._id === id ? { ...c, ...kq.cauHoi, course: c.course, lesson: c.lesson } : c,
+        setList((old) =>
+          old.map((c) =>
+            c._id === id
+              ? { ...c, ...outcome.cauHoi, course: c.course, lesson: c.lesson }
+              : c,
           ),
         );
       }
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.errors.send);
+      setErr(e instanceof Error ? e.message : C.errors.send);
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
   return {
-    danhSach,
-    tong,
-    tatCa,
-    setTatCa,
-    dangTai,
-    loi,
-    dangTraLoi,
-    setDangTraLoi,
-    chuTraLoi,
-    setChuTraLoi: (v: string) => setChuTraLoi(v.slice(0, C.maxLength)),
-    dangGui,
-    batTatTraLoi,
-    gui,
+    danhSach: list,
+    tong: total,
+    tatCa: all,
+    setAll,
+    loading,
+    loi: err,
+    replying,
+    setReplying,
+    replyText,
+    setReplyText: (v: string) => setReplyText(v.slice(0, C.maxLength)),
+    sending,
+    toggleReply,
+    gui: send,
   };
 }

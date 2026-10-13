@@ -60,7 +60,7 @@ export function slugHoa(s: string): string {
   );
 }
 
-function nhanDienTieuDe(line: string): { level: 1 | 2 | 3; text: string } | null {
+function detectHeading(line: string): { level: 1 | 2 | 3; text: string } | null {
   const md = line.match(RE_MARKDOWN);
   if (md) {
     const n = md[1].length;
@@ -87,86 +87,86 @@ function nhanDienTieuDe(line: string): { level: 1 | 2 | 3; text: string } | null
  * Doi van ban tho thanh danh sach khoi.
  * Id tieu de duoc lam duy nhat (them -2, -3...) de neo khong tro nham.
  */
-export function phanTichNoiDung(raw: string): Block[] {
+export function parseContent(raw: string): Block[] {
   const lines = String(raw || "")
     .replace(/\r\n/g, "\n")
     .split("\n");
   const blocks: Block[] = [];
-  const daDung = new Map<string, number>();
+  const used = new Map<string, number>();
 
-  let doanDangGom: string[] = [];
-  let danhSachDangGom: { ordered: boolean; items: string[] } | null = null;
+  let pendingParagraph: string[] = [];
+  let pendingList: { ordered: boolean; items: string[] } | null = null;
 
-  const chotDoan = () => {
-    if (doanDangGom.length) {
-      blocks.push({ kind: "para", text: doanDangGom.join(" ") });
-      doanDangGom = [];
+  const closeSegment = () => {
+    if (pendingParagraph.length) {
+      blocks.push({ kind: "para", text: pendingParagraph.join(" ") });
+      pendingParagraph = [];
     }
   };
-  const chotDanhSach = () => {
-    if (danhSachDangGom?.items.length) blocks.push({ kind: "list", ...danhSachDangGom });
-    danhSachDangGom = null;
+  const closeList = () => {
+    if (pendingList?.items.length) blocks.push({ kind: "list", ...pendingList });
+    pendingList = null;
   };
-  const chotHet = () => {
-    chotDoan();
-    chotDanhSach();
+  const closeAll = () => {
+    closeSegment();
+    closeList();
   };
 
   for (const line of lines) {
     const t = line.trim();
 
     if (!t) {
-      chotHet();
+      closeAll();
       continue;
     }
 
-    const td = nhanDienTieuDe(t);
+    const td = detectHeading(t);
     if (td) {
-      chotHet();
-      const goc = slugHoa(td.text);
-      const lan = (daDung.get(goc) ?? 0) + 1;
-      daDung.set(goc, lan);
+      closeAll();
+      const origin = slugHoa(td.text);
+      const attempts = (used.get(origin) ?? 0) + 1;
+      used.set(origin, attempts);
       blocks.push({
         kind: "heading",
         level: td.level,
         text: td.text,
-        id: lan === 1 ? goc : `${goc}-${lan}`,
+        id: attempts === 1 ? origin : `${origin}-${attempts}`,
       });
       continue;
     }
 
     const bullet = t.match(RE_BULLET);
     if (bullet) {
-      chotDoan();
-      if (!danhSachDangGom || danhSachDangGom.ordered) {
-        chotDanhSach();
-        danhSachDangGom = { ordered: false, items: [] };
+      closeSegment();
+      if (!pendingList || pendingList.ordered) {
+        closeList();
+        pendingList = { ordered: false, items: [] };
       }
-      danhSachDangGom.items.push(bullet[1]);
+      pendingList.items.push(bullet[1]);
       continue;
     }
 
     const ordered = t.match(RE_ORDERED);
     if (ordered) {
-      chotDoan();
-      if (!danhSachDangGom || !danhSachDangGom.ordered) {
-        chotDanhSach();
-        danhSachDangGom = { ordered: true, items: [] };
+      closeSegment();
+      if (!pendingList || !pendingList.ordered) {
+        closeList();
+        pendingList = { ordered: true, items: [] };
       }
-      danhSachDangGom.items.push(ordered[2]);
+      pendingList.items.push(ordered[2]);
       continue;
     }
 
-    chotDanhSach();
-    doanDangGom.push(t);
+    closeList();
+    pendingParagraph.push(t);
   }
 
-  chotHet();
+  closeAll();
   return blocks;
 }
 
 /** Rut muc luc tu danh sach khoi */
-export function layMucLuc(blocks: Block[]): OutlineItem[] {
+export function getOutline(blocks: Block[]): OutlineItem[] {
   return blocks
     .filter((b): b is Extract<Block, { kind: "heading" }> => b.kind === "heading")
     .map(({ id, text, level }) => ({ id, text, level }));

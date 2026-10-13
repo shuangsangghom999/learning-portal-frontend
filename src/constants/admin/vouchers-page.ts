@@ -38,7 +38,7 @@ export const ADMIN_VOUCHERS = {
   columns: ["Mã", "Giảm", "Điều kiện", "Hiệu lực", "Đã dùng", "Trạng thái", ""],
 
   row: {
-    capNote: (amount: string) => `tối đa ${amount}đ`,
+    clipNote: (amount: string) => `tối đa ${amount}đ`,
     minOrder: (amount: string) => `Đơn từ ${amount}đ`,
     noMinOrder: "Không",
     oncePerUser: "1 lần/người",

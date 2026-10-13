@@ -4,32 +4,32 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 import {
-  batTatMa,
-  danhSachMa,
-  luotDungCuaMa,
-  suaMa,
-  taoMa,
-  type LuotDung,
-  type MaGiamGia,
-  type ThanMaGiamGia,
+  toggleVoucher,
+  listVouchers,
+  voucherUsage,
+  editVoucher,
+  generateCode,
+  type Usage,
+  type Voucher,
+  type VoucherPayload,
 } from "@/src/services/voucher";
 
-const ngayISO = (lech = 0) => {
+const isoDate = (lech = 0) => {
   const d = new Date();
   d.setDate(d.getDate() + lech);
   return d.toISOString().slice(0, 10);
 };
 
 /** Bieu mau ma moi (tinh mot lan luc nap module, nhu ban cu). */
-export const MAC_DINH: ThanMaGiamGia = {
+export const DEFAULTS: VoucherPayload = {
   ma: "",
   moTa: "",
   loai: "phanTram",
   giaTri: 10,
   donToiThieu: 0,
   giamToiDa: null,
-  batDau: ngayISO(),
-  ketThuc: ngayISO(C.defaultDays),
+  batDau: isoDate(),
+  ketThuc: isoDate(C.defaultDays),
   soLuotToiDa: null,
   moiNguoiMotLan: true,
   hoatDong: true,
@@ -41,125 +41,125 @@ export const MAC_DINH: ThanMaGiamGia = {
 // dong ho la mot phep khong thuan, hai lan ve co the ra hai ket qua khac nhau.
 // react-hooks/purity chan dung cho do. Tinh o day thi no la mot gia tri co
 // dinh di kem du lieu.
-export type MaHienThi = MaGiamGia & { hetHan: boolean };
+export type VoucherView = Voucher & { hetHan: boolean };
 
-const danhDauHetHan = (ds: MaGiamGia[]): MaHienThi[] => {
-  const bayGio = Date.now();
-  return ds.map((m) => ({ ...m, hetHan: new Date(m.ketThuc).getTime() < bayGio }));
+const markExpired = (items: Voucher[]): VoucherView[] => {
+  const now = Date.now();
+  return items.map((m) => ({ ...m, hetHan: new Date(m.ketThuc).getTime() < now }));
 };
 
-const motMa = (m: MaGiamGia): MaHienThi => danhDauHetHan([m])[0];
+const oneVoucher = (m: Voucher): VoucherView => markExpired([m])[0];
 
 /** Danh sach ma giam gia, bieu mau tao / sua, bat tat, xem luot dung. */
 export function useAdminVouchers() {
-  const [danhSach, setDanhSach] = useState<MaHienThi[]>([]);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [list, setList] = useState<VoucherView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
 
-  const [moForm, setMoForm] = useState(false);
-  const [suaId, setSuaId] = useState<string | null>(null);
-  const [than, setThan] = useState<ThanMaGiamGia>(MAC_DINH);
-  const [dangLuu, setDangLuu] = useState(false);
+  const [openForm, setOpenForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [body, setBody] = useState<VoucherPayload>(DEFAULTS);
+  const [saving, setSaving] = useState(false);
 
-  const [xemLuot, setXemLuot] = useState<string | null>(null);
-  const [luot, setLuot] = useState<{ danhSach: LuotDung[]; tongGiam: number } | null>(
+  const [viewUsage, setViewUsage] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState<{ danhSach: Usage[]; tongGiam: number } | null>(
     null,
   );
 
-  const nap = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
 
     try {
-      const kq = await danhSachMa(1);
-      setDanhSach(danhDauHetHan(kq.danhSach));
+      const outcome = await listVouchers(1);
+      setList(markExpired(outcome.danhSach));
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.loadFailed);
+      setErr(e instanceof Error ? e.message : C.messages.loadFailed);
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    queueMicrotask(nap);
-  }, [nap]);
+    queueMicrotask(load);
+  }, [load]);
 
-  const moTaoMoi = () => {
-    setSuaId(null);
-    setThan(MAC_DINH);
-    setMoForm(true);
+  const openCreate = () => {
+    setEditId(null);
+    setBody(DEFAULTS);
+    setOpenForm(true);
   };
 
-  const dongForm = () => {
-    setMoForm(false);
-    setSuaId(null);
+  const closeForm = () => {
+    setOpenForm(false);
+    setEditId(null);
   };
 
-  const luu = async () => {
-    if (dangLuu) return;
-    setDangLuu(true);
-    setLoi("");
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    setErr("");
 
     try {
-      if (suaId) {
+      if (editId) {
         // `ma` khong duoc gui khi sua: may chu khong cho doi chuoi ma sau khi
         // da phat, vi doi la lam hong moi cho da chia se ma do.
-        const { ma: _bo, ...conLai } = than;
-        void _bo;
-        const kq = await suaMa(suaId, conLai as ThanMaGiamGia);
-        setDanhSach((cu) => cu.map((m) => (m._id === suaId ? motMa(kq.ma) : m)));
+        const { ma: _omit, ...remaining } = body;
+        void _omit;
+        const outcome = await editVoucher(editId, remaining as VoucherPayload);
+        setList((old) => old.map((m) => (m._id === editId ? oneVoucher(outcome.ma) : m)));
       } else {
-        const kq = await taoMa(than);
-        setDanhSach((cu) => [motMa(kq.ma), ...cu]);
+        const outcome = await generateCode(body);
+        setList((old) => [oneVoucher(outcome.ma), ...old]);
       }
 
-      setMoForm(false);
-      setSuaId(null);
-      setThan(MAC_DINH);
+      setOpenForm(false);
+      setEditId(null);
+      setBody(DEFAULTS);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.saveFailed);
+      setErr(e instanceof Error ? e.message : C.messages.saveFailed);
     } finally {
-      setDangLuu(false);
+      setSaving(false);
     }
   };
 
-  const batTat = async (id: string) => {
+  const toggle = async (id: string) => {
     try {
-      const kq = await batTatMa(id);
-      setDanhSach((cu) => cu.map((m) => (m._id === id ? motMa(kq.ma) : m)));
+      const outcome = await toggleVoucher(id);
+      setList((old) => old.map((m) => (m._id === id ? oneVoucher(outcome.ma) : m)));
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.toggleFailed);
+      setErr(e instanceof Error ? e.message : C.messages.toggleFailed);
     }
   };
 
-  const moLuot = async (id: string) => {
-    setXemLuot(id);
-    setLuot(null);
+  const openUsage = async (id: string) => {
+    setViewUsage(id);
+    setAttempt(null);
 
     try {
-      setLuot(await luotDungCuaMa(id));
+      setAttempt(await voucherUsage(id));
     } catch {
-      setLuot({ danhSach: [], tongGiam: 0 });
+      setAttempt({ danhSach: [], tongGiam: 0 });
     }
   };
 
   return {
-    danhSach,
-    dangTai,
-    loi,
-    moForm,
-    suaId,
-    than,
-    setThan,
-    dangLuu,
-    xemLuot,
-    dongLuot: () => setXemLuot(null),
-    luot,
-    moTaoMoi,
-    dongForm,
-    luu,
-    batTat,
-    moLuot,
+    danhSach: list,
+    loading,
+    loi: err,
+    openForm,
+    editId,
+    than: body,
+    setBody,
+    saving,
+    viewUsage,
+    closeUsage: () => setViewUsage(null),
+    luot: attempt,
+    openCreate,
+    closeForm,
+    luu: save,
+    toggle,
+    openUsage,
   };
 }
 

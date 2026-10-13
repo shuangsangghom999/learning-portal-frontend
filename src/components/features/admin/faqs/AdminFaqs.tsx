@@ -30,10 +30,10 @@ export default function AdminFaqs() {
         </button>
       </div>
 
-      <FaqAreaTabs khuVuc={m.khuVuc} moTa={m.area?.moTa} onChange={m.setKhuVuc} />
+      <FaqAreaTabs faqArea={m.faqArea} moTa={m.area?.moTa} onChange={m.setFaqArea} />
 
       {m.successMsg && (
-        <div className={`${styles.hienDan} ${styles.card}`}>
+        <div className={`${styles.showPaste} ${styles.card}`}>
           <CheckCircle className={styles.box2} size={20} />
           <span className={styles.label}>{m.successMsg}</span>
         </div>

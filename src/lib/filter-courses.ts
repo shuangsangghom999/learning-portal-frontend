@@ -10,7 +10,7 @@
 import type { Course } from "@/src/services/course";
 
 /** Nhan ca hai dang API tra ve: mang tran, hoac boc trong { data: [...] } */
-export function locKhoaDaDang(res: unknown): Course[] {
+export function filterPublished(res: unknown): Course[] {
   const boc =
     res && typeof res === "object" && "data" in res
       ? (res as { data: unknown }).data

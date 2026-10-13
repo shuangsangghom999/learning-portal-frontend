@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { layMucLuc, phanTichNoiDung } from "@/src/lib/article-outline";
-import { laHtml, neoHoaTieuDe } from "@/src/lib/post-html";
+import { getOutline, parseContent } from "@/src/lib/article-outline";
+import { laHtml, anchorizeHeadings } from "@/src/lib/post-html";
 import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { postService, type Topic } from "@/src/services/post";
@@ -14,23 +14,23 @@ export function usePostEditor() {
   const router = useRouter();
   const params = useSearchParams();
   const id = params.get("id");
-  const laSua = Boolean(id);
+  const isEdit = Boolean(id);
 
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [dangNap, setDangNap] = useState(laSua);
+  const [loadingPost, setLoadingPost] = useState(isEdit);
 
-  const [tieuDe, setTieuDe] = useState("");
-  const [moTa, setMoTa] = useState("");
-  const [noiDung, setNoiDung] = useState("");
-  const [chuDe, setChuDe] = useState<string>(C.defaultTopic);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
+  const [topic, setTopic] = useState<string>(C.defaultTopic);
   const [tags, setTags] = useState("");
-  const [anh, setAnh] = useState("");
-  const [daDang, setDaDang] = useState(true);
+  const [image, setImage] = useState("");
+  const [published, setPublished] = useState(true);
   const [slug, setSlug] = useState("");
 
-  const [dangLuu, setDangLuu] = useState(false);
-  const [loi, setLoi] = useState("");
-  const [thanhCong, setThanhCong] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     postService
@@ -43,117 +43,117 @@ export function usePostEditor() {
   // co dinh loc isPublished: true - ban nhap se ra 404.
   useEffect(() => {
     if (!id) return;
-    let huy = false;
+    let cancel = false;
     postService
       .getAdminPost(id)
       .then((p) => {
-        if (huy) return;
-        setTieuDe(p.title);
-        setMoTa(p.excerpt);
-        setNoiDung(p.content ?? "");
-        setChuDe(p.topic);
+        if (cancel) return;
+        setTitle(p.title);
+        setDescription(p.excerpt);
+        setContent(p.content ?? "");
+        setTopic(p.topic);
         setTags(p.tags.join(", "));
-        setAnh(p.thumbnail ?? "");
-        setDaDang(p.isPublished !== false);
+        setImage(p.thumbnail ?? "");
+        setPublished(p.isPublished !== false);
         setSlug(p.slug);
       })
       .catch((err) => {
-        if (!huy) setLoi(getErrorMessage(err, C.messages.loadFailed));
+        if (!cancel) setErrorMessage(getErrorMessage(err, C.messages.loadFailed));
       })
       .finally(() => {
-        if (!huy) setDangNap(false);
+        if (!cancel) setLoadingPost(false);
       });
     return () => {
-      huy = true;
+      cancel = true;
     };
   }, [id]);
 
   useEffect(() => {
-    if (!thanhCong) return;
-    const t = setTimeout(() => setThanhCong(""), 4000);
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
     return () => clearTimeout(t);
-  }, [thanhCong]);
+  }, [success]);
 
   // Muc luc o trang doc duoc dung tu chinh nhung dong nay. Hien ra day de
   // nguoi viet biet ngay dong nao da thanh de muc, thay vi dang xong moi phat
   // hien menu ben trai bai trong khong.
-  const mucLuc = useMemo(
+  const outline = useMemo(
     () =>
-      laHtml(noiDung)
-        ? neoHoaTieuDe(noiDung).mucLuc
-        : layMucLuc(phanTichNoiDung(noiDung)),
-    [noiDung],
+      laHtml(content)
+        ? anchorizeHeadings(content).outline
+        : getOutline(parseContent(content)),
+    [content],
   );
 
-  const luu = async (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoi("");
-    setThanhCong("");
+    setErrorMessage("");
+    setSuccess("");
 
-    if (!tieuDe.trim() || !moTa.trim() || !noiDung.trim()) {
-      setLoi(C.messages.required);
+    if (!title.trim() || !description.trim() || !content.trim()) {
+      setErrorMessage(C.messages.required);
       return;
     }
 
     const dl = {
-      title: tieuDe.trim(),
-      excerpt: moTa.trim(),
-      content: noiDung.trim(),
-      topic: chuDe,
+      title: title.trim(),
+      excerpt: description.trim(),
+      content: content.trim(),
+      topic: topic,
       tags: tags
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean)
         .slice(0, C.maxTags),
-      thumbnail: anh.trim(),
-      isPublished: daDang,
+      thumbnail: image.trim(),
+      isPublished: published,
     };
 
-    setDangLuu(true);
+    setSaving(true);
     try {
       if (id) {
         const p = await postService.updatePost(id, dl);
         setSlug(p.slug);
-        setThanhCong(C.messages.saved);
+        setSuccess(C.messages.saved);
       } else {
         const p = await postService.createPost(dl);
-        setThanhCong(daDang ? C.messages.published : C.messages.drafted);
+        setSuccess(published ? C.messages.published : C.messages.drafted);
         // Chuyen sang che do sua, neu khong bam luu lan nua se tao bai thu hai.
         router.replace(C.editHref(p._id));
       }
     } catch (err) {
       // Bai bi bo loc noi dung chan cung ve day - thong bao tu may chu noi ro
       // truong nao vi pham.
-      setLoi(getErrorMessage(err, C.messages.saveFailed));
+      setErrorMessage(getErrorMessage(err, C.messages.saveFailed));
     } finally {
-      setDangLuu(false);
+      setSaving(false);
     }
   };
 
   return {
-    laSua,
+    isEdit,
     topics,
-    dangNap,
-    tieuDe,
-    setTieuDe,
-    moTa,
-    setMoTa,
-    noiDung,
-    setNoiDung,
-    chuDe,
-    setChuDe,
+    loadingPost,
+    tieuDe: title,
+    setTitle,
+    moTa: description,
+    setDescription,
+    noiDung: content,
+    setContent,
+    topic,
+    setTopic,
     tags,
     setTags,
-    anh,
-    setAnh,
-    daDang,
-    setDaDang,
+    anh: image,
+    setImage,
+    published,
+    setPublished,
     slug,
-    dangLuu,
-    loi,
-    thanhCong,
-    mucLuc,
-    luu,
+    saving,
+    loi: errorMessage,
+    success,
+    outline,
+    luu: save,
   };
 }
 

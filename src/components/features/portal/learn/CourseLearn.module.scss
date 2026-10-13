@@ -1124,3 +1124,25 @@
   font-weight: var(--font-weight-bold);
   color: #0056d2;
 }
+
+// Watermark nguoi xem tren khung phat (parts/VideoWatermark.tsx). Khong chan
+// thao tac chuot (pointer-events: none) de van bam duoc thanh dieu khien.
+.watermark {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: rgb(255 255 255 / 0.5);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  transition:
+    top 1.2s ease,
+    left 1.2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .watermark {
+    transition: none;
+  }
+}

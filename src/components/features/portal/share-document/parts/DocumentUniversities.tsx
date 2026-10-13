@@ -5,15 +5,15 @@ import Link from "next/link";
 import { Folder } from "lucide-react";
 
 import type { DocumentUniversity, SharedDocument } from "@/src/services/document";
-import { DUONG_TRUONG, duongTruong, duongTaiLieu } from "@/src/lib/document/duong-dan";
+import { SCHOOLS_PATH, schoolPath, documentPath } from "@/src/lib/document/paths";
 
 import styles from "./DocumentUniversities.module.scss";
 
 // Hien 12 truong; "Xem tat ca" sang trang danh sach truong.
-const SO_TRUONG_BAN_DAU = 12;
-const SO_MAU_TRANG = 4;
+const INITIAL_SCHOOLS = 12;
+const PAGE_SAMPLE_COUNT = 4;
 const lechMau = (id: string) =>
-  [...id].reduce((s, c) => s + c.charCodeAt(0), 0) % SO_MAU_TRANG;
+  [...id].reduce((s, c) => s + c.charCodeAt(0), 0) % PAGE_SAMPLE_COUNT;
 
 /**
  * Khung hai tab o trang /share-document:
@@ -21,21 +21,21 @@ const lechMau = (id: string) =>
  *   - Tai lieu: tai lieu moi chia se, dang luoi gon.
  */
 export default function DocumentUniversities({
-  dsTruong,
-  dsTaiLieu,
+  schoolList,
+  documentList,
 }: {
-  dsTruong: DocumentUniversity[];
-  dsTaiLieu: SharedDocument[];
+  schoolList: DocumentUniversity[];
+  documentList: SharedDocument[];
 }) {
   const [tab, setTab] = useState<"truong" | "taiLieu">(
-    dsTruong.length ? "truong" : "taiLieu",
+    schoolList.length ? "truong" : "taiLieu",
   );
-  if (!dsTruong.length && !dsTaiLieu.length) return null;
+  if (!schoolList.length && !documentList.length) return null;
 
   // Nhieu tai lieu nhat truoc; bang nhau theo thu tu admin dat.
-  const truongHien = [...dsTruong]
+  const visibleSchools = [...schoolList]
     .sort((a, b) => b.soTaiLieu - a.soTaiLieu || a.thuTu - b.thuTu)
-    .slice(0, SO_TRUONG_BAN_DAU);
+    .slice(0, INITIAL_SCHOOLS);
 
   return (
     <section className={styles.bang} aria-label="Trường đại học và tài liệu mới">
@@ -46,29 +46,29 @@ export default function DocumentUniversities({
               ["truong", "Trường đại học"],
               ["taiLieu", "Tài liệu"],
             ] as const
-          ).map(([khoa, nhan]) => (
+          ).map(([course, label]) => (
             <button
-              key={khoa}
+              key={course}
               type="button"
               role="tab"
-              id={`tab-${khoa}`}
-              aria-selected={tab === khoa}
-              aria-controls={`bang-${khoa}`}
-              onClick={() => setTab(khoa)}
-              className={`${styles.tab} ${tab === khoa ? styles.tabOn : ""}`}
+              id={`tab-${course}`}
+              aria-selected={tab === course}
+              aria-controls={`bang-${course}`}
+              onClick={() => setTab(course)}
+              className={`${styles.tab} ${tab === course ? styles.tabOn : ""}`}
             >
-              {nhan}
+              {label}
             </button>
           ))}
         </div>
 
         {tab === "truong" ? (
           <div id="bang-truong" role="tabpanel" aria-labelledby="tab-truong">
-            <ul className={styles.dsTruong}>
-              {truongHien.map((t) => (
+            <ul className={styles.schoolList}>
+              {visibleSchools.map((t) => (
                 <li key={t._id}>
                   <Link
-                    href={duongTruong(t.key)}
+                    href={schoolPath(t.key)}
                     className={styles.truong}
                     title={t.soTaiLieu ? `${t.soTaiLieu} tài liệu` : "Chưa có tài liệu"}
                   >
@@ -79,8 +79,8 @@ export default function DocumentUniversities({
             </ul>
             {/* "Xem tat ca" sang trang danh sach truong: tim truong, truong pho
                 bien, tra theo chu cai dau. */}
-            <Link href={DUONG_TRUONG} className={styles.xemTatCa}>
-              Xem tất cả ({dsTruong.length} trường)
+            <Link href={SCHOOLS_PATH} className={styles.viewAll}>
+              Xem tất cả ({schoolList.length} trường)
             </Link>
           </div>
         ) : (
@@ -88,11 +88,11 @@ export default function DocumentUniversities({
             id="bang-taiLieu"
             role="tabpanel"
             aria-labelledby="tab-taiLieu"
-            className={styles.dsTaiLieu}
+            className={styles.documentList}
           >
-            {dsTaiLieu.map((d) => (
+            {documentList.map((d) => (
               <li key={d._id}>
-                <Link href={duongTaiLieu(d._id)} className={styles.taiLieu}>
+                <Link href={documentPath(d._id)} className={styles.taiLieu}>
                   <span
                     className={styles.anh}
                     aria-hidden
@@ -109,7 +109,7 @@ export default function DocumentUniversities({
                     <span className={styles.mon}>
                       <Folder size={13} aria-hidden />
                       {/* Span rieng: text-overflow khong ap duoc len chinh phan tu flex. */}
-                      <span className={styles.monChu}>
+                      <span className={styles.subjectText}>
                         {d.monHoc?.[0] || d.truong || "Tài liệu"}
                       </span>
                     </span>

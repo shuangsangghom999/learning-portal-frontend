@@ -6,7 +6,7 @@
   gap: calc(var(--spacing) * 2);
 }
 
-.oLoc {
+.filterInput {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
@@ -54,7 +54,7 @@
     border-color 0.12s;
 
   @media (hover: hover) {
-    &:hover:not(:disabled):not(.chipOn) {
+    &:hover:not(:disabled):not(.chipActive) {
       border-color: var(--color-blue-400);
       color: var(--color-blue-700);
     }
@@ -71,7 +71,7 @@
   }
 }
 
-.chipOn {
+.chipActive {
   border-color: var(--color-blue-600);
   background-color: var(--color-blue-600);
   color: #fff;

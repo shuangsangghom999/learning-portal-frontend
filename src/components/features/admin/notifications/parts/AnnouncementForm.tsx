@@ -1,7 +1,7 @@
 import { Pencil, Send, TriangleAlert } from "lucide-react";
 
 import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
-import type { MucDoThongBaoChung, VaiTroNhan } from "@/src/services/announcement";
+import type { AnnouncementLevel, RecipientRole } from "@/src/services/announcement";
 
 import type { AdminAnnouncementsState } from "../hooks/useAdminAnnouncements";
 import styles from "../AdminNotifications.module.scss";
@@ -13,10 +13,10 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
 
   return (
     <div className={styles.card}>
-      {s.dangSua && (
+      {s.editing && (
         <p className={styles.editing}>
           <Pencil size={14} /> {F.editing}
-          <strong>{s.dangSua.tieuDe}</strong>
+          <strong>{s.editing.tieuDe}</strong>
         </p>
       )}
 
@@ -25,7 +25,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
         <input
           id="tb-tieude"
           value={s.tieuDe}
-          onChange={(e) => s.setTieuDe(e.target.value)}
+          onChange={(e) => s.setTitle(e.target.value)}
           placeholder={F.titlePlaceholder}
           className={styles.input}
         />
@@ -37,7 +37,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
         <textarea
           id="tb-noidung"
           value={s.noiDung}
-          onChange={(e) => s.setNoiDung(e.target.value)}
+          onChange={(e) => s.setContent(e.target.value)}
           rows={4}
           placeholder={F.bodyPlaceholder}
           className={styles.textarea}
@@ -50,7 +50,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
         <input
           id="tb-duongdan"
           value={s.duongDan}
-          onChange={(e) => s.setDuongDan(e.target.value)}
+          onChange={(e) => s.setPath(e.target.value)}
           placeholder={F.linkPlaceholder}
           className={styles.input}
         />
@@ -63,11 +63,11 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
       <fieldset className={styles.channels}>
         <legend className={styles.label}>{F.where}</legend>
 
-        {s.dangSua ? (
+        {s.editing ? (
           // Luc sua khong gui them chuong cho nguoi moi: sua la sua dot cu.
           <p className={styles.checkHint}>
-            {s.dangSua.guiChuong
-              ? F.editBellSent(s.dangSua.soNguoiNhan ?? 0)
+            {s.editing.guiChuong
+              ? F.editBellSent(s.editing.soNguoiNhan ?? 0)
               : F.editNoBell}
           </p>
         ) : (
@@ -77,7 +77,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
                 id="tb-kenh-chuong"
                 type="checkbox"
                 checked={s.guiChuong}
-                onChange={(e) => s.setGuiChuong(e.target.checked)}
+                onChange={(e) => s.setSendBell(e.target.checked)}
               />
               <span>
                 <strong>{F.bell}</strong>
@@ -91,7 +91,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
                 <select
                   id="tb-vaitro"
                   value={s.vaiTro}
-                  onChange={(e) => s.setVaiTro(e.target.value as VaiTroNhan)}
+                  onChange={(e) => s.setRole(e.target.value as RecipientRole)}
                   className={styles.input}
                 >
                   {F.audiences.map((a) => (
@@ -109,8 +109,8 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
           <input
             id="tb-kenh-congkhai"
             type="checkbox"
-            checked={s.hienCongKhai}
-            onChange={(e) => s.setHienCongKhai(e.target.checked)}
+            checked={s.showPublic}
+            onChange={(e) => s.setShowPublic(e.target.checked)}
           />
           <span>
             <strong>{F.public}</strong>
@@ -118,14 +118,14 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
           </span>
         </label>
 
-        {s.hienCongKhai && (
+        {s.showPublic && (
           <div className={styles.subGrid}>
             <label className={styles.subField}>
               <span className={styles.label}>{F.level}</span>
               <select
                 id="tb-mucdo"
                 value={s.mucDo}
-                onChange={(e) => s.setMucDo(e.target.value as MucDoThongBaoChung)}
+                onChange={(e) => s.setLevel(e.target.value as AnnouncementLevel)}
                 className={styles.input}
               >
                 {F.levels.map((l) => (
@@ -141,7 +141,7 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
                 id="tb-hethan"
                 type="datetime-local"
                 value={s.hetHan}
-                onChange={(e) => s.setHetHan(e.target.value)}
+                onChange={(e) => s.setExpiresAt(e.target.value)}
                 className={styles.input}
               />
             </label>
@@ -153,18 +153,18 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
 
       {s.ketQua && <p className={styles.text3}>{s.ketQua}</p>}
 
-      {s.hoiLai ? (
+      {s.confirmAgain ? (
         <div className={styles.card2}>
           <p className={styles.text4}>
             <TriangleAlert size={16} className={styles.box3} />
             <span>
-              {s.dangSua ? K.edit : K.send} {K.check}
+              {s.editing ? K.edit : K.send} {K.check}
             </span>
           </p>
           <div className={styles.row2}>
             <button
               type="button"
-              onClick={() => s.setHoiLai(false)}
+              onClick={() => s.setConfirmAgain(false)}
               className={styles.button}
             >
               {K.back}
@@ -172,10 +172,10 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
             <button
               type="button"
               onClick={s.gui}
-              disabled={s.dangGui}
+              disabled={s.sending}
               className={styles.button2}
             >
-              {s.dangGui ? K.saving : s.dangSua ? K.saveReal : K.sendReal}
+              {s.sending ? K.saving : s.editing ? K.saveReal : K.sendReal}
             </button>
           </div>
         </div>
@@ -183,11 +183,11 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
         <div className={styles.row2Start}>
           <button
             type="button"
-            onClick={() => s.setHoiLai(true)}
-            disabled={!s.sanSang}
+            onClick={() => s.setConfirmAgain(true)}
+            disabled={!s.ready}
             className={styles.button3}
           >
-            {s.dangSua ? (
+            {s.editing ? (
               <>
                 <Pencil size={16} /> {C.actions.save}
               </>
@@ -197,8 +197,8 @@ export default function AnnouncementForm({ s }: { s: AdminAnnouncementsState }) 
               </>
             )}
           </button>
-          {s.dangSua && (
-            <button type="button" onClick={s.datLaiForm} className={styles.button}>
+          {s.editing && (
+            <button type="button" onClick={s.resetForm} className={styles.button}>
               {C.actions.cancelEdit}
             </button>
           )}

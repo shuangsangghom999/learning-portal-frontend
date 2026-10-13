@@ -1,7 +1,7 @@
 import { Award, Ban, Check, Copy, FileText, ShieldCheck } from "lucide-react";
 
 import { ADMIN_CERTIFICATES as C } from "@/src/constants/admin/certificates-page";
-import { duongDanPdfChungChi } from "@/src/services/certificate";
+import { certificatePdfUrl } from "@/src/services/certificate";
 import type { AdminCertificateRow } from "@/src/types/certificate";
 
 import styles from "../AdminCertificates.module.scss";
@@ -24,7 +24,7 @@ export default function CertificateRow({
 }: CertificateRowProps) {
   const valid = c.isValid !== false;
   const code = c.verificationCode;
-  const ngayCap = c.issuedAt || c.completionDate;
+  const issuedAt = c.issuedAt || c.completionDate;
 
   return (
     <tr className={styles.row2}>
@@ -64,7 +64,7 @@ export default function CertificateRow({
           : (c.finalScore ?? C.row.none)}
       </td>
       <td className={styles.cell4}>
-        {ngayCap ? new Date(ngayCap).toLocaleDateString("vi-VN") : C.row.none}
+        {issuedAt ? new Date(issuedAt).toLocaleDateString("vi-VN") : C.row.none}
       </td>
       {/* Ban PDF do may chu dung ra, mo thang trong the moi.
           Dung dung tep ma hoc vien tai ve - truoc day chung
@@ -72,7 +72,7 @@ export default function CertificateRow({
           quan tri khong co gi de doi chieu khi co khieu nai. */}
       <td className={styles.headCell}>
         <a
-          href={duongDanPdfChungChi(c._id)}
+          href={certificatePdfUrl(c._id)}
           target="_blank"
           rel="noopener noreferrer"
           title={C.row.pdfTitle}

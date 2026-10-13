@@ -9,7 +9,7 @@ import { PortalShell, portalShellStyles } from "@/src/components/features/portal
 // Be Vietnam Pro: bo chu ve rieng cho dau tieng Viet. Dau mu, dau nga, chu
 // "ữ" "ỗ" "ế" trong cac bo chu he thong thuong bi ghep tu font khac nen dat
 // lech va nang nhe khong deu.
-const chuThan = Be_Vietnam_Pro({
+const bodyText = Be_Vietnam_Pro({
   subsets: ["vietnamese", "latin"],
   weight: ["400", "500", "600"],
   variable: "--chu-than",
@@ -17,7 +17,7 @@ const chuThan = Be_Vietnam_Pro({
 });
 
 // Lexend: ve ra de tang toc do doc, co nghien cuu kem theo. Dung cho tieu de.
-const chuHien = Lexend({
+const displayText = Lexend({
   subsets: ["vietnamese", "latin"],
   weight: ["500", "700", "800"],
   variable: "--chu-hien",
@@ -32,7 +32,9 @@ export default function PortalLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${chuThan.variable} ${chuHien.variable} ${portalShellStyles.box}`}>
+    <div
+      className={`${bodyText.variable} ${displayText.variable} ${portalShellStyles.box}`}
+    >
       <PortalShell>{children}</PortalShell>
     </div>
   );

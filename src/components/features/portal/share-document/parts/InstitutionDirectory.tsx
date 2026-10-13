@@ -6,16 +6,20 @@ import { useRouter } from "next/navigation";
 import { Landmark, Search } from "lucide-react";
 
 import type { DocumentUniversity } from "@/src/services/document";
-import { duongTruong } from "@/src/lib/document/duong-dan";
-import { boDau, chuCaiDau, tenChinhTruong } from "@/src/lib/document/ten-truong";
+import { schoolPath } from "@/src/lib/document/paths";
+import {
+  stripAccents,
+  initialLetter,
+  mainSchoolName,
+} from "@/src/lib/document/school-name";
 
 import styles from "./InstitutionDirectory.module.scss";
 
-const SO_PHO_BIEN = 36;
-const SO_GOI_Y = 8;
+const POPULAR_COUNT = 36;
+const SUGGESTION_COUNT = 8;
 
 /** Logo truong neu co, khong thi bieu tuong toa nha. */
-function LogoTruong({ t }: { t: DocumentUniversity }) {
+function SchoolLogo({ t }: { t: DocumentUniversity }) {
   if (t.logo) {
     // background-image thay vi <img>: logo chi de trang tri canh ten truong
     // (ten da la chu doc duoc), va khong di qua bo toi uu anh cua Next.
@@ -30,12 +34,12 @@ function LogoTruong({ t }: { t: DocumentUniversity }) {
   return <Landmark size={18} className={styles.bieuTuong} aria-hidden />;
 }
 
-function DongTruong({ t }: { t: DocumentUniversity }) {
+function SchoolRow({ t }: { t: DocumentUniversity }) {
   return (
     <li>
-      <Link href={duongTruong(t.key)} className={styles.dong}>
-        <LogoTruong t={t} />
-        <span className={styles.tenTruong}>{t.ten}</span>
+      <Link href={schoolPath(t.key)} className={styles.rows}>
+        <SchoolLogo t={t} />
+        <span className={styles.schoolName}>{t.ten}</span>
         {t.soTaiLieu > 0 && <span className={styles.so}>{t.soTaiLieu} tài liệu</span>}
       </Link>
     </li>
@@ -48,131 +52,137 @@ function DongTruong({ t }: { t: DocumentUniversity }) {
  * cua TEN CHINH (bo "Truong Dai hoc", "Hoc vien"...).
  */
 export default function InstitutionDirectory({
-  dsTruong,
+  schoolList,
 }: {
-  dsTruong: DocumentUniversity[];
+  schoolList: DocumentUniversity[];
 }) {
   const router = useRouter();
   const idDs = useId();
-  const [tuKhoa, setTuKhoa] = useState("");
-  const [moGoiY, setMoGoiY] = useState(false);
-  const [dangTro, setDangTro] = useState(-1);
-  const [chuDangChon, setChuDangChon] = useState<string | null>(null);
+  const [keyword, setKeyword] = useState("");
+  const [openSuggestions, setOpenSuggestions] = useState(false);
+  const [activeAnchor, setActiveAnchor] = useState(-1);
+  const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
   // Nhieu tai lieu nhat truoc; bang nhau thi theo thu tu admin dat.
-  const phoBien = useMemo(
+  const popular = useMemo(
     () =>
-      [...dsTruong]
+      [...schoolList]
         .sort((a, b) => b.soTaiLieu - a.soTaiLieu || a.thuTu - b.thuTu)
-        .slice(0, SO_PHO_BIEN),
-    [dsTruong],
+        .slice(0, POPULAR_COUNT),
+    [schoolList],
   );
 
   // Nhom theo chu cai dau, xep chu va ten theo tieng Viet.
-  const theoChu = useMemo(() => {
+  const byLetter = useMemo(() => {
     const m = new Map<string, DocumentUniversity[]>();
-    for (const t of dsTruong) {
-      const c = chuCaiDau(t.ten);
+    for (const t of schoolList) {
+      const c = initialLetter(t.ten);
       if (!m.has(c)) m.set(c, []);
       m.get(c)!.push(t);
     }
-    for (const ds of m.values()) {
-      ds.sort((a, b) => tenChinhTruong(a.ten).localeCompare(tenChinhTruong(b.ten), "vi"));
+    for (const items of m.values()) {
+      items.sort((a, b) =>
+        mainSchoolName(a.ten).localeCompare(mainSchoolName(b.ten), "vi"),
+      );
     }
     return m;
-  }, [dsTruong]);
-  const cacChu = [...theoChu.keys()].sort((a, b) => a.localeCompare(b, "vi"));
+  }, [schoolList]);
+  const allLetters = [...byLetter.keys()].sort((a, b) => a.localeCompare(b, "vi"));
 
-  const goiY = useMemo(() => {
-    const q = boDau(tuKhoa.trim());
+  const suggest = useMemo(() => {
+    const q = stripAccents(keyword.trim());
     if (!q) return [];
-    return dsTruong.filter((t) => boDau(t.ten).includes(q)).slice(0, SO_GOI_Y);
-  }, [tuKhoa, dsTruong]);
+    return schoolList
+      .filter((t) => stripAccents(t.ten).includes(q))
+      .slice(0, SUGGESTION_COUNT);
+  }, [keyword, schoolList]);
 
-  const denTruong = (t: DocumentUniversity) => router.push(duongTruong(t.key));
+  const goToSchool = (t: DocumentUniversity) => router.push(schoolPath(t.key));
 
-  const khiGoPhim = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!goiY.length) return;
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggest.length) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setMoGoiY(true);
-      setDangTro((i) => (i + 1) % goiY.length);
+      setOpenSuggestions(true);
+      setActiveAnchor((i) => (i + 1) % suggest.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setDangTro((i) => (i <= 0 ? goiY.length - 1 : i - 1));
+      setActiveAnchor((i) => (i <= 0 ? suggest.length - 1 : i - 1));
     } else if (e.key === "Escape") {
-      setMoGoiY(false);
+      setOpenSuggestions(false);
     }
   };
 
-  const khiTim = (e: React.FormEvent) => {
+  const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Enter: truong dang tro, khong thi goi y dau tien.
-    const chon = goiY[dangTro] ?? goiY[0];
-    if (chon) denTruong(chon);
+    const choice = suggest[activeAnchor] ?? suggest[0];
+    if (choice) goToSchool(choice);
   };
 
-  const hienGoiY = moGoiY && tuKhoa.trim().length > 0;
+  const showSuggestions = openSuggestions && keyword.trim().length > 0;
 
   return (
     <>
       <section className={styles.dau}>
-        <div className={styles.dauNoiDung}>
-          <span className={styles.minhHoa} aria-hidden />
+        <div className={styles.contentStart}>
+          <span className={styles.illustration} aria-hidden />
           <h1 className={styles.tieuDe}>Bạn đang học ở trường nào?</h1>
-          <p className={styles.giaiThich}>Tìm trường của bạn để xem tài liệu học tập</p>
+          <p className={styles.explanation}>Tìm trường của bạn để xem tài liệu học tập</p>
 
-          <form role="search" onSubmit={khiTim} className={styles.oTim}>
+          <form role="search" onSubmit={onSearch} className={styles.searchInput}>
             <input
               type="search"
               role="combobox"
               aria-label="Tìm trường đại học"
               aria-autocomplete="list"
-              aria-expanded={hienGoiY}
+              aria-expanded={showSuggestions}
               aria-controls={idDs}
-              aria-activedescendant={dangTro >= 0 ? `${idDs}-${dangTro}` : undefined}
+              aria-activedescendant={
+                activeAnchor >= 0 ? `${idDs}-${activeAnchor}` : undefined
+              }
               autoComplete="off"
               placeholder="Gõ tên trường để tìm…"
-              value={tuKhoa}
+              value={keyword}
               onChange={(e) => {
-                setTuKhoa(e.target.value);
-                setMoGoiY(true);
-                setDangTro(-1);
+                setKeyword(e.target.value);
+                setOpenSuggestions(true);
+                setActiveAnchor(-1);
               }}
-              onFocus={() => setMoGoiY(true)}
+              onFocus={() => setOpenSuggestions(true)}
               // Tre mot nhip: bam vao goi y can click chay truoc khi danh sach an.
-              onBlur={() => setTimeout(() => setMoGoiY(false), 150)}
-              onKeyDown={khiGoPhim}
+              onBlur={() => setTimeout(() => setOpenSuggestions(false), 150)}
+              onKeyDown={onKeyDown}
               className={styles.nhap}
             />
-            <button type="submit" aria-label="Tìm" className={styles.nutTim}>
+            <button type="submit" aria-label="Tìm" className={styles.searchButton}>
               <Search size={18} />
             </button>
 
-            {hienGoiY && (
+            {showSuggestions && (
               <div
                 id={idDs}
                 role="listbox"
                 aria-label="Trường đại học"
-                className={styles.goiY}
+                className={styles.suggest}
               >
-                {goiY.length === 0 ? (
-                  <p role="alert" className={styles.khongCo}>
+                {suggest.length === 0 ? (
+                  <p role="alert" className={styles.empty}>
                     Không tìm thấy trường nào
                   </p>
                 ) : (
-                  goiY.map((t, i) => (
+                  suggest.map((t, i) => (
                     <button
                       key={t._id}
                       id={`${idDs}-${i}`}
                       type="button"
                       role="option"
-                      aria-selected={i === dangTro}
+                      aria-selected={i === activeAnchor}
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => denTruong(t)}
-                      className={`${styles.goiYMuc} ${i === dangTro ? styles.goiYDangTro : ""}`}
+                      onClick={() => goToSchool(t)}
+                      className={`${styles.suggestionItem} ${i === activeAnchor ? styles.activeSuggestion : ""}`}
                     >
-                      <LogoTruong t={t} />
+                      <SchoolLogo t={t} />
                       <span>{t.ten}</span>
                     </button>
                   ))
@@ -187,42 +197,42 @@ export default function InstitutionDirectory({
       <div className={styles.nen}>
         <div className={styles.than}>
           <section aria-labelledby="truong-pho-bien">
-            <h2 id="truong-pho-bien" className={styles.tieuDeMuc}>
+            <h2 id="truong-pho-bien" className={styles.sectionTitle}>
               Trường đại học phổ biến nhất
             </h2>
             <ul className={styles.luoi}>
-              {phoBien.map((t) => (
-                <DongTruong key={t._id} t={t} />
+              {popular.map((t) => (
+                <SchoolRow key={t._id} t={t} />
               ))}
             </ul>
           </section>
 
-          <section aria-labelledby="truong-theo-chu" className={styles.mucChu}>
-            <h2 id="truong-theo-chu" className={styles.tieuDeMuc}>
+          <section aria-labelledby="truong-theo-chu" className={styles.letterItem}>
+            <h2 id="truong-theo-chu" className={styles.sectionTitle}>
               Tài liệu theo tất cả các trường
             </h2>
             <p className={styles.phu}>Tìm trường theo chữ cái đầu</p>
-            <div className={styles.chuCai} role="group" aria-label="Chữ cái đầu">
-              {cacChu.map((c) => (
+            <div className={styles.letter} role="group" aria-label="Chữ cái đầu">
+              {allLetters.map((c) => (
                 <button
                   key={c}
                   type="button"
-                  aria-pressed={chuDangChon === c}
-                  onClick={() => setChuDangChon((cu) => (cu === c ? null : c))}
-                  className={`${styles.chu} ${chuDangChon === c ? styles.chuOn : ""}`}
+                  aria-pressed={activeLetter === c}
+                  onClick={() => setActiveLetter((old) => (old === c ? null : c))}
+                  className={`${styles.chu} ${activeLetter === c ? styles.filterLabel : ""}`}
                 >
                   {c}
                 </button>
               ))}
             </div>
 
-            {chuDangChon && (
+            {activeLetter && (
               <ul
-                className={`${styles.luoi} ${styles.luoiChu}`}
-                aria-label={`Trường bắt đầu bằng ${chuDangChon}`}
+                className={`${styles.luoi} ${styles.letterGrid}`}
+                aria-label={`Trường bắt đầu bằng ${activeLetter}`}
               >
-                {(theoChu.get(chuDangChon) ?? []).map((t) => (
-                  <DongTruong key={t._id} t={t} />
+                {(byLetter.get(activeLetter) ?? []).map((t) => (
+                  <SchoolRow key={t._id} t={t} />
                 ))}
               </ul>
             )}

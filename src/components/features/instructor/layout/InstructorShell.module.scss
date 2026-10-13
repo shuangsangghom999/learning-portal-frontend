@@ -520,32 +520,14 @@
   transition-duration: var(--tw-duration, var(--default-transition-duration));
 }
 
-/* Thanh cuon mong cho danh sach menu o thanh ben.
-   Truoc day o file .tsx ghi "custom-scrollbar" - lop nay CHUA BAO GIO co luat
-   CSS nao, ke ca truoc khi go Tailwind (da soat ban o HEAD: khong file
-   .css/.scss nao trong kho dinh nghia no). Thanh ben van dung thanh cuon mac
-   dinh cua he dieu hanh suot tu dau.
-
-   Mau thumb dung mau xam nua trong: thanh ben co the doi nen sang hay toi ma
-   thanh cuon van doc duoc, khong phai chon lai mau theo tung khu. */
-.thanhCuonGon {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(100 116 139 / 0.35) transparent;
+/* Danh sach menu o thanh ben: AN thanh cuon (chu du an thay xau, 08/10/2026).
+   Van cuon duoc bang con lan chuot, vuot cam ung va phim mui ten - chi khong
+   ve thanh cuon ra. */
+.thinScroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    border-radius: 3px;
-    background-color: rgb(100 116 139 / 0.35);
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(100 116 139 / 0.55);
+    display: none;
   }
 }

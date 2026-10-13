@@ -368,7 +368,7 @@
 }
 
 // Diem he 10 go sai (chu, hoac ngoai 0-10).
-.label4Sai {
+.label4Wrong {
   background-color: var(--color-red-100);
   color: var(--color-red-700);
 
@@ -551,14 +551,14 @@
 }
 
 // Co diem cai thien: diem cu gach ngang mau xam, diem moi mau xanh ben canh.
-.doiDiem {
+.setGrade {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1);
 }
 
-.soCu,
-.soMoi {
+.oldValue,
+.newValue {
   border-radius: var(--radius-md);
   padding-inline: calc(var(--spacing) * 2);
   padding-block: calc(var(--spacing) * 0.5);
@@ -569,18 +569,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-.soCu {
+.oldValue {
   background-color: var(--color-slate-500);
   text-decoration-thickness: 1.5px;
 }
 
 // Diem moi dung dung mau xanh cua cac o diem khac tren trang; diem cu xam
 // gach ngang da du de phan biet, khong can them mau do lac tong.
-.soMoi {
+.newValue {
   background-color: var(--color-blue-600);
 }
 
-.soCuLon {
+.oldLarge {
   margin-right: calc(var(--spacing) * 2);
   font-size: 0.55em;
   font-weight: var(--font-weight-bold);
@@ -588,7 +588,7 @@
   vertical-align: middle;
 }
 
-.soMoiLon {
+.newLarge {
   color: var(--color-blue-600);
 }
 

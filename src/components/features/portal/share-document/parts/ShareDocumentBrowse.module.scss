@@ -47,21 +47,21 @@ $cao-header: 104px;
   }
 }
 
-.hangTieuDe {
+.titleRow {
   margin-top: calc(var(--spacing) * 5);
   display: flex;
   align-items: flex-start;
   gap: calc(var(--spacing) * 4);
 }
 
-.iconThuMuc {
+.folderIcon {
   flex-shrink: 0;
   margin-top: 4px;
   color: #2cc302;
   fill: #2cc302;
 }
 
-.chuTieuDe {
+.titleText {
   min-width: 0;
 }
 
@@ -73,14 +73,14 @@ $cao-header: 104px;
   overflow-wrap: anywhere;
 }
 
-.soLieu {
+.figures {
   margin-top: calc(var(--spacing) * 3);
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 2);
 }
 
-.oSo {
+.numberCell {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
@@ -102,7 +102,7 @@ $cao-header: 104px;
 }
 
 // ---- nut + o tim
-.hangNut {
+.buttonRow {
   margin-top: calc(var(--spacing) * 6);
   display: flex;
   flex-wrap: wrap;
@@ -132,7 +132,7 @@ $cao-header: 104px;
   }
 }
 
-.nutDen {
+.darkButton {
   @extend %nut;
   background-color: #0a0a0a;
   color: #fff;
@@ -144,7 +144,7 @@ $cao-header: 104px;
   }
 }
 
-.nutTrang {
+.pageButton {
   @extend %nut;
   min-width: 10rem;
   border: 1px solid #d3d9e0;
@@ -166,7 +166,7 @@ $cao-header: 104px;
   min-width: 0;
 }
 
-.nhapTim {
+.searchInput {
   width: 100%;
   height: 44px;
   border-radius: 999px;
@@ -191,7 +191,7 @@ $cao-header: 104px;
   }
 }
 
-.nutTim {
+.searchButton {
   position: absolute;
   right: 4px;
   display: grid;
@@ -210,7 +210,7 @@ $cao-header: 104px;
 }
 
 // ---- bo loc
-.hangLoc {
+.filterRow {
   margin-top: calc(var(--spacing) * 4);
   display: flex;
   flex-wrap: wrap;
@@ -241,14 +241,14 @@ $cao-header: 104px;
   }
 }
 
-.chonOn {
+.pickedFilter {
   border-color: #3092fa;
   background-color: #e2effd;
   font-weight: 600;
   color: #1168c3;
 }
 
-.boHet {
+.clearAll {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1);
@@ -271,7 +271,7 @@ $cao-header: 104px;
   padding-top: calc(var(--spacing) * 6);
 }
 
-.theQuyDinh {
+.rulesCard {
   display: flex;
   align-items: flex-start;
   gap: calc(var(--spacing) * 3);
@@ -292,7 +292,7 @@ $cao-header: 104px;
 }
 
 // Nut chu nho (vd. "Xóa lịch sử", "Bỏ tìm").
-.nutChu {
+.textButton {
   border-radius: 999px;
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
   font-size: 0.85rem;
@@ -308,7 +308,7 @@ $cao-header: 104px;
 }
 
 // ---------------------------------------------------------------- tat ca tai lieu
-.phanDs {
+.listPart {
   margin-top: calc(var(--spacing) * 8);
 }
 
@@ -331,13 +331,13 @@ $cao-header: 104px;
     visibility 0.18s;
 }
 
-.gonOn {
+.compactActive {
   opacity: 1;
   visibility: visible;
   translate: 0 0;
 }
 
-.gonTrong {
+.compactEmpty {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 2.5);
@@ -350,7 +350,7 @@ $cao-header: 104px;
   fill: #2cc302;
 }
 
-.gonTen {
+.compactName {
   min-width: 0;
   flex: 0 1 auto;
   margin-right: calc(var(--spacing) * 2);
@@ -362,7 +362,7 @@ $cao-header: 104px;
   color: #0a0a0a;
 }
 
-.nutDenNho {
+.smallDarkButton {
   @extend %nut;
   min-height: 38px;
   padding-inline: calc(var(--spacing) * 4);
@@ -377,7 +377,7 @@ $cao-header: 104px;
   }
 }
 
-.nutTrangNho {
+.smallPageButton {
   @extend %nut;
   min-height: 38px;
   padding-inline: calc(var(--spacing) * 4);
@@ -387,7 +387,7 @@ $cao-header: 104px;
   color: #2f3e4e;
 }
 
-.gonTim {
+.compactSearch {
   position: relative;
   flex: 1 1 14rem;
   display: flex;
@@ -395,7 +395,7 @@ $cao-header: 104px;
   min-width: 0;
 }
 
-.gonNhap {
+.compactInput {
   width: 100%;
   height: 38px;
   border-radius: 999px;
@@ -420,12 +420,12 @@ $cao-header: 104px;
   }
 }
 
-.hangTab {
+.tabRow {
   padding-bottom: calc(var(--spacing) * 3);
   border-bottom: 1px solid #e6ebef;
 }
 
-.anChu {
+.hideText {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -475,12 +475,12 @@ $cao-header: 104px;
   color: #0a0a0a;
 }
 
-.soTab {
+.tabCount {
   font-size: 0.85rem;
   color: #7a838c;
 }
 
-.ketQuaTim {
+.searchResults {
   margin-top: calc(var(--spacing) * 5);
   display: flex;
   flex-wrap: wrap;
@@ -515,7 +515,7 @@ $cao-header: 104px;
   color: #7a838c;
 }
 
-.trongTieuDe {
+.inTitle {
   font-size: 1rem;
   font-weight: 600;
   color: #2f3e4e;
@@ -531,7 +531,7 @@ $cao-header: 104px;
   color: #4c5966;
 }
 
-.nutTrangSo {
+.pageNumberButton {
   border-radius: 999px;
   border: 1px solid #d3d9e0;
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
@@ -566,20 +566,20 @@ $cao-header: 104px;
 
 // Thanh thu gon tren man hep: chi con ten + nut chi co bieu tuong.
 @media (max-width: 48rem) {
-  .gonTim {
+  .compactSearch {
     display: none;
   }
 
-  .gonTen {
+  .compactName {
     flex: 1 1 auto;
   }
 
-  .chuNut {
+  .buttonLabel {
     display: none;
   }
 
-  .nutDenNho,
-  .nutTrangNho {
+  .smallDarkButton,
+  .smallPageButton {
     width: 38px;
     padding: 0;
   }
@@ -590,13 +590,13 @@ $cao-header: 104px;
     padding-inline: calc(var(--spacing) * 4);
   }
 
-  .iconThuMuc {
+  .folderIcon {
     width: 40px;
     height: 40px;
   }
 
-  .nutDen,
-  .nutTrang {
+  .darkButton,
+  .pageButton {
     flex: 1 1 0;
     min-width: 0;
     padding-inline: calc(var(--spacing) * 3);

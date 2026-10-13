@@ -8,7 +8,7 @@ import { convertToSlug } from "@/src/lib/slug";
 import { getCategories, Category } from "@/src/services/categoryService";
 import {
   getCourseById,
-  layIdChuDe,
+  getCategoryId,
   updateCourse,
   updateCoursePublishStatus,
 } from "@/src/services/course";
@@ -32,6 +32,7 @@ export function useAdminCourseDetail() {
     slug: "",
     description: "",
     price: 0,
+    accessDays: 30,
     category: [],
     instructorId: "",
     providerId: "",
@@ -63,9 +64,9 @@ export function useAdminCourseDetail() {
         );
         setInstructors(instructorList);
 
-        // layIdChuDe nhan ca ba hinh dang cua category (mang id, mang doi tuong
+        // getCategoryId nhan ca ba hinh dang cua category (mang id, mang doi tuong
         // da populate, hoac dang { $oid } cua ban ghi cu).
-        const normalizedCategories: string[] = layIdChuDe(courseData.category);
+        const normalizedCategories: string[] = getCategoryId(courseData.category);
 
         const normalizedInstructor = courseData.instructor
           ? typeof courseData.instructor === "object"
@@ -85,6 +86,7 @@ export function useAdminCourseDetail() {
           slug: courseData.slug || convertToSlug(courseData.title || ""),
           description: courseData.description || "",
           price: courseData.price || 0,
+          accessDays: courseData.accessDays || 30,
           category: normalizedCategories,
           instructorId: normalizedInstructor,
           providerId: normalizedProvider || "",
@@ -120,7 +122,9 @@ export function useAdminCourseDetail() {
     setFormData({
       ...formData,
       [e.target.name]:
-        e.target.name === "price" ? Number(e.target.value) : e.target.value,
+        e.target.name === "price" || e.target.name === "accessDays"
+          ? Number(e.target.value)
+          : e.target.value,
     });
   };
 
@@ -152,6 +156,7 @@ export function useAdminCourseDetail() {
       data.append("slug", formData.slug);
       data.append("description", formData.description);
       data.append("price", String(formData.price));
+      data.append("accessDays", String(formData.accessDays));
       data.append("instructorId", formData.instructorId);
       data.append("providerId", formData.providerId);
       data.append("level", formData.level);

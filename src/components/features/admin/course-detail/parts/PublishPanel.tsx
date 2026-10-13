@@ -50,7 +50,7 @@ export default function PublishPanel({
               ? C.publish.busy
               : isPublished
                 ? C.publish.unpublish
-                : C.publish.doPublish}
+                : C.publish.publishColor}
           </button>
         </div>
       </div>

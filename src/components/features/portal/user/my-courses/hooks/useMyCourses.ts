@@ -13,29 +13,29 @@ import {
 
 /** Khoa hoc da ghi danh cua minh, loc dang hoc / da xong / tat ca. */
 export function useMyCourses() {
-  const [danhSach, setDanhSach] = useState<EnrolledCourseItem[]>([]);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
-  const [boLoc, setBoLoc] = useState<MyCoursesFilter>("dangHoc");
+  const [list, setList] = useState<EnrolledCourseItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const [filter, setFilter] = useState<MyCoursesFilter>("dangHoc");
 
   useEffect(() => {
-    let conSong = true;
+    let stillMounted = true;
 
     getMyEnrolledCourses()
-      .then((ds) => {
-        if (!conSong) return;
-        setDanhSach(Array.isArray(ds) ? ds : []);
+      .then((items) => {
+        if (!stillMounted) return;
+        setList(Array.isArray(items) ? items : []);
       })
       .catch((e) => {
-        if (!conSong) return;
-        setLoi(e instanceof Error ? e.message : C.loadFailed);
+        if (!stillMounted) return;
+        setErr(e instanceof Error ? e.message : C.loadFailed);
       })
       .finally(() => {
-        if (conSong) setDangTai(false);
+        if (stillMounted) setLoading(false);
       });
 
     return () => {
-      conSong = false;
+      stillMounted = false;
     };
   }, []);
 
@@ -44,18 +44,27 @@ export function useMyCourses() {
   // May chu populate mot phan va tra null khi khoa hoc da bi xoa - xem ghi chu
   // o EnrolledCourseSummary. Khong loc thi cho nay ve mot the trong khong bam
   // duoc, va nguoi dung tuong giao dien hong.
-  const coKhoa = danhSach.filter((g) => g.course);
+  const hasCourses = list.filter((g) => g.course);
 
-  const loc = coKhoa.filter((g) => {
-    if (boLoc === "tatCa") return true;
-    if (boLoc === "xong") return g.status === "completed" || g.totalProgress >= 100;
+  const query = hasCourses.filter((g) => {
+    if (filter === "tatCa") return true;
+    if (filter === "xong") return g.status === "completed" || g.totalProgress >= 100;
     return g.status !== "completed" && g.totalProgress < 100;
   });
 
-  const soDangHoc = coKhoa.filter(
+  const inProgressCount = hasCourses.filter(
     (g) => g.status !== "completed" && g.totalProgress < 100,
   ).length;
-  const soXong = coKhoa.length - soDangHoc;
+  const completedCount = hasCourses.length - inProgressCount;
 
-  return { dangTai, loi, boLoc, setBoLoc, coKhoa, loc, soDangHoc, soXong };
+  return {
+    loading,
+    loi: err,
+    filter,
+    setFilter,
+    hasCourses,
+    query,
+    inProgressCount,
+    completedCount,
+  };
 }

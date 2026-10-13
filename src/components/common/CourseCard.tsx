@@ -3,6 +3,7 @@ import { BookOpen, Building2, PlayCircle } from "lucide-react";
 import SafeImage from "@/src/components/ui/SafeImage";
 import type { Course } from "@/src/services/course";
 
+import { providerLogo } from "@/src/components/features/portal/home/partnerLogos";
 import styles from "./CourseCard.module.scss";
 // Mot the khoa hoc duy nhat, dung chung cho ca hai muc o trang chu.
 //
@@ -10,7 +11,7 @@ import styles from "./CourseCard.module.scss";
 // 56px, muc danh sach la mot the doc - hai kieu chu, hai kieu vien, hai cach
 // hien gia. Sua mot cho thi cho kia van cu. Gio mot component, sua mot lan.
 
-const TEN_CAP_DO: Record<string, string> = {
+const LEVEL_NAMES: Record<string, string> = {
   beginner: "Sơ cấp",
   intermediate: "Trung cấp",
   advanced: "Cao cấp",
@@ -25,24 +26,24 @@ interface Props {
    * khong co thu tu la noi doi voi nguoi doc: ho se tuong khoa dau bang la
    * khoa duoc chuong nhat trong khi that ra chi la khoa nam dau mang.
    */
-  thuHang?: number;
+  rankBadge?: number;
   /** Kich thuoc anh bao trinh duyet tai dung do phan giai can dung. */
   sizes?: string;
 }
 
-export default function TheKhoaHoc({ khoa, thuHang, sizes }: Props) {
-  const nhaCungCap =
-    khoa.provider && typeof khoa.provider === "object" ? khoa.provider : null;
-  const mienPhi = khoa.price === 0;
-  const soBai = khoa.lessons?.length || 0;
-  const capDo = TEN_CAP_DO[String(khoa.level).toLowerCase()] ?? khoa.level;
+export default function CourseCard({ khoa: course, rankBadge, sizes }: Props) {
+  const provider =
+    course.provider && typeof course.provider === "object" ? course.provider : null;
+  const isFree = course.price === 0;
+  const lessonCount = course.lessons?.length || 0;
+  const level = LEVEL_NAMES[String(course.level).toLowerCase()] ?? course.level;
 
   return (
-    <Link href={`/course?slug=${khoa.slug}`} className={`group ${styles.card}`}>
+    <Link href={`/course?slug=${course.slug}`} className={`group ${styles.card}`}>
       <div className={styles.box}>
-        {khoa.thumbnail ? (
+        {course.thumbnail ? (
           <SafeImage
-            src={khoa.thumbnail}
+            src={course.thumbnail}
             alt=""
             fill
             sizes={sizes ?? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"}
@@ -54,11 +55,11 @@ export default function TheKhoaHoc({ khoa, thuHang, sizes }: Props) {
           </span>
         )}
 
-        {thuHang !== undefined && (
+        {rankBadge !== undefined && (
           // Anh khoa hoc phan lon la anh chup toi mau, chu trang tren anh khong
           // du tuong phan o moi tam anh - nen so nam trong mot vien dac chu
           // khong de tran tren anh.
-          <span className={styles.floating}>{thuHang}</span>
+          <span className={styles.floating}>{rankBadge}</span>
         )}
       </div>
 
@@ -66,19 +67,21 @@ export default function TheKhoaHoc({ khoa, thuHang, sizes }: Props) {
         {/* min-h giu day cac the thang hang khi ten khoa dai ngan khac nhau.
             Khong co no thi the co ten mot dong se lech len, va hang the trong
             nhu bi rung. */}
-        <h3 className={styles.subheading}>{khoa.title}</h3>
+        <h3 className={styles.subheading}>{course.title}</h3>
 
         {/* CHI don vi dao tao, khong kem ten giang vien.
             The rong khoang 300px, chu 13px chi vua chung 30 ky tu - nhet ca
             hai vao thi ban nao cung bi cat cut, doc khong ra ("Nguyen Va... .
             TechAcademy Vi..."). Giu don vi vi do la tin hieu uy tin khi nguoi
             ta dang luot chon; ten giang vien co day du o trang chi tiet. */}
-        {nhaCungCap && (
+        {provider && (
           <p className={styles.text}>
-            {nhaCungCap.logo ? (
+            {providerLogo(provider).src ? (
               <span className={styles.card2}>
                 <SafeImage
-                  src={nhaCungCap.logo}
+                  src={providerLogo(provider).src}
+                  fallbackSrc={providerLogo(provider).fallback}
+                  hideOnError
                   alt=""
                   width={16}
                   height={16}
@@ -88,16 +91,16 @@ export default function TheKhoaHoc({ khoa, thuHang, sizes }: Props) {
             ) : (
               <Building2 size={13} className={styles.box5} />
             )}
-            <span className={styles.label}>{nhaCungCap.name}</span>
+            <span className={styles.label}>{provider.name}</span>
           </p>
         )}
 
         <div className={styles.row2}>
           <span className={styles.row3}>
-            <span className={styles.label2}>{capDo}</span>
+            <span className={styles.label2}>{level}</span>
             <span className={styles.row4}>
               <PlayCircle size={13} className={styles.box6} />
-              {soBai} bài
+              {lessonCount} bài
             </span>
           </span>
 
@@ -107,10 +110,10 @@ export default function TheKhoaHoc({ khoa, thuHang, sizes }: Props) {
               nhan goc anh: hang duoi cua moi the deu thang cot voi nhau, nen
               luot mot hang the la so sanh duoc gia ngay, con nhan tren anh thi
               moi cai mot cho. */}
-          {mienPhi ? (
+          {isFree ? (
             <span className={styles.label3}>Miễn phí</span>
           ) : (
-            <span className={styles.label4}>{khoa.price.toLocaleString("vi-VN")}đ</span>
+            <span className={styles.label4}>{course.price.toLocaleString("vi-VN")}đ</span>
           )}
         </div>
       </div>

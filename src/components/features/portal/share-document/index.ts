@@ -14,12 +14,12 @@ export { default as InstitutionDirectory } from "./parts/InstitutionDirectory";
 export { default as InstitutionDetail } from "./parts/InstitutionDetail";
 
 export {
-  layDuLieuTatCaTaiLieu,
-  layDuLieuTrangTaiLieu,
-  layDuLieuTruongLinhVuc,
-  layLienQuan,
-  layTaiLieu,
-  layTruong,
-  tenBoLoc,
-  timPhamVi,
+  getAllDocumentsData,
+  getDocumentPageData,
+  getSchoolFieldData,
+  getRelated,
+  getDocument,
+  getSchools,
+  filterName,
+  findScope,
 } from "./data";

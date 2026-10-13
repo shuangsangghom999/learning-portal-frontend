@@ -76,8 +76,8 @@
   flex-shrink: 0;
 }
 
-.tagTai,
-.tagXem {
+.downloadTag,
+.viewTag {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1);
@@ -88,12 +88,12 @@
   font-weight: 600;
 }
 
-.tagTai {
+.downloadTag {
   background-color: #ecfdf5;
   color: #047857;
 }
 
-.tagXem {
+.viewTag {
   background-color: var(--color-slate-100);
   color: var(--color-slate-600);
 }

@@ -17,8 +17,8 @@ interface Props {
   tieuDe: string;
   moTa?: string;
   /** Duong dan cho lien ket "xem tat ca" o goc phai, neu muc do co cho de xem tiep. */
-  xemTatCa?: string;
-  chuXemTatCa?: string;
+  viewAll?: string;
+  viewAllLabel?: string;
   /**
    * The tieu de dung o day.
    *
@@ -32,11 +32,11 @@ interface Props {
   nhu?: "h1" | "h2";
 }
 
-export default function TieuDeMuc({
-  tieuDe,
-  moTa,
-  xemTatCa,
-  chuXemTatCa,
+export default function SectionTitle({
+  tieuDe: title,
+  moTa: description,
+  viewAll,
+  viewAllLabel,
   nhu = "h2",
 }: Props) {
   const The = nhu;
@@ -46,13 +46,13 @@ export default function TieuDeMuc({
       <div>
         {/* text-balance: tieu de hai dong tren man hinh hep se ngat can doi
             thay vi de mot tu roi tho lo o dong duoi. */}
-        <The className={styles.box}>{tieuDe}</The>
-        {moTa && <p className={styles.text}>{moTa}</p>}
+        <The className={styles.box}>{title}</The>
+        {description && <p className={styles.text}>{description}</p>}
       </div>
 
-      {xemTatCa && (
-        <Link href={xemTatCa} className={`group ${styles.box2}`}>
-          {chuXemTatCa ?? "Xem tất cả"}
+      {viewAll && (
+        <Link href={viewAll} className={`group ${styles.box2}`}>
+          {viewAllLabel ?? "Xem tất cả"}
           <ArrowRight size={16} className={styles.box3} />
         </Link>
       )}

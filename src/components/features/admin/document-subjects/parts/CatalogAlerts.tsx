@@ -10,14 +10,14 @@ export default function CatalogAlerts({ s }: { s: DocumentCatalogState }) {
   return (
     <>
       {s.loi && (
-        <div className={styles.bangLoi} role="alert">
+        <div className={styles.errorTable} role="alert">
           <AlertCircle size={16} />
           {s.loi}
           <button
             type="button"
-            onClick={() => s.setLoi(null)}
+            onClick={() => s.setErr(null)}
             aria-label={C.closeAria}
-            className={styles.dong}
+            className={styles.rows}
           >
             <X size={14} />
           </button>
@@ -31,7 +31,7 @@ export default function CatalogAlerts({ s }: { s: DocumentCatalogState }) {
             type="button"
             onClick={() => s.setOk(null)}
             aria-label={C.closeAria}
-            className={styles.dong}
+            className={styles.rows}
           >
             <X size={14} />
           </button>

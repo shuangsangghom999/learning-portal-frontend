@@ -1098,17 +1098,17 @@
 }
 
 /* Mau nhan vai tro, truoc day la chuoi lop Tailwind trong ROLE_STYLE. */
-.nhanAdmin {
+.adminLabel {
   background-color: var(--color-violet-50);
   color: var(--color-violet-700);
   border-color: var(--color-violet-200);
 }
-.nhanGiangVien {
+.instructorLabel {
   background-color: var(--color-blue-50);
   color: var(--color-blue-700);
   border-color: var(--color-blue-200);
 }
-.nhanHocVien {
+.studentLabel {
   background-color: var(--color-slate-100);
   color: var(--color-slate-700);
   border-color: var(--color-slate-200);

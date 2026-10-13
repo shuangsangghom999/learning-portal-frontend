@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { BadgePercent, Check, X } from "lucide-react";
 
-import { kiemMaGiamGia } from "@/src/services/voucher";
+import { checkVoucher } from "@/src/services/voucher";
 
 import styles from "./CartVoucherBox.module.scss";
 /**
  * O nhap ma giam gia cho GIO HANG.
  *
- * VI SAO KHONG DUNG LAI ONhapMaGiamGia: cai do kiem ma cho DUNG MOT khoa hoc.
+ * VI SAO KHONG DUNG LAI VoucherInput: cai do kiem ma cho DUNG MOT khoa hoc.
  * O gio hang co nhieu khoa, va cau hoi "ma nay giam duoc bao nhieu" chi tra loi
  * duoc sau khi hoi may chu cho tung khoa mot - vi moi ma co the gioi han theo
  * danh sach khoa (apDungKhoa), co don toi thieu rieng, va giam theo phan tram
@@ -23,42 +23,42 @@ import styles from "./CartVoucherBox.module.scss";
  * noi ro ten khoa do ra, thay vi de nguoi dung tu phat hien khi thanh toan.
  */
 
-export interface MonDeKiem {
+export interface VoucherItem {
   courseId: string;
   title: string;
 }
 
 interface Props {
-  mon: MonDeKiem[];
+  mon: VoucherItem[];
   /**
    * `ma` rong nghia la go ma ra.
    *
    * `courseId` la khoa duy nhat duoc ap ma - trang cha PHAI gui ma kem DUNG
    * khoa nay khi tru tien. So tien giam chi de HIEN, may chu tinh lai tu dau.
    */
-  onDoiMa: (ma: string, courseId: string, soTienGiam: number) => void;
+  onVoucherChange: (code: string, courseId: string, discountAmount: number) => void;
 }
 
-interface DaAp {
+interface Applied {
   ma: string;
   courseId: string;
   tenKhoa: string;
   giam: number;
 }
 
-export default function OMaGiamGiaGioHang({ mon, onDoiMa }: Props) {
-  const [mo, setMo] = useState(false);
-  const [chu, setChu] = useState("");
-  const [dangKiem, setDangKiem] = useState(false);
-  const [loi, setLoi] = useState("");
-  const [daAp, setDaAp] = useState<DaAp | null>(null);
+export default function CartVoucherBox({ mon: subjectItem, onVoucherChange }: Props) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [err, setErr] = useState("");
+  const [applied, setApplied] = useState<Applied | null>(null);
 
-  const kiem = async () => {
-    const ma = chu.trim().toUpperCase();
-    if (!ma || dangKiem || mon.length === 0) return;
+  const check = async () => {
+    const code = text.trim().toUpperCase();
+    if (!code || checking || subjectItem.length === 0) return;
 
-    setDangKiem(true);
-    setLoi("");
+    setChecking(true);
+    setErr("");
 
     // allSettled chu khong all: mot khoa bi loi mang khong duoc lam hong ca
     // lan kiem - cac khoa con lai van co the an ma.
@@ -66,44 +66,44 @@ export default function OMaGiamGiaGioHang({ mon, onDoiMa }: Props) {
     // Chay song song o day AN TOAN vi /ma-giam-gia/kiem chi doc, khong ghi gi
     // va khong dat cho luot dung. Cho tru tien thi nguoc lai - xem ghi chu o
     // ham thanh toan trong trang gio hang.
-    const ketQua = await Promise.allSettled(
-      mon.map((m) => kiemMaGiamGia(ma, m.courseId)),
+    const result = await Promise.allSettled(
+      subjectItem.map((m) => checkVoucher(code, m.courseId)),
     );
 
-    const duocPhep: DaAp[] = [];
-    const cauTuChoi: string[] = [];
+    const allowed: Applied[] = [];
+    const rejectMessage: string[] = [];
 
-    ketQua.forEach((kq, i) => {
-      if (kq.status !== "fulfilled") return;
+    result.forEach((outcome, i) => {
+      if (outcome.status !== "fulfilled") return;
 
-      if (kq.value.ok) {
-        duocPhep.push({
-          ma,
-          courseId: mon[i].courseId,
-          tenKhoa: mon[i].title,
-          giam: kq.value.soTienGiam,
+      if (outcome.value.ok) {
+        allowed.push({
+          ma: code,
+          courseId: subjectItem[i].courseId,
+          tenKhoa: subjectItem[i].title,
+          giam: outcome.value.soTienGiam,
         });
-      } else if (kq.value.cau) {
-        cauTuChoi.push(kq.value.cau);
+      } else if (outcome.value.cau) {
+        rejectMessage.push(outcome.value.cau);
       }
     });
 
-    setDangKiem(false);
+    setChecking(false);
 
-    if (duocPhep.length > 0) {
+    if (allowed.length > 0) {
       // Giam nhieu nhat - dung ve phia nguoi mua. Neu bang nhau thi lay khoa
       // dau tien, thu tu la thu tu trong gio.
-      const tot = duocPhep.reduce((a, b) => (b.giam > a.giam ? b : a));
-      setDaAp(tot);
-      onDoiMa(tot.ma, tot.courseId, tot.giam);
+      const tot = allowed.reduce((a, b) => (b.giam > a.giam ? b : a));
+      setApplied(tot);
+      onVoucherChange(tot.ma, tot.courseId, tot.giam);
       return;
     }
 
-    setDaAp(null);
-    onDoiMa("", "", 0);
+    setApplied(null);
+    onVoucherChange("", "", 0);
 
-    if (cauTuChoi.length === 0) {
-      setLoi("Không kiểm tra được mã, thử lại giúp mình.");
+    if (rejectMessage.length === 0) {
+      setErr("Không kiểm tra được mã, thử lại giúp mình.");
       return;
     }
 
@@ -111,30 +111,30 @@ export default function OMaGiamGiaGioHang({ mon, onDoiMa }: Props) {
     // "chưa đủ đơn tối thiểu"). Chi khi TAT CA cung mot ly do thi noi thang ly
     // do do; khac nhau thi noi that la khong khoa nao dung duoc, kem mot ly do
     // lam vi du - gop dai ra thi khong ai doc.
-    const rieng = [...new Set(cauTuChoi)];
-    setLoi(
-      rieng.length === 1
-        ? rieng[0]
-        : `Mã này không dùng được cho khóa nào trong giỏ. Ví dụ: ${rieng[0]}`,
+    const secret = [...new Set(rejectMessage)];
+    setErr(
+      secret.length === 1
+        ? secret[0]
+        : `Mã này không dùng được cho khóa nào trong giỏ. Ví dụ: ${secret[0]}`,
     );
   };
 
   const go = () => {
-    setDaAp(null);
-    setChu("");
-    setLoi("");
-    onDoiMa("", "", 0);
+    setApplied(null);
+    setText("");
+    setErr("");
+    onVoucherChange("", "", 0);
   };
 
-  if (daAp) {
+  if (applied) {
     return (
       <div className={styles.card}>
         <div className={styles.row}>
           <div className={styles.row2}>
             <Check size={16} className={styles.box} />
             <div className={styles.box2}>
-              <p className={styles.text}>{daAp.ma}</p>
-              <p className={styles.text2}>Giảm {daAp.giam.toLocaleString("vi-VN")}đ</p>
+              <p className={styles.text}>{applied.ma}</p>
+              <p className={styles.text2}>Giảm {applied.giam.toLocaleString("vi-VN")}đ</p>
             </div>
           </div>
 
@@ -150,19 +150,19 @@ export default function OMaGiamGiaGioHang({ mon, onDoiMa }: Props) {
 
         {/* Noi ro ma an vao khoa nao. Bo dong nay thi nguoi dung tuong ca gio
             duoc giam, va con so tong o duoi se lam ho ngac nhien. */}
-        {mon.length > 1 && (
+        {subjectItem.length > 1 && (
           <p className={styles.text3}>
-            Áp cho khóa <span className={styles.label}>{daAp.tenKhoa}</span>. Mỗi mã chỉ
-            dùng được một lần nên không cộng dồn cho các khóa còn lại.
+            Áp cho khóa <span className={styles.label}>{applied.tenKhoa}</span>. Mỗi mã
+            chỉ dùng được một lần nên không cộng dồn cho các khóa còn lại.
           </p>
         )}
       </div>
     );
   }
 
-  if (!mo) {
+  if (!open) {
     return (
-      <button type="button" onClick={() => setMo(true)} className={styles.button2}>
+      <button type="button" onClick={() => setOpen(true)} className={styles.button2}>
         <BadgePercent size={16} /> Tôi có mã giảm giá
       </button>
     );
@@ -175,25 +175,25 @@ export default function OMaGiamGiaGioHang({ mon, onDoiMa }: Props) {
       <div className={styles.row3}>
         <input
           id="ma-giam-gia-gio-hang"
-          value={chu}
-          onChange={(e) => setChu(e.target.value.toUpperCase().slice(0, 32))}
+          value={text}
+          onChange={(e) => setText(e.target.value.toUpperCase().slice(0, 32))}
           onKeyDown={(e) => {
-            if (e.key === "Enter") kiem();
+            if (e.key === "Enter") check();
           }}
           placeholder="Nhập mã giảm giá"
           className={styles.input}
         />
         <button
           type="button"
-          onClick={kiem}
-          disabled={!chu.trim() || dangKiem}
+          onClick={check}
+          disabled={!text.trim() || checking}
           className={styles.button3}
         >
-          {dangKiem ? "Đang kiểm…" : "Áp dụng"}
+          {checking ? "Đang kiểm…" : "Áp dụng"}
         </button>
       </div>
 
-      {loi && <p className={styles.text4}>{loi}</p>}
+      {err && <p className={styles.text4}>{err}</p>}
     </div>
   );
 }

@@ -1149,7 +1149,7 @@
 }
 
 // ---- form dang bai: nhieu file
-.nhanPhu {
+.subLabel {
   font-weight: 400;
   color: var(--color-slate-500);
 }
@@ -1161,7 +1161,7 @@
   margin-bottom: calc(var(--spacing) * 2);
 }
 
-.soThuTu {
+.index {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -1260,7 +1260,7 @@
 }
 
 // Goi y viet bai kieu blog, ngay duoi o soan noi dung.
-.goiY {
+.suggest {
   margin-top: calc(var(--spacing) * 2);
   font-size: 0.82rem;
   line-height: 1.55;

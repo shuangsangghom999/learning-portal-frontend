@@ -5,98 +5,106 @@ import { useCallback, useEffect, useState } from "react";
 import { ADMIN_ORDERS as C } from "@/src/constants/admin/orders-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
-  DonHangAdmin,
-  TrangThaiDon,
-  dinhDangTien,
-  layDonHangAdmin,
-  tuChoiDon,
-  xacNhanDon,
+  AdminOrder,
+  OrderStatus,
+  formatMoney,
+  getAdminOrders,
+  rejectOrder,
+  confirmOrder,
 } from "@/src/services/order";
 
 /** Danh sach don, loc / tim theo ma, xac nhan da nhan tien hoac huy don. */
 export function useAdminOrders() {
-  const [ds, setDs] = useState<DonHangAdmin[]>([]);
-  const [dangCho, setDangCho] = useState(0);
-  const [daBao, setDaBao] = useState(0);
-  const [loc, setLoc] = useState<TrangThaiDon | "">("pending");
-  const [tim, setTim] = useState("");
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [items, setDs] = useState<AdminOrder[]>([]);
+  const [pending, setPending] = useState(0);
+  const [reported, setReported] = useState(0);
+  const [query, setFilter] = useState<OrderStatus | "">("pending");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
   // Ma don dang duoc xu ly - de chi khoa dung mot dong, khong khoa ca bang.
-  const [dangXuLy, setDangXuLy] = useState("");
+  const [processing, setProcessing] = useState("");
 
   // Tang so nay len la yeu cau tai lai. Xem ghi chu cung kieu o trang
   // thanh toan: tranh setState dong bo trong effect, va co cho huy request.
-  const [lanTai, setLanTai] = useState(0);
-  const taiLai = useCallback(() => setLanTai((n) => n + 1), []);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = useCallback(() => setReloadKey((n) => n + 1), []);
 
   useEffect(() => {
-    let daRoiTrang = false;
+    let leftPage = false;
 
     void (async () => {
       try {
-        const kq = await layDonHangAdmin({ status: loc, search: tim, limit: C.limit });
-        if (daRoiTrang) return;
-        setDs(kq.orders);
-        setDangCho(kq.pendingCount);
-        setDaBao(kq.daBaoCount ?? 0);
-        setLoi("");
+        const outcome = await getAdminOrders({
+          status: query,
+          search: search,
+          limit: C.limit,
+        });
+        if (leftPage) return;
+        setDs(outcome.orders);
+        setPending(outcome.pendingCount);
+        setReported(outcome.daBaoCount ?? 0);
+        setErr("");
       } catch (e) {
-        if (!daRoiTrang) setLoi(getErrorMessage(e, C.messages.loadFailed));
+        if (!leftPage) setErr(getErrorMessage(e, C.messages.loadFailed));
       } finally {
-        if (!daRoiTrang) setDangTai(false);
+        if (!leftPage) setLoading(false);
       }
     })();
 
     return () => {
-      daRoiTrang = true;
+      leftPage = true;
     };
-  }, [loc, tim, lanTai]);
+  }, [query, search, reloadKey]);
 
-  const xacNhan = async (don: DonHangAdmin) => {
+  const confirm = async (order: AdminOrder) => {
     const ok = window.confirm(
-      C.messages.confirm(dinhDangTien(don.amount), don.code, don.student?.name ?? ""),
+      C.messages.confirm(
+        formatMoney(order.amount),
+        order.code,
+        order.student?.name ?? "",
+      ),
     );
     if (!ok) return;
 
-    setDangXuLy(don.code);
+    setProcessing(order.code);
     try {
-      await xacNhanDon(don.code);
-      taiLai();
+      await confirmOrder(order.code);
+      reload();
     } catch (e) {
-      setLoi(getErrorMessage(e, C.messages.confirmFailed));
+      setErr(getErrorMessage(e, C.messages.confirmFailed));
     } finally {
-      setDangXuLy("");
+      setProcessing("");
     }
   };
 
-  const tuChoi = async (don: DonHangAdmin) => {
-    const lyDo = window.prompt(C.messages.cancelReason(don.code), "");
-    if (lyDo === null) return;
+  const reject = async (order: AdminOrder) => {
+    const reason = window.prompt(C.messages.cancelReason(order.code), "");
+    if (reason === null) return;
 
-    setDangXuLy(don.code);
+    setProcessing(order.code);
     try {
-      await tuChoiDon(don.code, lyDo);
-      taiLai();
+      await rejectOrder(order.code, reason);
+      reload();
     } catch (e) {
-      setLoi(getErrorMessage(e, C.messages.cancelFailed));
+      setErr(getErrorMessage(e, C.messages.cancelFailed));
     } finally {
-      setDangXuLy("");
+      setProcessing("");
     }
   };
 
   return {
-    ds,
-    dangCho,
-    daBao,
-    loc,
-    setLoc,
-    tim,
-    setTim,
-    dangTai,
-    loi,
-    dangXuLy,
-    xacNhan,
-    tuChoi,
+    ds: items,
+    pending,
+    reported,
+    query,
+    setFilter,
+    tim: search,
+    setSearch,
+    loading,
+    loi: err,
+    processing,
+    xacNhan: confirm,
+    reject,
   };
 }

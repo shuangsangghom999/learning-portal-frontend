@@ -8,7 +8,7 @@ import styles from "../CourseLearn.module.scss";
 
 // course.instructor khi la ObjectId dang chuoi, khi la doi tuong da populate.
 // Chi lay duoc ten o truong hop thu hai.
-const tenGiangVien = (c: Course | null): string | undefined =>
+const getInstructorName = (c: Course | null): string | undefined =>
   c && typeof c.instructor === "object" ? c.instructor.name : undefined;
 
 interface LearnHeaderProps {
@@ -35,7 +35,7 @@ export default function LearnHeader({ course, progress, onBack }: LearnHeaderPro
           <p className={styles.text3}>
             {H.instructor}
             <span className={styles.label}>
-              {tenGiangVien(course) || H.instructorFallback}
+              {getInstructorName(course) || H.instructorFallback}
             </span>
           </p>
         </div>

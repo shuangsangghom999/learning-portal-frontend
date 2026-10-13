@@ -22,7 +22,7 @@ export default function MyCourses() {
         </div>
 
         <p className={styles.text}>
-          {s.dangTai ? C.loading : C.summary(s.soDangHoc, s.soXong)}
+          {s.loading ? C.loading : C.summary(s.inProgressCount, s.completedCount)}
         </p>
 
         {/* overflow-x-auto: ba nut nay vua man hinh 390px, nhung day la luoi an
@@ -32,9 +32,9 @@ export default function MyCourses() {
             <button
               key={b.ma}
               type="button"
-              onClick={() => s.setBoLoc(b.ma)}
+              onClick={() => s.setFilter(b.ma)}
               className={`${styles.button3} ${
-                s.boLoc === b.ma ? styles.button : styles.button2
+                s.filter === b.ma ? styles.button : styles.button2
               }`}
             >
               {b.chu}
@@ -44,19 +44,19 @@ export default function MyCourses() {
 
         {s.loi && <p className={styles.text2}>{s.loi}</p>}
 
-        {s.dangTai && (
+        {s.loading && (
           <div className={styles.row2}>
             <div className={styles.spinner} />
           </div>
         )}
 
-        {!s.dangTai && !s.loi && s.loc.length === 0 && (
+        {!s.loading && !s.loi && s.query.length === 0 && (
           <div className={styles.card}>
             <BookOpen size={32} className={styles.box2} />
             <p className={styles.text3}>
-              {s.coKhoa.length === 0
+              {s.hasCourses.length === 0
                 ? C.empty.none
-                : s.boLoc === "xong"
+                : s.filter === "xong"
                   ? C.empty.noneDone
                   : C.empty.allDone}
             </p>
@@ -67,7 +67,7 @@ export default function MyCourses() {
         )}
 
         <div className={styles.grid}>
-          {!s.dangTai && s.loc.map((g) => <EnrolledCourseCard key={g._id} g={g} />)}
+          {!s.loading && s.query.map((g) => <EnrolledCourseCard key={g._id} g={g} />)}
         </div>
       </div>
     </div>

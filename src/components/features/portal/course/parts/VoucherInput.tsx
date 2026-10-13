@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BadgePercent, Check, X } from "lucide-react";
 
-import { kiemMaGiamGia } from "@/src/services/voucher";
+import { checkVoucher } from "@/src/services/voucher";
 
 import styles from "./VoucherInput.module.scss";
 interface Props {
@@ -12,62 +12,62 @@ interface Props {
    * Bao cho trang cha biet ma nao dang duoc ap va giam bao nhieu.
    *
    * `ma` rong nghia la go ma ra. Trang cha PHAI gui `ma` nay kem theo khi dat
-   * don / tru coin - so tien giam o day chi de HIEN, may chu tinh lai tu dau.
+   * don - so tien giam o day chi de HIEN, may chu tinh lai tu dau.
    */
-  onDoiMa: (ma: string, soTienGiam: number) => void;
+  onVoucherChange: (code: string, discountAmount: number) => void;
 }
 
-export default function ONhapMaGiamGia({ courseId, onDoiMa }: Props) {
-  const [mo, setMo] = useState(false);
-  const [chu, setChu] = useState("");
-  const [dangKiem, setDangKiem] = useState(false);
-  const [loi, setLoi] = useState("");
-  const [daAp, setDaAp] = useState<{ ma: string; giam: number } | null>(null);
+export default function VoucherInput({ courseId, onVoucherChange }: Props) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [err, setErr] = useState("");
+  const [applied, setApplied] = useState<{ ma: string; giam: number } | null>(null);
 
-  const kiem = async () => {
-    const ma = chu.trim().toUpperCase();
-    if (!ma || dangKiem) return;
+  const check = async () => {
+    const code = text.trim().toUpperCase();
+    if (!code || checking) return;
 
-    setDangKiem(true);
-    setLoi("");
+    setChecking(true);
+    setErr("");
 
     try {
-      const kq = await kiemMaGiamGia(ma, courseId);
+      const outcome = await checkVoucher(code, courseId);
 
       // May chu tra 200 ke ca khi ma khong dung duoc: "ma khong hop le" la mot
       // ket qua, khong phai loi. Nen khong bat ngoai le o day ma doc `ok`.
-      if (!kq.ok) {
-        setLoi(kq.cau || "Mã giảm giá không dùng được.");
-        setDaAp(null);
-        onDoiMa("", 0);
+      if (!outcome.ok) {
+        setErr(outcome.cau || "Mã giảm giá không dùng được.");
+        setApplied(null);
+        onVoucherChange("", 0);
         return;
       }
 
-      setDaAp({ ma, giam: kq.soTienGiam });
-      onDoiMa(ma, kq.soTienGiam);
+      setApplied({ ma: code, giam: outcome.soTienGiam });
+      onVoucherChange(code, outcome.soTienGiam);
     } catch (e) {
       // Cho nay moi la loi that (mat mang, may chu 500).
-      setLoi(e instanceof Error ? e.message : "Không kiểm tra được mã.");
+      setErr(e instanceof Error ? e.message : "Không kiểm tra được mã.");
     } finally {
-      setDangKiem(false);
+      setChecking(false);
     }
   };
 
   const go = () => {
-    setDaAp(null);
-    setChu("");
-    setLoi("");
-    onDoiMa("", 0);
+    setApplied(null);
+    setText("");
+    setErr("");
+    onVoucherChange("", 0);
   };
 
-  if (daAp) {
+  if (applied) {
     return (
       <div className={styles.card}>
         <div className={styles.row}>
           <Check size={16} className={styles.box} />
           <div className={styles.box2}>
-            <p className={styles.text}>{daAp.ma}</p>
-            <p className={styles.text2}>Giảm {daAp.giam.toLocaleString("vi-VN")}đ</p>
+            <p className={styles.text}>{applied.ma}</p>
+            <p className={styles.text2}>Giảm {applied.giam.toLocaleString("vi-VN")}đ</p>
           </div>
         </div>
 
@@ -83,9 +83,9 @@ export default function ONhapMaGiamGia({ courseId, onDoiMa }: Props) {
     );
   }
 
-  if (!mo) {
+  if (!open) {
     return (
-      <button type="button" onClick={() => setMo(true)} className={styles.button2}>
+      <button type="button" onClick={() => setOpen(true)} className={styles.button2}>
         <BadgePercent size={16} /> Tôi có mã giảm giá
       </button>
     );
@@ -98,25 +98,25 @@ export default function ONhapMaGiamGia({ courseId, onDoiMa }: Props) {
       <div className={styles.row2}>
         <input
           id="ma-giam-gia"
-          value={chu}
-          onChange={(e) => setChu(e.target.value.toUpperCase().slice(0, 32))}
+          value={text}
+          onChange={(e) => setText(e.target.value.toUpperCase().slice(0, 32))}
           onKeyDown={(e) => {
-            if (e.key === "Enter") kiem();
+            if (e.key === "Enter") check();
           }}
           placeholder="Nhập mã giảm giá"
           className={styles.input}
         />
         <button
           type="button"
-          onClick={kiem}
-          disabled={!chu.trim() || dangKiem}
+          onClick={check}
+          disabled={!text.trim() || checking}
           className={styles.button3}
         >
-          {dangKiem ? "Đang kiểm…" : "Áp dụng"}
+          {checking ? "Đang kiểm…" : "Áp dụng"}
         </button>
       </div>
 
-      {loi && <p className={styles.text3}>{loi}</p>}
+      {err && <p className={styles.text3}>{err}</p>}
     </div>
   );
 }

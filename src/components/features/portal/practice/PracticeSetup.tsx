@@ -5,19 +5,16 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ListChecks } from "lucide-react";
 
-import {
-  doiDiaChi,
-  duongDanDangNhap,
-} from "@/src/components/features/portal/auth/loginUrl";
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
+import { updateUrl, loginUrl } from "@/src/components/features/portal/auth/loginUrl";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
 
-import { NAP_CAU_HOI, type CauHoi, type DeLuyenTap } from "./practiceData";
+import { QUESTION_LOADERS, type Question, type PracticeQuiz } from "./practiceData";
 import {
-  MAC_DINH,
-  chiaBo,
-  docThietLap,
-  luuThietLap,
-  type ThietLap,
+  DEFAULTS,
+  splitBuckets,
+  readSettings,
+  saveSettings,
+  type Settings,
 } from "./practiceSettings";
 import PracticeHistory from "./PracticeHistory";
 import QuestionPreview from "./QuestionPreview";
@@ -25,54 +22,54 @@ import QuestionPreview from "./QuestionPreview";
 import styles from "./PracticeSetup.module.scss";
 
 interface Props {
-  de: DeLuyenTap;
+  de: PracticeQuiz;
 }
 
-export default function PracticeSetup({ de }: Props) {
-  const duongDan = usePathname();
-  const nguoiDung = useNguoiDungLuu();
-  const dangTai = useDangTaiNguoiDung();
+export default function PracticeSetup({ de: quiz }: Props) {
+  const path = usePathname();
+  const user = useStoredUser();
+  const loading = useUserLoading();
 
-  const [tl, setTl] = useState<ThietLap>(MAC_DINH);
-  const [boChon, setBoChon] = useState(0);
-  const [cauHoi, setCauHoi] = useState<CauHoi[] | null>(null);
-  const [xemTruoc, setXemTruoc] = useState(false);
-  const [dangNap, setDangNap] = useState(false);
-  const napCauHoi = NAP_CAU_HOI[de.id];
+  const [tl, setTl] = useState<Settings>(DEFAULTS);
+  const [deselect, setDeselect] = useState(0);
+  const [question, setQuestion] = useState<Question[] | null>(null);
+  const [preview, setPreview] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(false);
+  const loadQuestions = QUESTION_LOADERS[quiz.id];
 
-  const moXemTruoc = async () => {
-    if (!napCauHoi) return;
-    if (!cauHoi) {
-      setDangNap(true);
+  const openPreview = async () => {
+    if (!loadQuestions) return;
+    if (!question) {
+      setLoadingPost(true);
       try {
-        setCauHoi(await napCauHoi());
+        setQuestion(await loadQuestions());
       } finally {
-        setDangNap(false);
+        setLoadingPost(false);
       }
     }
-    setXemTruoc(true);
+    setPreview(true);
   };
   // Giu cung mot ham qua cac lan ve: hop xem truoc dang ky phim Esc theo no
-  const dongXemTruoc = useCallback(() => setXemTruoc(false), []);
+  const closePreview = useCallback(() => setPreview(false), []);
 
   // Doc thiet lap da luu SAU khi gan vao trinh duyet, de HTML may chu va trinh
   // duyet khop nhau (doc ngay luc render se lech).
   useEffect(() => {
-    const id = requestAnimationFrame(() => setTl(docThietLap()));
+    const id = requestAnimationFrame(() => setTl(readSettings()));
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const doi = (moi: Partial<ThietLap>) =>
-    setTl((cu) => {
-      const tiep = { ...cu, ...moi };
-      luuThietLap(tiep);
-      return tiep;
+  const copy = (recent: Partial<Settings>) =>
+    setTl((old) => {
+      const next = { ...old, ...recent };
+      saveSettings(next);
+      return next;
     });
 
-  const cacBo = chiaBo(de.soCau, tl.soLuong);
+  const allBuckets = splitBuckets(quiz.soCau, tl.soLuong);
 
-  const moDangNhap = () =>
-    doiDiaChi(duongDanDangNhap(duongDan, new URLSearchParams(window.location.search)));
+  const openLogin = () =>
+    updateUrl(loginUrl(path, new URLSearchParams(window.location.search)));
 
   return (
     <div className={styles.page}>
@@ -80,12 +77,14 @@ export default function PracticeSetup({ de }: Props) {
         {/* ============ DAU DE ============ */}
         <section className={styles.hero}>
           <span className={styles.heroBong} aria-hidden="true" />
-          <h1 className={styles.heroTitle}>{de.title}</h1>
-          {de.description && <p className={styles.heroMoTa}>{de.description}</p>}
-          <div className={styles.heroSo}>
+          <h1 className={styles.heroTitle}>{quiz.title}</h1>
+          {quiz.description && (
+            <p className={styles.heroDescription}>{quiz.description}</p>
+          )}
+          <div className={styles.heroNumber}>
             <span className={styles.heroBadge}>
               <ListChecks size={13} aria-hidden="true" />
-              {de.soCau} câu hỏi
+              {quiz.soCau} câu hỏi
             </span>
           </div>
         </section>
@@ -94,7 +93,7 @@ export default function PracticeSetup({ de }: Props) {
         <section className={styles.card}>
           <h2 className={styles.tieuDe}>Thiết lập phòng luyện tập</h2>
 
-          <div className={styles.dong}>
+          <div className={styles.rows}>
             <label htmlFor="so-luong" className={styles.nhan}>
               Chọn số lượng câu hỏi
             </label>
@@ -102,8 +101,8 @@ export default function PracticeSetup({ de }: Props) {
               id="so-luong"
               value={tl.soLuong}
               onChange={(e) => {
-                doi({ soLuong: Number(e.target.value) });
-                setBoChon(0);
+                copy({ soLuong: Number(e.target.value) });
+                setDeselect(0);
               }}
               className={styles.chon}
             >
@@ -115,16 +114,18 @@ export default function PracticeSetup({ de }: Props) {
             </select>
           </div>
 
-          <div className={styles.dongBo}>
+          <div className={styles.syncUp}>
             <h3 className={styles.tieuDe}>Chọn bộ câu hỏi</h3>
-            <div className={styles.cacBo} role="group" aria-label="Chọn bộ câu hỏi">
-              {cacBo.map((b, i) => (
+            <div className={styles.allBuckets} role="group" aria-label="Chọn bộ câu hỏi">
+              {allBuckets.map((b, i) => (
                 <button
                   key={b.tu}
                   type="button"
-                  aria-pressed={i === boChon}
-                  onClick={() => setBoChon(i)}
-                  className={i === boChon ? `${styles.bo} ${styles.boChon}` : styles.bo}
+                  aria-pressed={i === deselect}
+                  onClick={() => setDeselect(i)}
+                  className={
+                    i === deselect ? `${styles.bo} ${styles.deselect}` : styles.bo
+                  }
                 >
                   Câu {b.tu} - {b.den}
                 </button>
@@ -132,61 +133,65 @@ export default function PracticeSetup({ de }: Props) {
             </div>
           </div>
 
-          <CongTac
+          <Toggle
             nhan="Xáo trộn câu hỏi và đáp án"
-            bat={tl.xaoTron}
-            doiLai={() => doi({ xaoTron: !tl.xaoTron })}
+            bat={tl.shuffle}
+            resetDefaults={() => copy({ shuffle: !tl.shuffle })}
           />
         </section>
 
         {/* Lich su lam bai la du lieu rieng: chi hien khi da dang nhap */}
-        {nguoiDung && <PracticeHistory deId={de.id} />}
+        {user && <PracticeHistory deId={quiz.id} />}
       </div>
 
       {/* ============ NUT HANH DONG ============ */}
-      <div className={styles.thanhNut}>
+      <div className={styles.buttonBar}>
         <button
           type="button"
-          disabled={!napCauHoi || dangNap}
-          onClick={moXemTruoc}
-          title={napCauHoi ? undefined : "Câu hỏi của đề đang được bổ sung"}
-          className={`${styles.nut} ${styles.nutXem}`}
+          disabled={!loadQuestions || loadingPost}
+          onClick={openPreview}
+          title={loadQuestions ? undefined : "Câu hỏi của đề đang được bổ sung"}
+          className={`${styles.button} ${styles.viewButton}`}
         >
-          {dangNap ? "Đang tải…" : "Xem trước câu hỏi"}
+          {loadingPost ? "Đang tải…" : "Xem trước câu hỏi"}
         </button>
-        {dangTai ? (
-          <span className={`${styles.nut} ${styles.nutCho}`} aria-hidden="true" />
-        ) : nguoiDung && napCauHoi ? (
+        {loading ? (
+          <span className={`${styles.button} ${styles.waitButton}`} aria-hidden="true" />
+        ) : user && loadQuestions ? (
           // Bo cau dang chon di qua dia chi; con lai (so cau moi bo,
           // xao tron) trang lam bai tu doc lai tu thiet lap da luu.
           <Link
-            href={`/practice/${de.id}/take?bo=${boChon}`}
-            className={`${styles.nut} ${styles.nutBatDau}`}
+            href={`/practice/${quiz.id}/take?bo=${deselect}`}
+            className={`${styles.button} ${styles.startButton}`}
           >
             Bắt đầu luyện tập
           </Link>
-        ) : nguoiDung ? (
-          <button type="button" disabled className={`${styles.nut} ${styles.nutBatDau}`}>
+        ) : user ? (
+          <button
+            type="button"
+            disabled
+            className={`${styles.button} ${styles.startButton}`}
+          >
             Bắt đầu luyện tập
           </button>
         ) : (
           <button
             type="button"
-            onClick={moDangNhap}
-            className={`${styles.nut} ${styles.nutBatDau}`}
+            onClick={openLogin}
+            className={`${styles.button} ${styles.startButton}`}
           >
             Đăng nhập để bắt đầu
           </button>
         )}
       </div>
 
-      {xemTruoc && cauHoi && (
+      {preview && question && (
         <QuestionPreview
-          cauHoi={cauHoi}
-          tu={cacBo[boChon]?.tu ?? 1}
-          den={cacBo[boChon]?.den ?? de.soCau}
-          tongCau={de.soCau}
-          dong={dongXemTruoc}
+          cauHoi={question}
+          tu={allBuckets[deselect]?.tu ?? 1}
+          den={allBuckets[deselect]?.den ?? quiz.soCau}
+          totalQuestions={quiz.soCau}
+          rows={closePreview}
         />
       )}
     </div>
@@ -194,27 +199,27 @@ export default function PracticeSetup({ de }: Props) {
 }
 
 /** Cong tac BAT/TAT giong ban goc: nut tron chay qua lai, ghi ON / OFF. */
-function CongTac({
-  nhan,
+function Toggle({
+  nhan: labelText,
   bat,
-  doiLai,
+  resetDefaults,
 }: {
   nhan: string;
   bat: boolean;
-  doiLai: () => void;
+  resetDefaults: () => void;
 }) {
   return (
-    <div className={styles.dong}>
-      <span className={styles.nhan}>{nhan}</span>
+    <div className={styles.rows}>
+      <span className={styles.nhan}>{labelText}</span>
       <button
         type="button"
         role="switch"
         aria-checked={bat}
-        aria-label={nhan}
-        onClick={doiLai}
-        className={bat ? `${styles.congTac} ${styles.congTacBat}` : styles.congTac}
+        aria-label={labelText}
+        onClick={resetDefaults}
+        className={bat ? `${styles.toggle} ${styles.toggleOn}` : styles.toggle}
       >
-        <span className={styles.nutTron}>{bat ? "ON" : "OFF"}</span>
+        <span className={styles.roundButton}>{bat ? "ON" : "OFF"}</span>
       </button>
     </div>
   );

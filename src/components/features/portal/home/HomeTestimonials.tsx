@@ -2,7 +2,7 @@
 
 import { Quote } from "lucide-react";
 import SafeImage from "@/src/components/ui/SafeImage";
-import TieuDeMuc from "@/src/components/common/SectionHeading";
+import SectionTitle from "@/src/components/common/SectionHeading";
 import type { HomeTestimonialsData } from "@/src/types/home";
 
 import styles from "./HomeTestimonials.module.scss";
@@ -14,7 +14,7 @@ export default function HomeTestimonials({
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <TieuDeMuc tieuDe={heading} moTa={description} />
+        <SectionTitle tieuDe={heading} moTa={description} />
 
         {/* Hai cot chu khong phai bon.
             Ban cu xep bon the ngang mot hang: moi the con khoang 290px, doan

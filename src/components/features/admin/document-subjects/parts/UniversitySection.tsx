@@ -11,8 +11,8 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
   const U = C.universities;
 
   const phim = (t: DocumentUniversity) => (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") s.doiTenTruong(t);
-    if (e.key === "Escape") s.setSuaTruong(null);
+    if (e.key === "Enter") s.renameSchool(t);
+    if (e.key === "Escape") s.setEditSchool(null);
   };
 
   return (
@@ -23,8 +23,8 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
       </h2>
       <form onSubmit={s.themTruong} className={styles.them}>
         <input
-          value={s.tenTruongMoi}
-          onChange={(e) => s.setTenTruongMoi(e.target.value)}
+          value={s.newSchoolName}
+          onChange={(e) => s.setNewSchoolName(e.target.value)}
           maxLength={U.maxLength}
           placeholder={U.placeholder}
           aria-label={U.nameAria}
@@ -32,22 +32,22 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
         />
         <button
           type="submit"
-          disabled={!s.tenTruongMoi.trim()}
-          className={styles.nutChinh}
+          disabled={!s.newSchoolName.trim()}
+          className={styles.primaryButton}
         >
           <Plus size={15} />
           {U.add}
         </button>
       </form>
-      {!s.dangTai && s.dsTruong.length > 0 && (
+      {!s.loading && s.schoolList.length > 0 && (
         <ul className={styles.ds}>
-          {s.dsTruong.map((t) => (
+          {s.schoolList.map((t) => (
             <li key={t._id} className={styles.dong1}>
               {s.suaTruong === t._id ? (
                 <div className={styles.sua}>
                   <input
-                    value={s.tenTruongSua}
-                    onChange={(e) => s.setTenTruongSua(e.target.value)}
+                    value={s.editSchoolName}
+                    onChange={(e) => s.setEditSchoolName(e.target.value)}
                     onKeyDown={phim(t)}
                     maxLength={U.maxLength}
                     autoFocus
@@ -55,8 +55,8 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
                     className={styles.o}
                   />
                   <input
-                    value={s.logoSua}
-                    onChange={(e) => s.setLogoSua(e.target.value)}
+                    value={s.editLogo}
+                    onChange={(e) => s.setEditLogo(e.target.value)}
                     onKeyDown={phim(t)}
                     maxLength={U.logoMaxLength}
                     placeholder={U.logoPlaceholder}
@@ -65,16 +65,16 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
                   />
                   <button
                     type="button"
-                    onClick={() => s.doiTenTruong(t)}
-                    className={styles.nutIcon}
+                    onClick={() => s.renameSchool(t)}
+                    className={styles.iconButton}
                     aria-label={C.saveNameAria}
                   >
                     <Check size={15} />
                   </button>
                   <button
                     type="button"
-                    onClick={() => s.setSuaTruong(null)}
-                    className={styles.nutIcon}
+                    onClick={() => s.setEditSchool(null)}
+                    className={styles.iconButton}
                     aria-label={C.cancelAria}
                   >
                     <X size={15} />
@@ -84,14 +84,14 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
                 <>
                   <span className={styles.ten}>
                     {t.ten}
-                    {t.logo && <span className={styles.coLogo}>{U.hasLogo}</span>}
+                    {t.logo && <span className={styles.hasLogo}>{U.hasLogo}</span>}
                   </span>
                   <span className={styles.so}>{U.count(t.soTaiLieu)}</span>
-                  <div className={styles.thaoTac}>
+                  <div className={styles.actions}>
                     <button
                       type="button"
-                      onClick={() => s.batDauSuaTruong(t)}
-                      className={styles.nutIcon}
+                      onClick={() => s.startEditSchool(t)}
+                      className={styles.iconButton}
                       title={U.editTitle}
                       aria-label={C.renameAria(t.ten)}
                     >
@@ -100,7 +100,7 @@ export default function UniversitySection({ s }: { s: DocumentCatalogState }) {
                     <button
                       type="button"
                       onClick={() => s.xoaTruong(t)}
-                      className={styles.nutXoa}
+                      className={styles.deleteButton}
                       title={U.deleteTitle}
                       aria-label={C.deleteAria(t.ten)}
                     >

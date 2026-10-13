@@ -4,8 +4,8 @@ import {
   BlogPostList,
   BlogShell,
   BlogTopicsAside,
-  layDanhSachBai,
-  taoDuongDanBlog,
+  getPostList,
+  buildBlogPath,
 } from "@/src/components/features/portal/blog";
 import { BLOG } from "@/src/constants/portal/blog-page";
 
@@ -22,17 +22,17 @@ export default async function BlogPage({
   const topic = sp.topic ?? "";
   const page = Math.max(1, Number(sp.page) || 1);
 
-  const { data, topics } = await layDanhSachBai(topic, page);
-  const chuDeDangChon = topics.find((t) => t.slug === topic);
+  const { data, topics } = await getPostList(topic, page);
+  const activeTopic = topics.find((t) => t.slug === topic);
 
   return (
     <BlogShell
-      heading={<BlogHeading {...BLOG.list} topicName={chuDeDangChon?.name} />}
+      heading={<BlogHeading {...BLOG.list} topicName={activeTopic?.name} />}
       aside={
         <BlogTopicsAside
           topics={topics}
           topic={topic}
-          hrefForTopic={(slug) => taoDuongDanBlog(topic, { topic: slug, page: 1 })}
+          hrefForTopic={(slug) => buildBlogPath(topic, { topic: slug, page: 1 })}
         />
       }
     >
@@ -43,7 +43,7 @@ export default async function BlogPage({
           page={page}
           currentPage={data.page}
           totalPages={data.totalPages}
-          hrefFor={(p) => taoDuongDanBlog(topic, { page: p })}
+          hrefFor={(p) => buildBlogPath(topic, { page: p })}
         />
       )}
     </BlogShell>

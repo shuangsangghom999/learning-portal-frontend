@@ -17,7 +17,7 @@ interface CopyButtonProps {
 
 /**
  * Nut sao chep, tu doi thanh "Đã chép" trong 2 giay roi tra ve nhu cu.
- * Truoc day trang thanh toan va trang nap coin moi trang chep mot ban.
+ * Dung chung cho moi cho can chep: so tai khoan, ma don, noi dung chuyen khoan.
  */
 export default function CopyButton({
   value,
@@ -25,18 +25,18 @@ export default function CopyButton({
   className,
   withIcon = false,
 }: CopyButtonProps) {
-  const [daChep, setDaChep] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!daChep) return;
-    const h = setTimeout(() => setDaChep(false), 2000);
+    if (!copied) return;
+    const h = setTimeout(() => setCopied(false), 2000);
     return () => clearTimeout(h);
-  }, [daChep]);
+  }, [copied]);
 
   const chep = async () => {
     try {
       await navigator.clipboard.writeText(value);
-      setDaChep(true);
+      setCopied(true);
     } catch {
       // Trinh duyet cu hoac trang khong chay https thi khong co clipboard API.
       // Khong bao loi: nguoi dung van boi den chu de chep tay duoc.
@@ -50,8 +50,8 @@ export default function CopyButton({
       aria-label={COPY_TEXT.aria(what)}
       className={className}
     >
-      {withIcon && (daChep ? <Check size={12} /> : <Copy size={12} />)}
-      {daChep ? COPY_TEXT.copied : COPY_TEXT.copy}
+      {withIcon && (copied ? <Check size={12} /> : <Copy size={12} />)}
+      {copied ? COPY_TEXT.copied : COPY_TEXT.copy}
     </button>
   );
 }

@@ -4,18 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
 import {
-  guiThongBaoQuanTri,
-  layThongBaoChungQuanTri,
-  suaThongBaoQuanTri,
-  xoaThongBaoQuanTri,
-  type MucDoThongBaoChung,
-  type ThongBaoChung,
-  type VaiTroNhan,
+  sendAdminAnnouncement,
+  getAdminAnnouncements,
+  editAdminAnnouncement,
+  deleteAdminAnnouncement,
+  type AnnouncementLevel,
+  type Announcement,
+  type RecipientRole,
 } from "@/src/services/announcement";
 
 // <input type="datetime-local"> can chuoi gio dia phuong "YYYY-MM-DDTHH:mm",
 // khong nhan ISO co mui gio. Doi khi nap thong bao cu vao form de sua.
-const sangGioDiaPhuong = (iso?: string | null) => {
+const toLocalTime = (iso?: string | null) => {
   if (!iso) return "";
   const d = new Date(iso);
   const p = (n: number) => String(n).padStart(2, "0");
@@ -24,133 +24,135 @@ const sangGioDiaPhuong = (iso?: string | null) => {
 
 /** Soan / sua / gui thong bao he thong, bat tat ghim, thu hoi. */
 export function useAdminAnnouncements() {
-  const [tieuDe, setTieuDe] = useState("");
-  const [noiDung, setNoiDung] = useState("");
-  const [duongDan, setDuongDan] = useState("");
-  const [vaiTro, setVaiTro] = useState<VaiTroNhan>("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [path, setPath] = useState("");
+  const [role, setRole] = useState<RecipientRole>("");
 
   // Hai kenh doc lap. Mac dinh chi gui chuong nhu truoc day, de quan tri quen
   // tay khong vo tinh dang len dau trang cho ca khach thay.
-  const [guiChuong, setGuiChuong] = useState(true);
-  const [hienCongKhai, setHienCongKhai] = useState(false);
-  const [mucDo, setMucDo] = useState<MucDoThongBaoChung>("thong_tin");
-  const [hetHan, setHetHan] = useState("");
+  const [sendBell, setSendBell] = useState(true);
+  const [showPublic, setShowPublic] = useState(false);
+  const [level, setLevel] = useState<AnnouncementLevel>("thong_tin");
+  const [expiresAt, setExpiresAt] = useState("");
 
   // Dang sua dot nao (null = dang soan dot moi).
-  const [dangSua, setDangSua] = useState<ThongBaoChung | null>(null);
+  const [editing, setEditing] = useState<Announcement | null>(null);
 
-  const [dangGui, setDangGui] = useState(false);
-  const [loi, setLoi] = useState("");
-  const [ketQua, setKetQua] = useState("");
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState("");
+  const [result, setResult] = useState("");
 
-  const [danhSach, setDanhSach] = useState<ThongBaoChung[]>([]);
-  const [dangXuLy, setDangXuLy] = useState<string | null>(null);
-  const [hoiXoa, setHoiXoa] = useState<string | null>(null);
+  const [list, setList] = useState<Announcement[]>([]);
+  const [processing, setProcessing] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   // Buoc xac nhan truoc khi gui: gui xong la moi nguoi thay ngay. Van sua va
   // thu hoi duoc, nhung trong luc chua kip sua thi ai dang mo trang cung da doc.
-  const [hoiLai, setHoiLai] = useState(false);
+  const [confirmAgain, setConfirmAgain] = useState(false);
 
-  const taiDanhSach = useCallback(async () => {
+  const loadList = useCallback(async () => {
     try {
-      const kq = await layThongBaoChungQuanTri();
-      setDanhSach(kq.danhSach ?? []);
+      const outcome = await getAdminAnnouncements();
+      setList(outcome.danhSach ?? []);
     } catch {
       // Danh sach chi de xem va thao tac; tai hong thi de trong, form van dung duoc.
-      setDanhSach([]);
+      setList([]);
     }
   }, []);
 
-  // Lan tai dau viet bang .then chu khong goi taiDanhSach(): goi mot ham co
+  // Lan tai dau viet bang .then chu khong goi loadList(): goi mot ham co
   // setState ngay trong effect bi lint react-hooks/set-state-in-effect chan.
   useEffect(() => {
-    let huy = false;
-    layThongBaoChungQuanTri()
-      .then((kq) => {
-        if (!huy) setDanhSach(kq.danhSach ?? []);
+    let cancel = false;
+    getAdminAnnouncements()
+      .then((outcome) => {
+        if (!cancel) setList(outcome.danhSach ?? []);
       })
       .catch(() => undefined);
     return () => {
-      huy = true;
+      cancel = true;
     };
   }, []);
 
-  const datLaiForm = () => {
-    setTieuDe("");
-    setNoiDung("");
-    setDuongDan("");
-    setHetHan("");
-    setMucDo("thong_tin");
-    setDangSua(null);
-    setHoiLai(false);
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setPath("");
+    setExpiresAt("");
+    setLevel("thong_tin");
+    setEditing(null);
+    setConfirmAgain(false);
   };
 
-  const batDauSua = (tb: ThongBaoChung) => {
-    setDangSua(tb);
-    setTieuDe(tb.tieuDe);
-    setNoiDung(tb.noiDung ?? "");
-    setDuongDan(tb.duongDan ?? "");
-    setMucDo(tb.mucDo ?? "thong_tin");
-    setHetHan(sangGioDiaPhuong(tb.hetHan));
-    setHienCongKhai(Boolean(tb.dangHien));
-    setLoi("");
-    setKetQua("");
-    setHoiLai(false);
+  const startEdit = (tb: Announcement) => {
+    setEditing(tb);
+    setTitle(tb.tieuDe);
+    setContent(tb.noiDung ?? "");
+    setPath(tb.duongDan ?? "");
+    setLevel(tb.mucDo ?? "thong_tin");
+    setExpiresAt(toLocalTime(tb.hetHan));
+    setShowPublic(Boolean(tb.dangHien));
+    setErr("");
+    setResult("");
+    setConfirmAgain(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const noiDungForm = () => ({
-    tieuDe: tieuDe.trim(),
-    noiDung: noiDung.trim(),
-    duongDan: duongDan.trim(),
-    mucDo,
+  const formContent = () => ({
+    tieuDe: title.trim(),
+    noiDung: content.trim(),
+    duongDan: path.trim(),
+    mucDo: level,
     // Gio dia phuong tu o nhap -> ISO, de may chu nhan dung thoi diem.
-    hetHan: hetHan ? new Date(hetHan).toISOString() : "",
+    hetHan: expiresAt ? new Date(expiresAt).toISOString() : "",
   });
 
-  const gui = async () => {
-    if (dangGui) return;
-    setDangGui(true);
-    setLoi("");
-    setKetQua("");
+  const send = async () => {
+    if (sending) return;
+    setSending(true);
+    setErr("");
+    setResult("");
 
     try {
-      if (dangSua) {
-        const kq = await suaThongBaoQuanTri(dangSua._id, {
-          ...noiDungForm(),
-          hienDauTrang: hienCongKhai,
+      if (editing) {
+        const outcome = await editAdminAnnouncement(editing._id, {
+          ...formContent(),
+          hienDauTrang: showPublic,
         });
-        setKetQua(
-          dangSua.guiChuong ? C.messages.savedWithBell(kq.daCapNhat) : C.messages.saved,
+        setResult(
+          editing.guiChuong
+            ? C.messages.savedWithBell(outcome.daCapNhat)
+            : C.messages.saved,
         );
       } else {
-        const kq = await guiThongBaoQuanTri({
-          ...noiDungForm(),
-          hienDauTrang: hienCongKhai,
-          guiChuong,
-          vaiTro,
+        const outcome = await sendAdminAnnouncement({
+          ...formContent(),
+          hienDauTrang: showPublic,
+          guiChuong: sendBell,
+          vaiTro: role,
         });
-        const phan: string[] = [];
-        if (hienCongKhai) phan.push(C.messages.pinnedAll);
-        if (guiChuong) phan.push(C.messages.sentTo(kq.daGui));
-        setKetQua(C.messages.done(phan.join(", ")));
+        const part: string[] = [];
+        if (showPublic) part.push(C.messages.pinnedAll);
+        if (sendBell) part.push(C.messages.sentTo(outcome.daGui));
+        setResult(C.messages.done(part.join(", ")));
       }
-      datLaiForm();
-      await taiDanhSach();
+      resetForm();
+      await loadList();
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.sendFailed);
+      setErr(e instanceof Error ? e.message : C.messages.sendFailed);
     } finally {
-      setDangGui(false);
-      setHoiLai(false);
+      setSending(false);
+      setConfirmAgain(false);
     }
   };
 
-  const batTatDauTrang = async (tb: ThongBaoChung) => {
-    if (dangXuLy) return;
-    setDangXuLy(tb._id);
-    setLoi("");
+  const togglePinned = async (tb: Announcement) => {
+    if (processing) return;
+    setProcessing(tb._id);
+    setErr("");
     try {
-      await suaThongBaoQuanTri(tb._id, {
+      await editAdminAnnouncement(tb._id, {
         tieuDe: tb.tieuDe,
         noiDung: tb.noiDung,
         duongDan: tb.duongDan,
@@ -160,71 +162,70 @@ export function useAdminAnnouncements() {
         hetHan: tb.hetHan && new Date(tb.hetHan).getTime() > Date.now() ? tb.hetHan : "",
         hienDauTrang: !tb.dangHien,
       });
-      await taiDanhSach();
+      await loadList();
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.toggleFailed);
+      setErr(e instanceof Error ? e.message : C.messages.toggleFailed);
     } finally {
-      setDangXuLy(null);
+      setProcessing(null);
     }
   };
 
-  const xoa = async (tb: ThongBaoChung) => {
-    if (dangXuLy) return;
-    setDangXuLy(tb._id);
-    setLoi("");
+  const remove = async (tb: Announcement) => {
+    if (processing) return;
+    setProcessing(tb._id);
+    setErr("");
     try {
-      const kq = await xoaThongBaoQuanTri(tb._id);
-      setKetQua(
+      const outcome = await deleteAdminAnnouncement(tb._id);
+      setResult(
         tb.guiChuong
-          ? C.messages.recalled(tb.tieuDe, kq.daThuHoi)
+          ? C.messages.recalled(tb.tieuDe, outcome.daThuHoi)
           : C.messages.deleted(tb.tieuDe),
       );
-      if (dangSua?._id === tb._id) datLaiForm();
-      await taiDanhSach();
+      if (editing?._id === tb._id) resetForm();
+      await loadList();
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : C.messages.deleteFailed);
+      setErr(e instanceof Error ? e.message : C.messages.deleteFailed);
     } finally {
-      setDangXuLy(null);
-      setHoiXoa(null);
+      setProcessing(null);
+      setPendingDelete(null);
     }
   };
 
-  const sanSang =
-    tieuDe.trim().length > 0 && (dangSua ? true : guiChuong || hienCongKhai);
+  const ready = title.trim().length > 0 && (editing ? true : sendBell || showPublic);
 
   return {
-    tieuDe,
-    setTieuDe: (v: string) => setTieuDe(v.slice(0, C.maxTitle)),
-    noiDung,
-    setNoiDung: (v: string) => setNoiDung(v.slice(0, C.maxBody)),
-    duongDan,
-    setDuongDan,
-    vaiTro,
-    setVaiTro,
-    guiChuong,
-    setGuiChuong,
-    hienCongKhai,
-    setHienCongKhai,
-    mucDo,
-    setMucDo,
-    hetHan,
-    setHetHan,
-    dangSua,
-    dangGui,
-    loi,
-    ketQua,
-    danhSach,
-    dangXuLy,
-    hoiXoa,
-    setHoiXoa,
-    hoiLai,
-    setHoiLai,
-    sanSang,
-    datLaiForm,
-    batDauSua,
-    gui,
-    batTatDauTrang,
-    xoa,
+    tieuDe: title,
+    setTitle: (v: string) => setTitle(v.slice(0, C.maxTitle)),
+    noiDung: content,
+    setContent: (v: string) => setContent(v.slice(0, C.maxBody)),
+    duongDan: path,
+    setPath,
+    vaiTro: role,
+    setRole,
+    guiChuong: sendBell,
+    setSendBell,
+    showPublic,
+    setShowPublic,
+    mucDo: level,
+    setLevel,
+    hetHan: expiresAt,
+    setExpiresAt,
+    editing,
+    sending,
+    loi: err,
+    ketQua: result,
+    danhSach: list,
+    processing,
+    pendingDelete,
+    setPendingDelete,
+    confirmAgain,
+    setConfirmAgain,
+    ready,
+    resetForm,
+    startEdit,
+    gui: send,
+    togglePinned,
+    xoa: remove,
   };
 }
 

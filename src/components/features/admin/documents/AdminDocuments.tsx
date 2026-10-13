@@ -19,7 +19,7 @@ export default function AdminDocuments() {
     <div className={styles.page}>
       <DocumentsToolbar s={s} />
 
-      {s.dangTai ? (
+      {s.loading ? (
         <div className={styles.trong}>
           <Loader2 size={22} className={styles.quay} />
           {C.loading}
@@ -30,7 +30,7 @@ export default function AdminDocuments() {
           {s.tuKhoa ? C.emptyFiltered(s.tuKhoa) : C.empty}
         </div>
       ) : (
-        <div className={styles.bangBoc}>
+        <div className={styles.tableWrap}>
           <table className={styles.bang}>
             <thead>
               <tr>
@@ -51,22 +51,22 @@ export default function AdminDocuments() {
         </div>
       )}
 
-      {s.tongTrang > 1 && (
+      {s.totalPages > 1 && (
         <div className={styles.phanTrang}>
           <button
             type="button"
-            onClick={() => s.setTrang((t) => Math.max(1, t - 1))}
+            onClick={() => s.setPage((t) => Math.max(1, t - 1))}
             disabled={s.trang <= 1}
-            className={styles.nutTrang}
+            className={styles.pageButton}
           >
             {C.pager.prev}
           </button>
-          <span className={styles.soTrang}>{C.pager.info(s.trang, s.tongTrang)}</span>
+          <span className={styles.pageCount}>{C.pager.info(s.trang, s.totalPages)}</span>
           <button
             type="button"
-            onClick={() => s.setTrang((t) => Math.min(s.tongTrang, t + 1))}
-            disabled={s.trang >= s.tongTrang}
-            className={styles.nutTrang}
+            onClick={() => s.setPage((t) => Math.min(s.totalPages, t + 1))}
+            disabled={s.trang >= s.totalPages}
+            className={styles.pageButton}
           >
             {C.pager.next}
           </button>

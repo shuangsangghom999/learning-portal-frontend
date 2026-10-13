@@ -8,8 +8,8 @@ import styles from "../AdminFaqs.module.scss";
 /** Hop them / sua cau hoi, tieu de kem ten khu vuc. */
 export default function FaqModal({ m, areaName }: { m: FaqManager; areaName?: string }) {
   return (
-    <div className={`${styles.hienDan} ${styles.overlay}`}>
-      <div className={`${styles.phongTo} ${styles.card6}`}>
+    <div className={`${styles.showPaste} ${styles.overlay}`}>
+      <div className={`${styles.expand} ${styles.card6}`}>
         <div className={styles.row4}>
           <h4 className={styles.minorHeading2}>
             {m.editingId ? C.modal.editTitle : C.modal.createTitle} · {areaName}

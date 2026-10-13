@@ -94,11 +94,11 @@ const diem10 = (v: string | undefined) => {
  * diem hien tai. Diem cai thien bang hoac thap hon (vd sua diem hien tai len
  * sau khi da chon cai thien) thi bo qua, vi hoc cai thien khong the lam tut diem.
  */
-const diemDung = (scale: Scale, sub: Subject) =>
+const correctPoints = (scale: Scale, sub: Subject) =>
   gpa4Of(scale, sub.improved) > gpa4Of(scale, sub.letter) ? sub.improved : sub.letter;
 
 /** Diem cai thien chi con hop le khi cao hon diem hien tai moi. */
-const giuCaiThien = (scale: Scale, improved: string, letter: string) =>
+const keepImproving = (scale: Scale, improved: string, letter: string) =>
   gpa4Of(scale, improved) > gpa4Of(scale, letter) ? improved : "";
 
 const fmt = (n: number, d = 3) => (Number.isFinite(n) ? n.toFixed(d) : "--");
@@ -235,7 +235,7 @@ export default function GradeProfile() {
 
       for (const sub of s.subjects) {
         const c = num(sub.credits);
-        const g = gpa4Of(scale, diemDung(scale, sub));
+        const g = gpa4Of(scale, correctPoints(scale, sub));
         if (!Number.isFinite(c) || c <= 0 || !Number.isFinite(g)) continue;
 
         credits += c;
@@ -282,7 +282,7 @@ export default function GradeProfile() {
       s.subjects.map((sub) => ({
         id: sub.id,
         credits: num(sub.credits),
-        gpa4: gpa4Of(scale, diemDung(scale, sub)),
+        gpa4: gpa4Of(scale, correctPoints(scale, sub)),
       })),
     );
 
@@ -400,11 +400,11 @@ export default function GradeProfile() {
                   // Ban cu liet ke ca 9 muc, ke ca muc thap hon, nen dang C ma
                   // mo ra phai do tim B+, A giua mot danh sach dai lan lon.
                   // Chua co diem hien tai, hoac da la muc cao nhat, thi an o nay.
-                  const mucCaoHon = sub.letter
+                  const higherGrade = sub.letter
                     ? scale.grades.filter((g) => g.gpa4 > gpa4Of(scale, sub.letter))
                     : [];
                   // Go chu dang do hoac so ngoai 0-10 thi to do, khong doi diem chu
-                  const diemSai =
+                  const wrongPoints =
                     Boolean(sub.score10?.trim()) && !Number.isFinite(diem10(sub.score10));
 
                   return (
@@ -459,9 +459,9 @@ export default function GradeProfile() {
                         </span>
 
                         <span
-                          className={`${styles.label4} ${diemSai ? styles.label4Sai : ""}`}
+                          className={`${styles.label4} ${wrongPoints ? styles.label4Wrong : ""}`}
                           title={
-                            diemSai
+                            wrongPoints
                               ? "Điểm hệ 10 phải là số từ 0 đến 10"
                               : "Gõ điểm hệ 10, điểm chữ tự đổi theo thang đang chọn"
                           }
@@ -472,7 +472,7 @@ export default function GradeProfile() {
                             inputMode="decimal"
                             maxLength={5}
                             aria-label={`Điểm hệ 10 ${sub.name || `môn ${i + 1}`}`}
-                            aria-invalid={diemSai || undefined}
+                            aria-invalid={wrongPoints || undefined}
                             onChange={(e) => {
                               const v = e.target.value;
                               const n = diem10(v);
@@ -483,7 +483,7 @@ export default function GradeProfile() {
                                   ? {
                                       score10: v,
                                       letter: gradeOf(scale, n).letter,
-                                      improved: giuCaiThien(
+                                      improved: keepImproving(
                                         scale,
                                         sub.improved,
                                         gradeOf(scale, n).letter,
@@ -506,7 +506,11 @@ export default function GradeProfile() {
                             patchSubject(sem.id, sub.id, {
                               letter: e.target.value,
                               score10: "",
-                              improved: giuCaiThien(scale, sub.improved, e.target.value),
+                              improved: keepImproving(
+                                scale,
+                                sub.improved,
+                                e.target.value,
+                              ),
                             })
                           }
                           className={smallSelect}
@@ -519,7 +523,7 @@ export default function GradeProfile() {
                           ))}
                         </select>
 
-                        {mucCaoHon.length > 0 && (
+                        {higherGrade.length > 0 && (
                           <select
                             value={sub.improved}
                             aria-label={`Điểm cải thiện ${sub.name || `môn ${i + 1}`}`}
@@ -529,7 +533,7 @@ export default function GradeProfile() {
                             className={smallSelect}
                           >
                             <option value="">Điểm cải thiện</option>
-                            {mucCaoHon.map((g) => (
+                            {higherGrade.map((g) => (
                               <option key={g.letter} value={g.letter}>
                                 {g.letter}
                               </option>
@@ -650,17 +654,25 @@ const outlineBtn = styles.button5;
  * `goc` la diem khi chua tinh cai thien. Khac `value` nghia la co mon dang chon
  * diem cai thien: hien diem cu gach ngang, diem moi mau do ngay canh.
  */
-function StatLine({ label, value, goc }: { label: string; value: string; goc?: string }) {
-  const doi = goc !== undefined && goc !== value;
+function StatLine({
+  label,
+  value,
+  goc: origin,
+}: {
+  label: string;
+  value: string;
+  goc?: string;
+}) {
+  const copy = origin !== undefined && origin !== value;
   return (
     <div className={styles.row6}>
       <dt className={styles.box4}>{label}:</dt>
-      {doi ? (
-        <dd className={styles.doiDiem}>
-          <s className={styles.soCu} aria-label={`trước khi cải thiện ${goc}`}>
-            {goc}
+      {copy ? (
+        <dd className={styles.setGrade}>
+          <s className={styles.oldValue} aria-label={`trước khi cải thiện ${origin}`}>
+            {origin}
           </s>
-          <span className={styles.soMoi} aria-label={`sau khi cải thiện ${value}`}>
+          <span className={styles.newValue} aria-label={`sau khi cải thiện ${value}`}>
             {value}
           </span>
         </dd>
@@ -674,7 +686,7 @@ function StatLine({ label, value, goc }: { label: string; value: string; goc?: s
 function Stat({
   label,
   value,
-  goc,
+  goc: origin,
   big,
 }: {
   label: string;
@@ -682,13 +694,13 @@ function Stat({
   goc?: string;
   big?: boolean;
 }) {
-  const doi = goc !== undefined && goc !== value;
+  const copy = origin !== undefined && origin !== value;
   return (
     <div className={styles.card}>
       <p className={styles.text}>{label}</p>
       <p className={`${styles.text5} ${big ? styles.text3 : styles.text4}`}>
-        {doi && <s className={styles.soCuLon}>{goc}</s>}
-        <span className={doi ? styles.soMoiLon : undefined}>{value}</span>
+        {copy && <s className={styles.oldLarge}>{origin}</s>}
+        <span className={copy ? styles.newLarge : undefined}>{value}</span>
       </p>
     </div>
   );

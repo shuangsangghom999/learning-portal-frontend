@@ -5,4 +5,4 @@ export { default as BlogPager } from "./BlogPager";
 export { default as BlogTopicsAside } from "./BlogTopicsAside";
 export { default as BlogDetailShell } from "./detail/BlogDetailShell";
 export { default as BlogDetailHeader } from "./detail/BlogDetailHeader";
-export { layBai, layDanhSachBai, taoDuongDanBlog } from "./data";
+export { getPost, getPostList, buildBlogPath } from "./data";

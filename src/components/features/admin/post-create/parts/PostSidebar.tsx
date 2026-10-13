@@ -18,19 +18,19 @@ function PublishCard({ s }: { s: PostEditorState }) {
       </label>
       <select
         id="trang-thai"
-        value={s.daDang ? "published" : "draft"}
-        onChange={(e) => s.setDaDang(e.target.value === "published")}
+        value={s.published ? "published" : "draft"}
+        onChange={(e) => s.setPublished(e.target.value === "published")}
         className={styles.input2}
       >
         <option value="published">{P.published}</option>
         <option value="draft">{P.draft}</option>
       </select>
 
-      {s.laSua && s.slug && (
+      {s.isEdit && s.slug && (
         <p className={styles.text5}>
           {P.pathLabel}
           <code className={styles.code}>{P.path(s.slug)}</code>
-          {s.daDang && (
+          {s.published && (
             <>
               <br />
               {P.stableNote}
@@ -54,8 +54,8 @@ function ClassifyCard({ s }: { s: PostEditorState }) {
       </label>
       <select
         id="chu-de"
-        value={s.chuDe}
-        onChange={(e) => s.setChuDe(e.target.value)}
+        value={s.topic}
+        onChange={(e) => s.setTopic(e.target.value)}
         className={styles.input2}
       >
         {s.topics.length === 0 && <option value={C.defaultTopic}>{K.othersLabel}</option>}
@@ -89,7 +89,7 @@ function ThumbnailCard({ s }: { s: PostEditorState }) {
       <h4 className={styles.minorHeading}>{T.heading}</h4>
       <input
         value={s.anh}
-        onChange={(e) => s.setAnh(e.target.value)}
+        onChange={(e) => s.setImage(e.target.value)}
         placeholder={T.placeholder}
         aria-label={T.aria}
         className={styles.input2}
@@ -123,11 +123,11 @@ function OutlineCard({ s }: { s: PostEditorState }) {
       <h4 className={styles.minorHeading2}>
         <ListTree size={16} className={styles.box2} />
         {O.heading}
-        <span className={styles.label5}>{s.mucLuc.length}</span>
+        <span className={styles.label5}>{s.outline.length}</span>
       </h4>
       <p className={styles.text7}>{O.note}</p>
 
-      {s.mucLuc.length === 0 ? (
+      {s.outline.length === 0 ? (
         <div className={styles.card6}>
           {E.a}
           <b>{E.bold}</b>
@@ -143,7 +143,7 @@ function OutlineCard({ s }: { s: PostEditorState }) {
         </div>
       ) : (
         <ul className={styles.list}>
-          {s.mucLuc.map((m, i) => (
+          {s.outline.map((m, i) => (
             <li
               key={`${m.id}-${i}`}
               className={styles.item}

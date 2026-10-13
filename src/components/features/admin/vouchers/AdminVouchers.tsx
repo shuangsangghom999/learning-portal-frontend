@@ -22,24 +22,24 @@ export default function AdminVouchers() {
           <h1 className={styles.title}>{C.title}</h1>
         </div>
 
-        <button type="button" onClick={s.moTaoMoi} className={styles.button}>
+        <button type="button" onClick={s.openCreate} className={styles.button}>
           <Plus size={16} /> {C.create}
         </button>
       </div>
 
       {s.loi && <p className={styles.text}>{s.loi}</p>}
 
-      {s.moForm && <VoucherForm s={s} />}
+      {s.openForm && <VoucherForm s={s} />}
 
-      {s.dangTai && <p className={styles.text2}>{C.loading}</p>}
+      {s.loading && <p className={styles.text2}>{C.loading}</p>}
 
-      {!s.dangTai && s.danhSach.length === 0 && (
+      {!s.loading && s.danhSach.length === 0 && (
         <div className={styles.card2}>{C.empty}</div>
       )}
 
       {/* overflow-x-auto: bang nay 7 cot, khong the vua man hinh dien thoai.
           Cuon rieng trong khung chu khong day ca trang di ngang. */}
-      {!s.dangTai && s.danhSach.length > 0 && (
+      {!s.loading && s.danhSach.length > 0 && (
         <div className={styles.card3}>
           <table className={styles.table}>
             <thead className={styles.thead}>
@@ -53,14 +53,14 @@ export default function AdminVouchers() {
             </thead>
             <tbody>
               {s.danhSach.map((m) => (
-                <VoucherRow key={m._id} m={m} onUsage={s.moLuot} onToggle={s.batTat} />
+                <VoucherRow key={m._id} m={m} onUsage={s.openUsage} onToggle={s.toggle} />
               ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {s.xemLuot && <UsageModal s={s} />}
+      {s.viewUsage && <UsageModal s={s} />}
     </div>
   );
 }

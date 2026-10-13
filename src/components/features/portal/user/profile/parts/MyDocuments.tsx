@@ -17,18 +17,18 @@ import {
 } from "lucide-react";
 
 import DocumentEditForm from "@/src/components/features/portal/share-document/parts/DocumentEditForm";
-import { nhanDinhDang } from "@/src/lib/document/file-info";
+import { formatLabel } from "@/src/lib/document/file-info";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { documentService, type SharedDocument } from "@/src/services/document";
 
 import styles from "./MyDocuments.module.scss";
-import { duongTaiLieu } from "@/src/lib/document/duong-dan";
+import { documentPath } from "@/src/lib/document/paths";
 
 // Id cua muc - trang chi tiet tai lieu dan chu bai toi day bang
 // /user/profile?sua=<id>#tai-lieu-cua-toi.
-export const ID_MUC_TAI_LIEU = "tai-lieu-cua-toi";
+export const DOCUMENTS_SECTION_ID = "tai-lieu-cua-toi";
 
-const ngayGon = (iso: string) =>
+const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -44,133 +44,133 @@ const ngayGon = (iso: string) =>
  * Gom ca bai bi admin an, kem nhan noi ro - khong thi chu bai tuong bai bi mat.
  */
 export default function MyDocuments() {
-  const [ds, setDs] = useState<SharedDocument[]>([]);
-  const [trang, setTrang] = useState(1);
-  const [soTrang, setSoTrang] = useState(1);
-  const [tong, setTong] = useState(0);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
-  const [dangSua, setDangSua] = useState<string | null>(null);
-  const [dangXoa, setDangXoa] = useState<string | null>(null);
-  const mucRef = useRef<HTMLElement>(null);
+  const [items, setDs] = useState<SharedDocument[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   // ?sua=<id> tu trang chi tiet chi mo form MOT lan, lan tai dau tien.
-  const daXuLyLienKet = useRef(false);
+  const linkProcessed = useRef(false);
 
-  const tai = useCallback(async (p: number) => {
+  const download = useCallback(async (p: number) => {
     try {
-      setDangTai(true);
-      setLoi("");
-      const kq = await documentService.getMyDocuments({ page: p, limit: 10 });
-      setDs(kq.documents);
-      setTong(kq.total);
-      setSoTrang(kq.totalPages);
-      setTrang(kq.page);
+      setLoading(true);
+      setErrorMessage("");
+      const outcome = await documentService.getMyDocuments({ page: p, limit: 10 });
+      setDs(outcome.documents);
+      setTotal(outcome.total);
+      setPageCount(outcome.totalPages);
+      setPage(outcome.page);
 
-      if (!daXuLyLienKet.current) {
-        daXuLyLienKet.current = true;
+      if (!linkProcessed.current) {
+        linkProcessed.current = true;
         // Doc tu window chu khong dung useSearchParams: hook do bat trang phai
         // boc Suspense, ma trang ca nhan chi can gia tri nay dung mot lan.
         const url = new URL(window.location.href);
-        const idSua = url.searchParams.get("sua");
-        if (idSua && kq.documents.some((d) => d._id === idSua)) setDangSua(idSua);
-        if (idSua || url.hash === `#${ID_MUC_TAI_LIEU}`) {
+        const editId = url.searchParams.get("sua");
+        if (editId && outcome.documents.some((d) => d._id === editId)) setEditing(editId);
+        if (editId || url.hash === `#${DOCUMENTS_SECTION_ID}`) {
           // Muc nay hien SAU khi trang tai xong du lieu, nen trinh duyet khong tu
           // cuon toi #tai-lieu-cua-toi duoc - cuon tay.
           requestAnimationFrame(() =>
-            mucRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
           );
         }
       }
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không tải được tài liệu của bạn."));
+      setErrorMessage(getErrorMessage(err, "Không tải được tài liệu của bạn."));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     // Hoan mot vong microtask - cung cach useFaqManager (src/hooks), tranh
     // setState dong bo trong than effect (react-hooks/set-state-in-effect).
-    void Promise.resolve().then(() => tai(1));
-  }, [tai]);
+    void Promise.resolve().then(() => download(1));
+  }, [download]);
 
-  const xoa = async (doc: SharedDocument) => {
+  const remove = async (doc: SharedDocument) => {
     if (!confirm(`Xóa tài liệu "${doc.title}"? Thao tác này không hoàn tác được.`))
       return;
     try {
-      setDangXoa(doc._id);
-      setLoi("");
+      setDeleting(doc._id);
+      setErrorMessage("");
       await documentService.deleteDocument(doc._id);
       // Tai lai trang hien tai thay vi chi loc khoi mang: con bai o trang sau
       // thi no phai don len, va xoa bai cuoi cua trang cuoi thi lui mot trang.
-      const trangMoi = ds.length === 1 && trang > 1 ? trang - 1 : trang;
-      await tai(trangMoi);
+      const newPage = items.length === 1 && page > 1 ? page - 1 : page;
+      await download(newPage);
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không xóa được tài liệu."));
+      setErrorMessage(getErrorMessage(err, "Không xóa được tài liệu."));
     } finally {
-      setDangXoa(null);
+      setDeleting(null);
     }
   };
 
   return (
-    <section id={ID_MUC_TAI_LIEU} ref={mucRef} className={styles.card}>
+    <section id={DOCUMENTS_SECTION_ID} ref={sectionRef} className={styles.card}>
       <div className={styles.dau}>
         <h2 className={styles.heading}>
           Tài liệu tôi đã chia sẻ
-          {tong > 0 && <span className={styles.dem}>{tong}</span>}
+          {total > 0 && <span className={styles.dem}>{total}</span>}
         </h2>
-        <Link href="/share-document" className={styles.nutDang}>
+        <Link href="/share-document" className={styles.uploadButton}>
           <Upload size={14} />
           Chia sẻ tài liệu
         </Link>
       </div>
 
-      {loi && (
+      {errorMessage && (
         <p role="alert" className={styles.loi}>
-          {loi}
+          {errorMessage}
         </p>
       )}
 
-      {dangTai && ds.length === 0 ? (
+      {loading && items.length === 0 ? (
         <div className={styles.trong}>
           <Loader2 size={20} className={styles.quay} />
         </div>
-      ) : ds.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className={styles.trong}>
           <FileText size={22} />
           Bạn chưa chia sẻ tài liệu nào.
         </div>
       ) : (
-        <ul className={`${styles.ds} ${dangTai ? styles.mo : ""}`}>
-          {ds.map((d) => (
+        <ul className={`${styles.ds} ${loading ? styles.mo : ""}`}>
+          {items.map((d) => (
             <li key={d._id} className={styles.muc}>
-              <div className={styles.dong}>
-                <span className={styles.duoi}>{nhanDinhDang(d.files)}</span>
+              <div className={styles.rows}>
+                <span className={styles.extension}>{formatLabel(d.files)}</span>
 
-                <div className={styles.thongTin}>
+                <div className={styles.info}>
                   {/* Bai bi an thi trang chi tiet tra 404 ca voi chu bai - khong
                       dat lien ket de chu bai khoi bam vao mot trang loi. */}
                   {d.daAn ? (
                     <span className={styles.ten}>{d.title}</span>
                   ) : (
-                    <Link href={duongTaiLieu(d._id)} className={styles.ten}>
+                    <Link href={documentPath(d._id)} className={styles.ten}>
                       {d.title}
                     </Link>
                   )}
                   <div className={styles.meta}>
                     {d.daAn && (
-                      <span className={styles.nhanAn}>
+                      <span className={styles.hiddenLabel}>
                         <EyeOff size={12} />
                         Quản trị viên đã ẩn
                       </span>
                     )}
-                    <span className={d.monHoc?.length ? styles.mon : styles.chuaMon}>
+                    <span className={d.monHoc?.length ? styles.mon : styles.noSubject}>
                       <BookOpen size={12} />
                       {d.monHoc?.length ? d.monHoc.join(", ") : "Chưa có môn"}
                     </span>
                     <span>
                       <CalendarDays size={12} />
-                      {ngayGon(d.createdAt)}
+                      {shortDate(d.createdAt)}
                     </span>
                     <span>
                       <Download size={12} />
@@ -179,25 +179,25 @@ export default function MyDocuments() {
                   </div>
                 </div>
 
-                <div className={styles.thaoTac}>
+                <div className={styles.actions}>
                   <button
                     type="button"
-                    onClick={() => setDangSua(dangSua === d._id ? null : d._id)}
-                    className={styles.nutSua}
-                    aria-expanded={dangSua === d._id}
+                    onClick={() => setEditing(editing === d._id ? null : d._id)}
+                    className={styles.editButton}
+                    aria-expanded={editing === d._id}
                   >
                     <Pencil size={14} />
                     Sửa
                   </button>
                   <button
                     type="button"
-                    onClick={() => xoa(d)}
-                    disabled={dangXoa === d._id}
-                    className={styles.nutXoa}
+                    onClick={() => remove(d)}
+                    disabled={deleting === d._id}
+                    className={styles.deleteButton}
                     aria-label={`Xóa ${d.title}`}
                     title="Xóa tài liệu"
                   >
-                    {dangXoa === d._id ? (
+                    {deleting === d._id ? (
                       <Loader2 size={14} className={styles.quay} />
                     ) : (
                       <Trash2 size={14} />
@@ -206,18 +206,18 @@ export default function MyDocuments() {
                 </div>
               </div>
 
-              {dangSua === d._id && (
+              {editing === d._id && (
                 <DocumentEditForm
                   // key theo id: mo bai khac thi form dung lai tu dau, khong
                   // mang tieu de/noi dung cua bai truoc sang.
                   key={d._id}
                   doc={d}
-                  khiLuu={(moi) => {
+                  onSave={(recent) => {
                     // May chu tra ban moi nhat (kem daAn) - thay dung dong do.
-                    setDs((cu) => cu.map((x) => (x._id === moi._id ? moi : x)));
-                    setDangSua(null);
+                    setDs((old) => old.map((x) => (x._id === recent._id ? recent : x)));
+                    setEditing(null);
                   }}
-                  khiHuy={() => setDangSua(null)}
+                  onCancel={() => setEditing(null)}
                 />
               )}
             </li>
@@ -225,25 +225,25 @@ export default function MyDocuments() {
         </ul>
       )}
 
-      {soTrang > 1 && (
+      {pageCount > 1 && (
         <div className={styles.phanTrang}>
           <button
             type="button"
-            onClick={() => tai(trang - 1)}
-            disabled={trang <= 1 || dangTai}
-            className={styles.nutTrang}
+            onClick={() => download(page - 1)}
+            disabled={page <= 1 || loading}
+            className={styles.pageButton}
             aria-label="Trang trước"
           >
             <ChevronLeft size={16} />
           </button>
           <span>
-            Trang {trang} / {soTrang}
+            Trang {page} / {pageCount}
           </span>
           <button
             type="button"
-            onClick={() => tai(trang + 1)}
-            disabled={trang >= soTrang || dangTai}
-            className={styles.nutTrang}
+            onClick={() => download(page + 1)}
+            disabled={page >= pageCount || loading}
+            className={styles.pageButton}
             aria-label="Trang sau"
           >
             <ChevronRight size={16} />

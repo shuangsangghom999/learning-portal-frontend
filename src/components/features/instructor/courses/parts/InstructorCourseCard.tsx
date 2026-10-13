@@ -4,7 +4,7 @@ import { Tag, User } from "lucide-react";
 import SafeImage from "@/src/components/ui/SafeImage";
 import { INSTRUCTOR_COURSES as C } from "@/src/constants/instructor/courses-page";
 import { formatVnd } from "@/src/lib/format";
-import { Course, tenChuDe } from "@/src/services/course";
+import { Course, topicName } from "@/src/services/course";
 
 import styles from "../InstructorCourses.module.scss";
 
@@ -35,7 +35,7 @@ export default function InstructorCourseCard({ course }: { course: Course }) {
         <div className={styles.stack2}>
           <span className={styles.label3}>
             <Tag size={12} />
-            {tenChuDe(course.category)[0] || C.card.noCategory}
+            {topicName(course.category)[0] || C.card.noCategory}
           </span>
           <h4 className={styles.minorHeading2}>{course.title}</h4>
           <p className={styles.text3}>{course.description || C.card.noDescription}</p>

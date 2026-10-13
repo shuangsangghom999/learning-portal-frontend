@@ -22,7 +22,7 @@ import AuthModal from "@/src/components/features/portal/auth/AuthModal";
 // chi ra man hinh: tham so URL la thu bat ky ai cung dat duoc, va mot cau
 // kieu "Phiên của bạn hết hạn, hãy nhập lại thẻ ngân hàng" nhet vao day roi
 // gui link cho nguoi khac la mot cai bay hoan chinh.
-const CAU_GIAI_THICH: Record<string, string> = {
+const EXPLANATION_TEXT: Record<string, string> = {
   hoc: "Bạn cần đăng nhập để vào học khóa này.",
   ghidanh: "Bạn cần đăng nhập để đăng ký khóa học.",
   chiase: "Bạn cần đăng nhập để chia sẻ tài liệu.",
@@ -33,8 +33,8 @@ export default function AuthModalGate() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const dangMo = searchParams.get("auth") !== null;
-  const loiNhan = CAU_GIAI_THICH[searchParams.get("vi") || ""] || undefined;
+  const openId = searchParams.get("auth") !== null;
+  const labelError = EXPLANATION_TEXT[searchParams.get("vi") || ""] || undefined;
 
   // Dong hop = bo hai tham so nay, GIU nguyen cac tham so khac. Truoc day cho
   // nay lam router.replace("/") - tuc la dong hop dang nhap tren trang khoa
@@ -50,13 +50,17 @@ export default function AuthModalGate() {
   // Next co ho tro san history.pushState/replaceState: goi thang nhu duoi day
   // thi usePathname va useSearchParams van cap nhat theo. Da do: dia chi doi,
   // hop dong, khoa cuon duoc go.
-  const dong = () => {
-    const con = new URLSearchParams(searchParams.toString());
-    con.delete("auth");
-    con.delete("vi");
-    const duoi = con.toString();
-    window.history.replaceState(null, "", duoi ? `${pathname}?${duoi}` : pathname);
+  const rows = () => {
+    const left = new URLSearchParams(searchParams.toString());
+    left.delete("auth");
+    left.delete("vi");
+    const extension = left.toString();
+    window.history.replaceState(
+      null,
+      "",
+      extension ? `${pathname}?${extension}` : pathname,
+    );
   };
 
-  return <AuthModal open={dangMo} onClose={dong} loiNhan={loiNhan} />;
+  return <AuthModal open={openId} onClose={rows} labelError={labelError} />;
 }

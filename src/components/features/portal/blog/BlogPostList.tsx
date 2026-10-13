@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import FeedCard from "@/src/components/common/FeedCard";
-import { phutDoc, thoiGianTuongDoi } from "@/src/lib/post-time";
+import { readingMinutes, relativeTime } from "@/src/lib/post-time";
 import { BLOG } from "@/src/constants/portal/blog-page";
 import type { BlogPost } from "@/src/services/post";
 
@@ -37,8 +37,8 @@ export default function BlogPostList({
           key={p._id}
           href={BLOG.postHref(p.slug)}
           tacGia={p.author?.name || L.anonymous}
-          anhTacGia={p.author?.avatar || null}
-          daXacThuc={p.author?.role === "admin" || p.author?.role === "instructor"}
+          authorAvatar={p.author?.avatar || null}
+          verified={p.author?.role === "admin" || p.author?.role === "instructor"}
           tieuDe={p.title}
           moTa={p.excerpt}
           luu={{ loai: "baiViet", id: p._id }}
@@ -50,11 +50,11 @@ export default function BlogPostList({
                   {t}
                 </span>
               ))}
-              <span>{thoiGianTuongDoi(p.createdAt)}</span>
+              <span>{relativeTime(p.createdAt)}</span>
               <span aria-hidden className={styles.label2}>
                 &middot;
               </span>
-              <span>{L.readMinutes(phutDoc(p.excerpt))}</span>
+              <span>{L.readMinutes(readingMinutes(p.excerpt))}</span>
             </>
           }
         />

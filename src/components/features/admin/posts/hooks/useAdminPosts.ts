@@ -12,130 +12,135 @@ import { postService, type BlogPost, type Topic } from "@/src/services/post";
 /** Danh sach bai viet cam nang: loc trang thai / chu de, tim, phan trang, xoa. */
 export function useAdminPosts() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [tong, setTong] = useState(0);
-  const [trang, setTrang] = useState(1);
-  const [tongTrang, setTongTrang] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [topics, setTopics] = useState<Topic[]>([]);
 
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [trangThai, setTrangThai] = useState<PostStatusFilter>("");
-  const [chuDe, setChuDe] = useState("");
-  const [tuKhoa, setTuKhoa] = useState("");
-  const [tuKhoaDangDung, setTuKhoaDangDung] = useState("");
+  const [status, setStatus] = useState<PostStatusFilter>("");
+  const [topic, setTopic] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [activeKeyword, setActiveKeyword] = useState("");
 
-  const tai = async (p: number, tt: PostStatusFilter, cd: string, q: string) => {
-    setDangTai(true);
-    setLoi("");
+  const download = async (
+    p: number,
+    transfer: PostStatusFilter,
+    cd: string,
+    q: string,
+  ) => {
+    setLoading(true);
+    setErrorMessage("");
     try {
       const res = await postService.getAdminPosts({
         page: p,
         limit: C.pageSize,
-        status: tt || undefined,
+        status: transfer || undefined,
         topic: cd || undefined,
         q,
       });
       setPosts(res.posts);
-      setTong(res.total);
-      setTrang(res.page);
-      setTongTrang(res.totalPages);
+      setTotal(res.total);
+      setPage(res.page);
+      setTotalPages(res.totalPages);
     } catch (err) {
-      setLoi(getErrorMessage(err, C.messages.loadFailed));
+      setErrorMessage(getErrorMessage(err, C.messages.loadFailed));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   };
 
-  // Lan tai dau tien. Khong goi tai() o day vi ham do dat setDangTai(true)
+  // Lan tai dau tien. Khong goi tai() o day vi ham do dat setLoading(true)
   // ngay lap tuc - dat state thang trong than effect gay them mot vong ve lai.
-  // dangTai da la true san tu dau nen chi can dat lai state trong callback.
+  // loading da la true san tu dau nen chi can dat lai state trong callback.
   useEffect(() => {
-    let huy = false;
+    let cancel = false;
 
     postService
       .getTopics()
       .then((t) => {
-        if (!huy) setTopics(t);
+        if (!cancel) setTopics(t);
       })
       .catch(() => {
-        if (!huy) setTopics([]);
+        if (!cancel) setTopics([]);
       });
 
     postService
       .getAdminPosts({ page: 1, limit: C.pageSize })
       .then((res) => {
-        if (huy) return;
+        if (cancel) return;
         setPosts(res.posts);
-        setTong(res.total);
-        setTrang(res.page);
-        setTongTrang(res.totalPages);
+        setTotal(res.total);
+        setPage(res.page);
+        setTotalPages(res.totalPages);
       })
       .catch((err) => {
-        if (!huy) setLoi(getErrorMessage(err, C.messages.loadFailed));
+        if (!cancel) setErrorMessage(getErrorMessage(err, C.messages.loadFailed));
       })
       .finally(() => {
-        if (!huy) setDangTai(false);
+        if (!cancel) setLoading(false);
       });
 
     return () => {
-      huy = true;
+      cancel = true;
     };
   }, []);
 
   // Doi bo loc thi luon ve trang 1: giu nguyen trang 3 khi bo loc chi con mot
   // trang se ra danh sach rong ma khong ro tai sao.
-  const doiTrangThai = (v: PostStatusFilter) => {
-    setTrangThai(v);
-    tai(1, v, chuDe, tuKhoaDangDung);
+  const changeStatus = (v: PostStatusFilter) => {
+    setStatus(v);
+    download(1, v, topic, activeKeyword);
   };
 
-  const doiChuDe = (v: string) => {
-    setChuDe(v);
-    tai(1, trangThai, v, tuKhoaDangDung);
+  const changeTopic = (v: string) => {
+    setTopic(v);
+    download(1, status, v, activeKeyword);
   };
 
-  const timKiem = (e: React.FormEvent) => {
+  const search = (e: React.FormEvent) => {
     e.preventDefault();
-    setTuKhoaDangDung(tuKhoa);
-    tai(1, trangThai, chuDe, tuKhoa);
+    setActiveKeyword(keyword);
+    download(1, status, topic, keyword);
   };
 
-  const sangTrang = (p: number) => tai(p, trangThai, chuDe, tuKhoaDangDung);
+  const goToPage = (p: number) => download(p, status, topic, activeKeyword);
 
-  const xoa = async (p: BlogPost) => {
+  const remove = async (p: BlogPost) => {
     if (!window.confirm(C.messages.confirmDelete(p.title))) return;
     try {
       await postService.deletePost(p._id);
       // Xoa bai cuoi cung cua trang -> lui ve trang truoc, khong de trang rong.
-      const conLai = posts.length - 1;
-      sangTrang(conLai === 0 && trang > 1 ? trang - 1 : trang);
+      const remaining = posts.length - 1;
+      goToPage(remaining === 0 && page > 1 ? page - 1 : page);
     } catch (err) {
       alert(getErrorMessage(err, C.messages.deleteFailed));
     }
   };
 
-  const tenChuDe = (slug: string) => topics.find((t) => t.slug === slug)?.name ?? slug;
+  const topicName = (slug: string) => topics.find((t) => t.slug === slug)?.name ?? slug;
 
   return {
     posts,
-    tong,
-    trang,
-    tongTrang,
+    tong: total,
+    trang: page,
+    totalPages,
     topics,
-    dangTai,
-    loi,
-    trangThai,
-    chuDe,
-    tuKhoa,
-    setTuKhoa,
-    tuKhoaDangDung,
-    doiTrangThai,
-    doiChuDe,
-    timKiem,
-    sangTrang,
-    xoa,
-    tenChuDe,
+    loading,
+    loi: errorMessage,
+    status,
+    topic,
+    tuKhoa: keyword,
+    setKeyword,
+    activeKeyword,
+    changeStatus,
+    changeTopic,
+    search,
+    goToPage,
+    xoa: remove,
+    topicName,
   };
 }
 

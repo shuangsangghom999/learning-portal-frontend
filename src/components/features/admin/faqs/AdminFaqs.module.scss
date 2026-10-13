@@ -567,7 +567,7 @@
    Khung hinh phai dat NGAY TRONG file module nay: CSS module bam ten
    @keyframes y het nhu bam ten class, nen mot khung hinh khai o file toan cuc
    se khong bao gio duoc tim thay - va khong co loi nao bao ra. */
-.hienDan {
+.showPaste {
   animation: hien-dan 200ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
@@ -575,7 +575,7 @@
   }
 }
 
-.phongTo {
+.expand {
   animation: phong-to 200ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
@@ -604,7 +604,7 @@
 }
 
 // ---- chon khu vuc FAQ
-.khuVuc {
+.faqArea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -628,7 +628,7 @@
   color: #fff;
 }
 
-.moTaKhuVuc {
+.areaDescription {
   margin-left: calc(var(--spacing) * 2);
   font-size: 0.85rem;
   color: var(--color-slate-500);

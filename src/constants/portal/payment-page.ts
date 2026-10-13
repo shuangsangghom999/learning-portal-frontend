@@ -9,7 +9,6 @@ export const PAYMENT = {
   coursesHref: "/courses",
   cartHref: "/cart",
   myCoursesHref: "/user/my-courses",
-  profileHref: "/user/profile",
   paymentHref: (code: string) => `/payment?code=${code}`,
   learnHref: (slug: string) => `/learn?slug=${slug}`,
   courseHref: (slug: string) => `/course?slug=${slug}`,
@@ -66,12 +65,6 @@ export const PAYMENT = {
     heading: "Các mục trong đơn hàng",
     badge: "KH",
     course: "Khóa học",
-  },
-
-  coin: {
-    aria: "Thanh toán bằng coin",
-    heading: "Trả bằng coin — mở khóa ngay",
-    text: "Không phải chuyển khoản, không phải chờ ban quản trị đối soát.",
   },
 
   bank: {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { AUTH_CALLBACK as C } from "@/src/constants/portal/auth-callback-page";
-import { datNguoiDung, yeuCauNapLai } from "@/src/hooks/userStore";
+import { storeUser, requireReload } from "@/src/hooks/userStore";
 import { googleLogin } from "@/src/services/api";
 
 /** Doi ma Google lay phien dang nhap; tra ve dong trang thai de hien. */
@@ -64,8 +64,8 @@ export function useGoogleCallback() {
           return;
         }
 
-        datNguoiDung(user);
-        yeuCauNapLai();
+        storeUser(user);
+        requireReload();
         setStatus(C.successRedirecting);
 
         setTimeout(() => {

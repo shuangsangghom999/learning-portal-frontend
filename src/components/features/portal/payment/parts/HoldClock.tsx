@@ -1,24 +1,24 @@
 import { PAYMENT as P } from "@/src/constants/portal/payment-page";
-import { dangDongHo } from "@/src/lib/time";
+import { clockFormat } from "@/src/lib/time";
 
 import styles from "../Payment.module.scss";
 
 interface HoldClockProps {
   conLai: number;
-  daBao: boolean;
+  reported: boolean;
 }
 
 /** Dong ho giu don o dau trang. */
-export default function HoldClock({ conLai, daBao }: HoldClockProps) {
+export default function HoldClock({ conLai: remaining, reported }: HoldClockProps) {
   const T = P.clock;
-  const hetGio = conLai <= 0;
+  const timeUp = remaining <= 0;
 
   return (
     <div
       aria-live="polite"
-      className={`${styles.row5} ${hetGio ? styles.box5 : styles.box6}`}
+      className={`${styles.row5} ${timeUp ? styles.box5 : styles.box6}`}
     >
-      {hetGio ? (
+      {timeUp ? (
         // Hai cau khac han nhau tuy da bao chuyen khoan hay chua.
         //
         // Chua bao: phai CAN ho lai, dung chuyen theo ma nay nua - tien vao
@@ -26,7 +26,7 @@ export default function HoldClock({ conLai, daBao }: HoldClockProps) {
         // khoa duoc.
         // Da bao: ho da chuyen roi, noi "dung chuyen" luc nay la vo nghia va
         // chi lam ho hoang. Luc nay phai tran an.
-        daBao ? (
+        reported ? (
           <span>{T.reportedExpired}</span>
         ) : (
           <span>
@@ -37,7 +37,7 @@ export default function HoldClock({ conLai, daBao }: HoldClockProps) {
       ) : (
         <span>
           {T.holding}
-          <strong className={styles.strong}>{dangDongHo(conLai)}</strong>
+          <strong className={styles.strong}>{clockFormat(remaining)}</strong>
         </span>
       )}
     </div>

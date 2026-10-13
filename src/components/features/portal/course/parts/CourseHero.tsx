@@ -4,9 +4,8 @@ import { ArrowLeft, BookOpen, Star, User } from "lucide-react";
 import SafeImage from "@/src/components/ui/SafeImage";
 import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
 import type { Course } from "@/src/services/course";
-import { dinhDangTien } from "@/src/services/order";
+import { formatMoney } from "@/src/services/order";
 import type { ReviewStats } from "@/src/services/review";
-import { HIEN_COIN } from "@/src/services/tinhNang";
 
 import styles from "../CourseDetail.module.scss";
 
@@ -94,14 +93,10 @@ export default function CourseHero({
                 {submitting
                   ? H.processing
                   : (course.price ?? 0) > 0
-                    ? H.buy(dinhDangTien(course.price ?? 0))
+                    ? H.buy(formatMoney(course.price ?? 0))
                     : H.freeEnroll}
                 <span className={styles.label3}>
-                  {(course.price ?? 0) > 0
-                    ? HIEN_COIN
-                      ? H.coinOrTransfer
-                      : H.transferQr
-                    : H.startNow}
+                  {(course.price ?? 0) > 0 ? H.transferQr : H.startNow}
                 </span>
               </button>
             )}

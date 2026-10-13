@@ -10,7 +10,7 @@ import {
 } from "@/src/constants/shared/lesson-create-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { getCourseById } from "@/src/services/course";
-import { addLesson, uploadVideoKin } from "@/src/services/lesson.api";
+import { addLesson, uploadPrivateVideo } from "@/src/services/lesson.api";
 import type { LessonCreateFormData } from "@/src/types/lesson";
 
 /** State va gui bieu mau them bai hoc cho khoa ?courseId=. */
@@ -21,7 +21,7 @@ export function useLessonCreate(role: LessonCreateRole) {
 
   const [submitting, setSubmitting] = useState(false);
   // % tai video len kho kin; null = khong dang tai.
-  const [tienDo, setTienDo] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
   const [formData, setFormData] = useState<LessonCreateFormData>({
     title: "",
     description: "",
@@ -35,12 +35,12 @@ export function useLessonCreate(role: LessonCreateRole) {
 
   // Thu tu mac dinh la bai ke tiep. Truoc day o day ghi cung "1" cho moi bai,
   // nen ca khoa deu order = 1 va muc luc xep lung tung.
-  const layThuTuKeTiep = useCallback(async () => {
+  const getNextOrder = useCallback(async () => {
     if (!courseId) return;
     try {
-      const khoa = await getCourseById(courseId);
-      const soBai = Array.isArray(khoa?.lessons) ? khoa.lessons.length : 0;
-      setFormData((truoc) => ({ ...truoc, order: soBai + 1 }));
+      const course = await getCourseById(courseId);
+      const lessonCount = Array.isArray(course?.lessons) ? course.lessons.length : 0;
+      setFormData((before) => ({ ...before, order: lessonCount + 1 }));
     } catch {
       // Khong lay duoc thi cu de 1, nguoi dung van sua tay duoc.
     }
@@ -51,8 +51,8 @@ export function useLessonCreate(role: LessonCreateRole) {
     // dong bo ngay trong than effect, React phai chay them mot vong ve lai
     // (rule react-hooks/set-state-in-effect). Cung cach lam voi trang
     // admin/lessons.
-    void Promise.resolve().then(layThuTuKeTiep);
-  }, [layThuTuKeTiep]);
+    void Promise.resolve().then(getNextOrder);
+  }, [getNextOrder]);
 
   const changeHandler = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -88,11 +88,11 @@ export function useLessonCreate(role: LessonCreateRole) {
       // Co tep thi uu tien tep: trinh duyet tai THANG len kho kin Cloudinary
       // roi chi gui ma video (videoPublicId). Truoc day gui file qua backend -
       // hong voi video that tren Vercel (gioi han ~4.5 MB moi request), va video
-      // nam o che do cong khai. Xem uploadVideoKin.
+      // nam o che do cong khai. Xem uploadPrivateVideo.
       if (videoFile) {
-        setTienDo(0);
-        const maVideo = await uploadVideoKin(videoFile, setTienDo);
-        dataToSend.append("videoPublicId", maVideo);
+        setProgress(0);
+        const videoId = await uploadPrivateVideo(videoFile, setProgress);
+        dataToSend.append("videoPublicId", videoId);
       } else if (formData.videoUrl.trim()) {
         dataToSend.append("videoUrl", formData.videoUrl.trim());
       }
@@ -112,14 +112,14 @@ export function useLessonCreate(role: LessonCreateRole) {
       alert(getErrorMessage(error) || getErrorMessage(error, C.messages.failure));
     } finally {
       setSubmitting(false);
-      setTienDo(null);
+      setProgress(null);
     }
   };
 
   return {
     courseId,
     submitting,
-    tienDo,
+    progress,
     formData,
     videoFile,
     documentFile,

@@ -48,7 +48,7 @@
   box-shadow: 0 8px 28px -4px rgb(0 0 0 / 0.45);
 }
 
-.vungTha {
+.dropZone {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,34 +71,34 @@
 }
 
 // Dang keo file ngang qua: doi mau ro rang de nguoi dung biet tha duoc.
-.vungThaKeo {
+.dragDropZone {
   background-color: #e5edff;
   border-bottom-color: var(--color-blue-500);
 }
 
-.iconTai {
+.uploadIcon {
   color: #8b95a9;
 }
 
-.thaTieuDe {
+.dropTitle {
   margin-top: calc(var(--spacing) * 2);
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--color-slate-800);
 }
 
-.thaPhu {
+.dropHint {
   margin-top: calc(var(--spacing) * 1.5);
   font-size: 0.9rem;
   color: var(--color-slate-500);
 }
 
-.chonFile {
+.pickFile {
   font-weight: 700;
   color: var(--color-blue-600);
 }
 
-.thaGhiChu {
+.dropNote {
   margin-top: calc(var(--spacing) * 1);
   font-size: 0.8rem;
   color: var(--color-slate-500);
@@ -109,19 +109,19 @@
   text-align: left;
 }
 
-.dongTim {
+.searchRow {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 2);
   padding-inline: calc(var(--spacing) * 1);
 }
 
-.iconTim {
+.searchIcon {
   flex-shrink: 0;
   color: var(--color-slate-400);
 }
 
-.nhapTim {
+.searchInput {
   flex: 1;
   min-width: 0;
   padding-block: calc(var(--spacing) * 2);
@@ -138,7 +138,7 @@
   }
 }
 
-.dongDuoi {
+.bottomRow {
   margin-top: calc(var(--spacing) * 2);
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@
   }
 }
 
-.nutTim {
+.searchButton {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -189,14 +189,14 @@
 
 // --------------------------------------------------------------- mang mau SVG
 
-.hinh {
+.icon {
   position: absolute;
   z-index: 0;
   pointer-events: none;
   background: center / contain no-repeat;
 }
 
-.giotTim {
+.searchDrop {
   top: 12%;
   left: 2%;
   width: 96px;
@@ -204,7 +204,7 @@
   background-image: url("/images/share-document/giot-tim.svg");
 }
 
-.trungCam {
+.orangeAccent {
   top: 56%;
   left: 2.5%;
   width: 46px;
@@ -212,7 +212,7 @@
   background-image: url("/images/share-document/trung-cam.svg");
 }
 
-.sungHong {
+.pinkGlow {
   bottom: -18px;
   left: 3%;
   width: 80px;
@@ -220,7 +220,7 @@
   background-image: url("/images/share-document/sung-hong.svg");
 }
 
-.chamChanh {
+.dotTeal {
   top: 17%;
   right: 5%;
   width: 34px;
@@ -228,7 +228,7 @@
   background-image: url("/images/share-document/cham-chanh.svg");
 }
 
-.giotXanh {
+.dropGreen {
   top: 45%;
   right: 2.5%;
   width: 56px;
@@ -236,7 +236,7 @@
   background-image: url("/images/share-document/giot-xanh.svg");
 }
 
-.laChanh {
+.leafTeal {
   bottom: -6px;
   right: 2%;
   width: 140px;
@@ -244,7 +244,7 @@
   background-image: url("/images/share-document/la-chanh.svg");
 }
 
-.chamHong {
+.dotPink {
   bottom: -10px;
   left: 49%;
   width: 36px;
@@ -255,14 +255,14 @@
 // Troi nhe len xuong. Chi chay khi may KHONG bat "giam chuyen dong" - xem
 // ghi chu o PartnerMarquee ve Windows tat hieu ung.
 @media (prefers-reduced-motion: no-preference) {
-  .giotTim,
-  .giotXanh,
-  .trungCam {
+  .searchDrop,
+  .dropGreen,
+  .orangeAccent {
     animation: troi 7s ease-in-out infinite;
   }
 
-  .chamChanh,
-  .sungHong {
+  .dotTeal,
+  .pinkGlow {
     animation: troi 9s ease-in-out infinite reverse;
   }
 }
@@ -284,29 +284,29 @@
     padding-top: calc(var(--spacing) * 14);
   }
 
-  .giotTim {
+  .searchDrop {
     top: 3%;
     left: -24px;
     width: 60px;
     height: 80px;
   }
 
-  .giotXanh,
-  .trungCam,
-  .chamHong,
-  .sungHong {
+  .dropGreen,
+  .orangeAccent,
+  .dotPink,
+  .pinkGlow {
     display: none;
   }
 
   // Khung giua chiem gan het be ngang - thu nho la chanh va day xuong goc de
   // khong de len mep duoi cua khung.
-  .laChanh {
+  .leafTeal {
     bottom: -30px;
     width: 96px;
     height: 46px;
   }
 
-  .chamChanh {
+  .dotTeal {
     top: 4%;
   }
 }

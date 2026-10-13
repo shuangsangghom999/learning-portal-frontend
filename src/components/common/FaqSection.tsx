@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { HelpCircle, Minus, Plus } from "lucide-react";
-import { faqService, type FaqItem, type ViTriFaq } from "@/src/services/faq";
-import TieuDeMuc from "./SectionHeading";
+import { faqService, type FaqItem, type FaqArea } from "@/src/services/faq";
+import SectionTitle from "./SectionHeading";
 
 import styles from "./FaqSection.module.scss";
 function FaqAccordionSkeleton() {
@@ -31,27 +31,27 @@ interface Props {
    */
   initialData?: FaqItem[] | null;
   /** Khu vuc: trang chu he thong (mac dinh) hay trang chu khu Chia se tai lieu. */
-  viTri?: ViTriFaq;
+  viTri?: FaqArea;
   tieuDe?: string;
   moTa?: string;
 }
 
-const MO_TA_MAC_DINH: Record<ViTriFaq, string> = {
+const DEFAULT_DESCRIPTION: Record<FaqArea, string> = {
   trangChu:
     "Những thắc mắc hay gặp nhất về học phí, chứng nhận và cách khoá học vận hành.",
   taiLieu: "Những thắc mắc hay gặp nhất khi xem, tải và chia sẻ tài liệu học tập.",
 };
 
-const TEN_KHU_VUC: Record<ViTriFaq, string> = {
+const AREA_NAMES: Record<FaqArea, string> = {
   trangChu: "Trang chủ",
   taiLieu: "Chia sẻ tài liệu",
 };
 
 export default function FaqSection({
   initialData,
-  viTri = "trangChu",
-  tieuDe = "Câu hỏi thường gặp",
-  moTa,
+  viTri: position = "trangChu",
+  tieuDe: title = "Câu hỏi thường gặp",
+  moTa: description,
 }: Props) {
   const [faqs, setFaqs] = useState<FaqItem[]>(initialData ?? []);
   const [loading, setLoading] = useState<boolean>(!initialData);
@@ -60,11 +60,11 @@ export default function FaqSection({
   useEffect(() => {
     if (initialData) return;
 
-    (viTri === "taiLieu" ? faqService.getDocumentFaqs() : faqService.getHomepageFaqs())
+    (position === "taiLieu" ? faqService.getDocumentFaqs() : faqService.getHomepageFaqs())
       .then((data) => setFaqs(data || []))
       .catch((error) => console.error("❌ Error fetching homepage FAQs:", error))
       .finally(() => setLoading(false));
-  }, [initialData, viTri]);
+  }, [initialData, position]);
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -73,7 +73,10 @@ export default function FaqSection({
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <TieuDeMuc tieuDe={tieuDe} moTa={moTa ?? MO_TA_MAC_DINH[viTri]} />
+        <SectionTitle
+          tieuDe={title}
+          moTa={description ?? DEFAULT_DESCRIPTION[position]}
+        />
 
         {loading ? (
           <FaqAccordionSkeleton />
@@ -81,7 +84,7 @@ export default function FaqSection({
           <div className={styles.row2}>
             <HelpCircle size={18} />
             <span>
-              Chưa có câu hỏi thường gặp nào được thiết lập cho {TEN_KHU_VUC[viTri]}.
+              Chưa có câu hỏi thường gặp nào được thiết lập cho {AREA_NAMES[position]}.
             </span>
           </div>
         ) : (

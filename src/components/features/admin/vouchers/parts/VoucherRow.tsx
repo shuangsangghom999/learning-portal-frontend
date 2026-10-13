@@ -2,14 +2,14 @@ import { Power, Users } from "lucide-react";
 
 import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
 
-import type { MaHienThi } from "../hooks/useAdminVouchers";
+import type { VoucherView } from "../hooks/useAdminVouchers";
 import styles from "../AdminVouchers.module.scss";
 
-const dinhDangNgay = (iso: string) => new Date(iso).toLocaleDateString("vi-VN");
-const tien = (n: number) => n.toLocaleString("vi-VN");
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString("vi-VN");
+const money = (n: number) => n.toLocaleString("vi-VN");
 
 interface VoucherRowProps {
-  m: MaHienThi;
+  m: VoucherView;
   onUsage: (id: string) => void;
   onToggle: (id: string) => void;
 }
@@ -25,19 +25,19 @@ export default function VoucherRow({ m, onUsage, onToggle }: VoucherRowProps) {
         {m.moTa && <p className={styles.text4}>{m.moTa}</p>}
       </td>
       <td className={styles.cell}>
-        {m.loai === "phanTram" ? `${m.giaTri}%` : `${tien(m.giaTri)}đ`}
+        {m.loai === "phanTram" ? `${m.giaTri}%` : `${money(m.giaTri)}đ`}
         {m.giamToiDa ? (
-          <span className={styles.label4}>{R.capNote(tien(m.giamToiDa))}</span>
+          <span className={styles.label4}>{R.clipNote(money(m.giamToiDa))}</span>
         ) : null}
       </td>
       <td className={styles.cell2}>
-        {m.donToiThieu > 0 ? R.minOrder(tien(m.donToiThieu)) : R.noMinOrder}
+        {m.donToiThieu > 0 ? R.minOrder(money(m.donToiThieu)) : R.noMinOrder}
         <span className={styles.label5}>
           {m.moiNguoiMotLan ? R.oncePerUser : R.unlimitedPerUser}
         </span>
       </td>
       <td className={styles.cell3}>
-        {R.range(dinhDangNgay(m.batDau), dinhDangNgay(m.ketThuc))}
+        {R.range(formatDate(m.batDau), formatDate(m.ketThuc))}
       </td>
       <td className={styles.cell4}>
         {m.daDung}

@@ -4,11 +4,11 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { documentService, type DocumentSubject } from "@/src/services/document";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useStoredUser } from "@/src/hooks/userStore";
 import ShareDocumentHero from "./ShareDocumentHero";
 import DocumentUploadForm, { type DocumentUploadFormHandle } from "./DocumentUploadForm";
 import { MAX_MB } from "@/src/lib/document/file-info";
-import { duongTatCa } from "@/src/lib/document/duong-dan";
+import { allPath } from "@/src/lib/document/paths";
 
 import styles from "./ShareDocumentClient.module.scss";
 
@@ -20,31 +20,35 @@ import styles from "./ShareDocumentClient.module.scss";
  * Trang nay KHONG con danh sach tai lieu - danh sach nam o /share-document/browse.
  * Tim hay bam the mon o dai dau trang thi chuyen sang do, kem bo loc.
  */
-export default function ShareDocumentIndex({ dsMon }: { dsMon: DocumentSubject[] }) {
+export default function ShareDocumentIndex({
+  subjectList,
+}: {
+  subjectList: DocumentSubject[];
+}) {
   const router = useRouter();
-  const user = useNguoiDungLuu();
-  const [tuKhoa, setTuKhoa] = useState("");
-  const [moForm, setMoForm] = useState(false);
+  const user = useStoredUser();
+  const [keyword, setKeyword] = useState("");
+  const [openForm, setOpenForm] = useState(false);
   const formRef = useRef<DocumentUploadFormHandle>(null);
 
-  const tim = () => {
+  const search = () => {
     // Ghi lai de goi y hoc duoc nguoi nay quan tam gi - viec phu, loi bo qua.
-    if (user && tuKhoa.trim()) documentService.logSearch(tuKhoa).catch(() => {});
-    router.push(duongTatCa({ q: tuKhoa }));
+    if (user && keyword.trim()) documentService.logSearch(keyword).catch(() => {});
+    router.push(allPath({ q: keyword }));
   };
 
-  const thaFile = (files: File[]) => {
-    setMoForm(true);
-    // Form co the chua co trong DOM (vua bat moForm) - doi mot khung hinh.
+  const dropFile = (files: File[]) => {
+    setOpenForm(true);
+    // Form co the chua co trong DOM (vua bat openForm) - doi mot khung hinh.
     requestAnimationFrame(() => {
       formRef.current?.themFile(files);
-      formRef.current?.cuonToi();
+      formRef.current?.scrollTo();
     });
   };
 
   // Mo hop dang nhap NGAY TREN TRANG NAY (AuthModalGate nghe ?auth). pushState
   // chu khong router.push - xem ghi chu trong AuthModalGate.
-  const moDangNhap = () => {
+  const openLogin = () => {
     const u = new URL(window.location.href);
     u.searchParams.set("auth", "login");
     u.searchParams.set("vi", "chiase");
@@ -54,28 +58,28 @@ export default function ShareDocumentIndex({ dsMon }: { dsMon: DocumentSubject[]
   return (
     <>
       <ShareDocumentHero
-        daDangNhap={Boolean(user)}
-        gioiHanMb={MAX_MB}
-        khiChonFile={thaFile}
-        khiCanDangNhap={moDangNhap}
-        tuKhoa={tuKhoa}
-        doiTuKhoa={setTuKhoa}
-        khiTim={tim}
-        monNoiBat={dsMon
+        loggedIn={Boolean(user)}
+        limitMb={MAX_MB}
+        onPickFile={dropFile}
+        onNeedLogin={openLogin}
+        tuKhoa={keyword}
+        changeKeyword={setKeyword}
+        onSearch={search}
+        featuredSubject={subjectList
           .filter((m) => m.soTaiLieu > 0)
           .sort((x, y) => y.soTaiLieu - x.soTaiLieu)
           .slice(0, 4)}
-        khiChonMon={(key) => router.push(duongTatCa({ mon: key }))}
+        onPickSubject={(key) => router.push(allPath({ mon: key }))}
       />
 
-      {user && moForm && (
+      {user && openForm && (
         <div className={styles.container}>
           <DocumentUploadForm
             ref={formRef}
-            dsMon={dsMon}
-            khiDong={() => setMoForm(false)}
+            subjectList={subjectList}
+            onClose={() => setOpenForm(false)}
             // Dang xong: lam moi so dem linh vuc / mon (component may chu).
-            khiDangXong={() => router.refresh()}
+            onPosted={() => router.refresh()}
           />
         </div>
       )}

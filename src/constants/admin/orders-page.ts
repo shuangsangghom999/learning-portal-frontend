@@ -1,4 +1,4 @@
-import type { TrangThaiDon } from "@/src/services/order";
+import type { OrderStatus } from "@/src/services/order";
 
 /** Chu va cau hinh cua trang /admin/orders. */
 export const ADMIN_ORDERS = {
@@ -15,7 +15,7 @@ export const ADMIN_ORDERS = {
     { nhan: "Đã hủy", giaTri: "cancelled" },
     { nhan: "Hết hạn", giaTri: "expired" },
     { nhan: "Tất cả", giaTri: "" },
-  ] satisfies { nhan: string; giaTri: TrangThaiDon | "" }[],
+  ] satisfies { nhan: string; giaTri: OrderStatus | "" }[],
   searchPlaceholder: "Tìm theo mã đơn…",
 
   statusLabel: {
@@ -23,7 +23,7 @@ export const ADMIN_ORDERS = {
     paid: "Đã thanh toán",
     cancelled: "Đã hủy",
     expired: "Hết hạn",
-  } satisfies Record<TrangThaiDon, string>,
+  } satisfies Record<OrderStatus, string>,
 
   columns: {
     code: "Mã đơn",

@@ -1,4 +1,4 @@
-import TieuDeMuc from "@/src/components/common/SectionHeading";
+import SectionTitle from "@/src/components/common/SectionHeading";
 import { BLOG } from "@/src/constants/portal/blog-page";
 
 interface BlogHeadingProps {
@@ -17,15 +17,15 @@ export default function BlogHeading({
   topicName,
 }: BlogHeadingProps) {
   return (
-    <TieuDeMuc
+    <SectionTitle
       nhu="h1"
       tieuDe={topicName ?? title}
       moTa={description}
       // Dang loc theo mot chu de thi mo mot duong ra. Truoc day loi ra duy
       // nhat la cai the chu de o cot phai - ma tren man hinh hep cot do bi
       // day xuong tan duoi danh sach bai.
-      xemTatCa={topicName ? BLOG.listHref : undefined}
-      chuXemTatCa={allPosts}
+      viewAll={topicName ? BLOG.listHref : undefined}
+      viewAllLabel={allPosts}
     />
   );
 }

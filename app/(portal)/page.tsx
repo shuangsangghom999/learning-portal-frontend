@@ -8,7 +8,7 @@ import {
   HomePartners,
   HomePopularCourses,
   HomeTestimonials,
-  layDuLieuTrangChu,
+  getHomeData,
 } from "@/src/components/features/portal/home";
 import { HOME_PAGE } from "@/src/constants/portal/home-page";
 
@@ -20,31 +20,35 @@ export const revalidate = 60;
 export default async function HomePage() {
   // Du lieu dong (so khoa, danh muc, don vi...) lay mot lan o may chu, song
   // song. Chu tinh cua tung muc nam trong HOME_PAGE.
-  const d = await layDuLieuTrangChu();
+  const d = await getHomeData();
 
   return (
     // AuthModalGate da chuyen len app/(portal)/layout.tsx: moi trang trong
     // khu hoc vien deu can mo duoc hop dang nhap, khong rieng trang chu.
     <div>
-      <HomeHero {...HOME_PAGE.hero} soKhoa={d.soKhoa} soMienPhi={d.soMienPhi} />
+      <HomeHero
+        {...HOME_PAGE.hero}
+        courseCount={d.courseCount}
+        freeCourseCount={d.freeCourseCount}
+      />
 
       {/* Dai chay ngang nay thay cho luoi the doi tac hoi truoc - cung mot
           noi dung (don vi dao tao), nhung gon trong mot dai. */}
-      <HomePartners donVi={d.donVi} />
+      <HomePartners unit={d.unit} />
 
       <HomeFeatures {...HOME_PAGE.features} />
 
       <HomeCategories
         {...HOME_PAGE.categories}
         initialData={d.categories}
-        soKhoaTheoDanhMuc={d.soKhoaTheoDanhMuc}
+        courseCountByCategory={d.courseCountByCategory}
       />
 
-      <HomePopularCourses {...HOME_PAGE.popularCourses} initialData={d.mucNoiBat} />
+      <HomePopularCourses {...HOME_PAGE.popularCourses} initialData={d.featuredItems} />
 
       <HomeCourses
         {...HOME_PAGE.courses}
-        initialCourses={d.khoaDaDang}
+        initialCourses={d.publishedCourses}
         initialCategories={d.categories}
       />
 

@@ -8,8 +8,8 @@ import {
   INSTRUCTOR_LESSON_ROUTES,
   INSTRUCTOR_SHELL as C,
 } from "@/src/constants/instructor/menu";
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
-import { xoaPhien } from "@/src/services/apiHelper";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
+import { clearSession } from "@/src/services/apiHelper";
 
 /** Gac cong khu giang vien, trang thai menu khoa hoc va dang xuat. */
 export function useInstructorShell() {
@@ -18,35 +18,34 @@ export function useInstructorShell() {
 
   // Doc localStorage bang useSyncExternalStore thay vi useEffect + setState,
   // xem src/hooks/userStore.ts. Effect ben duoi chi con lo viec chuyen huong.
-  const nguoiDung = useNguoiDungLuu();
-  const dangTaiNguoiDung = useDangTaiNguoiDung();
-  const instructorName = nguoiDung?.name ?? "";
+  const user = useStoredUser();
+  const loadingUser = useUserLoading();
+  const instructorName = user?.name ?? "";
 
   // `loading` SUY RA duoc, khong can state rieng: con dang hoi may chu, hoac
   // sai vai tro va dang bi day ra. Giu state rieng thi phai setLoading() ngay
   // trong effect - React canh bao vi no de sinh vong ve lai day chuyen, va
   // eslint o day chay voi --max-warnings 0.
-  const loading =
-    dangTaiNguoiDung || (nguoiDung?.role !== "instructor" && nguoiDung?.role !== "admin");
+  const loading = loadingUser || (user?.role !== "instructor" && user?.role !== "admin");
 
   // null = "chua bam gi, cu theo duong dan"; true/false = nguoi dung da tu bam.
-  const [menuKhoaTuBam, setMenuKhoaTuBam] = useState<boolean | null>(null);
+  const [courseMenuOpened, setCourseMenuOpened] = useState<boolean | null>(null);
 
-  const oKhuKhoaHoc =
+  const inCourseArea =
     INSTRUCTOR_COURSE_ROUTES.includes(pathname) ||
     INSTRUCTOR_LESSON_ROUTES.includes(pathname);
 
   // Chuyen SANG mot trang thuoc khu khoa hoc thi bo lua chon tu bam, cho menu
   // mo lai. Chuyen sang trang khac thi giu nguyen y nguoi dung - dung y het
   // hanh vi cua useEffect cu, chi khac la khong ton mot vong ve lai.
-  const [duongDanCu, setDuongDanCu] = useState(pathname);
-  if (duongDanCu !== pathname) {
-    setDuongDanCu(pathname);
-    if (oKhuKhoaHoc) setMenuKhoaTuBam(null);
+  const [previousPath, setPreviousPath] = useState(pathname);
+  if (previousPath !== pathname) {
+    setPreviousPath(pathname);
+    if (inCourseArea) setCourseMenuOpened(null);
   }
 
   // Chua bam thi mo san, giu nguyen useState(true) cu.
-  const isCourseMenuOpen = menuKhoaTuBam ?? true;
+  const isCourseMenuOpen = courseMenuOpened ?? true;
 
   // Gac cong khu giang vien bang cau tra loi cua MAY CHU.
   //
@@ -61,7 +60,7 @@ export function useInstructorShell() {
   // payload nguoi dung tu go ra - y het van de cu, lai them nguy co XSS doc
   // trom token (xem ghi chu dau utils/cookieToken.js ben backend).
   //
-  // Duong dung la HOI MAY CHU. <NapNguoiDung /> o root layout da goi
+  // Duong dung la HOI MAY CHU. <UserBootstrap /> o root layout da goi
   // GET /users/profile mot lan va cat ket qua vao kho trong RAM; vai tro trong
   // do lay thang tu CSDL nen khong sua duoc tu trinh duyet.
   //
@@ -69,19 +68,18 @@ export function useInstructorShell() {
   // mot luot mang trung lap, va apiHelper gap 401 se tu day ve trang chu -
   // hai duong chuyen huong chay dua nhau thi rat kho lan ra khi co su co.
   useEffect(() => {
-    if (dangTaiNguoiDung) return;
+    if (loadingUser) return;
 
-    if (nguoiDung?.role !== "instructor" && nguoiDung?.role !== "admin")
-      router.push(C.outHref);
-  }, [dangTaiNguoiDung, nguoiDung, router]);
+    if (user?.role !== "instructor" && user?.role !== "admin") router.push(C.outHref);
+  }, [loadingUser, user, router]);
 
   const logoutHandler = async () => {
     // Truoc day cho nay chi xoa userInfo, KHONG xoa authToken - da "dang xuat"
     // ma getHeaders van gan token cu vao moi request, nguoi ke tiep dung may
-    // van con la giang vien voi backend. xoaPhien() lam du bon viec, xem apiHelper.
+    // van con la giang vien voi backend. clearSession() lam du bon viec, xem apiHelper.
     // PHAI await, neu khong dieu huong se huy request dang xuat giua chung va
     // cookie con nguyen - xem ghi chu o apiHelper.
-    await xoaPhien();
+    await clearSession();
     router.push(C.outHref);
   };
 
@@ -89,9 +87,9 @@ export function useInstructorShell() {
     pathname,
     loading,
     instructorName,
-    oKhuKhoaHoc,
+    inCourseArea,
     isCourseMenuOpen,
-    toggleCourseMenu: () => setMenuKhoaTuBam(!isCourseMenuOpen),
+    toggleCourseMenu: () => setCourseMenuOpened(!isCourseMenuOpen),
     logoutHandler,
   };
 }

@@ -9,16 +9,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { ADMIN_USERS as C } from "@/src/constants/admin/users-page";
 
 import type { AdminUser } from "../hooks/useAdminUsers";
 import styles from "../AdminUsers.module.scss";
 
 const ROLE_STYLE: Record<string, { cls: string; Icon: LucideIcon }> = {
-  admin: { cls: styles.nhanAdmin, Icon: ShieldCheck },
-  instructor: { cls: styles.nhanGiangVien, Icon: GraduationCap },
-  student: { cls: styles.nhanHocVien, Icon: UserIcon },
+  admin: { cls: styles.adminLabel, Icon: ShieldCheck },
+  instructor: { cls: styles.instructorLabel, Icon: GraduationCap },
+  student: { cls: styles.studentLabel, Icon: UserIcon },
 };
 
 interface UserRowProps {
@@ -55,10 +55,10 @@ export default function UserRow({
               title={R.viewAvatar}
               className={styles.button2}
             >
-              <AnhDaiDien src={u.avatar} ten={u.name} size={36} />
+              <Avatar src={u.avatar} ten={u.name} size={36} />
             </button>
           ) : (
-            <AnhDaiDien ten={u.name} size={36} />
+            <Avatar ten={u.name} size={36} />
           )}
           <div className={styles.box3}>
             <p className={styles.text4}>

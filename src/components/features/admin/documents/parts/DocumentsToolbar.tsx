@@ -26,53 +26,53 @@ export default function DocumentsToolbar({ s }: { s: AdminDocumentsState }) {
             {C.stats.downloads(s.tongLuotTai)}
           </span>
           {/* Chi hien khi co: day la viec admin can lam, khong phai so lieu. */}
-          {s.soChuaCoMon > 0 && (
+          {s.missingSubjectCount > 0 && (
             <span className={`${styles.stat} ${styles.statCanh}`}>
               <AlertCircle size={15} />
-              {C.stats.noSubject(s.soChuaCoMon)}
+              {C.stats.noSubject(s.missingSubjectCount)}
             </span>
           )}
         </div>
       </header>
 
-      <form onSubmit={s.timKiem} className={styles.timKhung}>
-        <Search size={16} className={styles.timIcon} />
+      <form onSubmit={s.search} className={styles.searchBox}>
+        <Search size={16} className={styles.searchIcon} />
         <input
-          value={s.oTim}
-          onChange={(e) => s.setOTim(e.target.value)}
+          value={s.searchInput}
+          onChange={(e) => s.setSearchInput(e.target.value)}
           placeholder={C.search.placeholder}
-          className={styles.timInput}
+          className={styles.searchInput}
         />
         {s.tuKhoa && (
           <button
             type="button"
-            onClick={s.xoaTim}
-            className={styles.timXoa}
+            onClick={s.clearSearch}
+            className={styles.clearSearch}
             aria-label={C.search.clearAria}
           >
             <X size={15} />
           </button>
         )}
-        <button type="submit" className={styles.timNut}>
+        <button type="submit" className={styles.searchButton}>
           {C.search.submit}
         </button>
       </form>
 
       {s.loi && (
-        <div className={styles.bangLoi}>
+        <div className={styles.errorTable}>
           <AlertCircle size={16} />
           {s.loi}
         </div>
       )}
-      {s.baoThanhCong && (
+      {s.showSuccess && (
         <div className={styles.bangOk}>
           <CheckCircle size={16} />
-          {s.baoThanhCong}
+          {s.showSuccess}
           <button
             type="button"
-            onClick={s.dongBao}
+            onClick={s.closeNotice}
             aria-label={C.closeAria}
-            className={styles.dong}
+            className={styles.rows}
           >
             <X size={14} />
           </button>

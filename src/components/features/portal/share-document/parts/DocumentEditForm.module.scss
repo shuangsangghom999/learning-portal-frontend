@@ -53,15 +53,15 @@
   color: #b91c1c;
 }
 
-.nut {
+.button {
   margin-top: calc(var(--spacing) * 3);
   display: flex;
   justify-content: flex-end;
   gap: calc(var(--spacing) * 3);
 }
 
-.nutHuy,
-.nutLuu {
+.cancelButton,
+.saveButton {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -73,7 +73,7 @@
   cursor: pointer;
 }
 
-.nutHuy {
+.cancelButton {
   border: 1px solid var(--color-slate-300);
   color: var(--color-slate-700);
 
@@ -84,7 +84,7 @@
   }
 }
 
-.nutLuu {
+.saveButton {
   background-color: var(--color-blue-600);
   color: #fff;
 

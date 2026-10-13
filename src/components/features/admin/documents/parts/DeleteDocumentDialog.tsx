@@ -9,38 +9,38 @@ import styles from "../AdminDocuments.module.scss";
  */
 export default function DeleteDocumentDialog({ s }: { s: AdminDocumentsState }) {
   const D = C.deleteDialog;
-  if (!s.hoiXoa) return null;
+  if (!s.pendingDelete) return null;
 
   return (
     <div
-      className={styles.lopPhu}
+      className={styles.overlay}
       role="dialog"
       aria-modal="true"
       aria-labelledby="tieu-de-xoa"
     >
-      <div className={styles.hopThoai}>
-        <h2 id="tieu-de-xoa" className={styles.hopTieuDe}>
+      <div className={styles.dialog}>
+        <h2 id="tieu-de-xoa" className={styles.titleBox}>
           {D.title}
         </h2>
-        <p className={styles.hopChu}>
-          <strong>{s.hoiXoa.title}</strong>
+        <p className={styles.textBox}>
+          <strong>{s.pendingDelete.title}</strong>
           {D.body}
         </p>
-        <div className={styles.hopNut}>
+        <div className={styles.buttonBox}>
           <button
             type="button"
-            onClick={() => s.setHoiXoa(null)}
-            className={styles.nutHuy}
+            onClick={() => s.setPendingDelete(null)}
+            className={styles.cancelButton}
           >
             {D.cancel}
           </button>
           <button
             type="button"
-            onClick={s.xacNhanXoa}
-            disabled={s.dangXoa !== null}
-            className={styles.nutXacNhan}
+            onClick={s.confirmDelete}
+            disabled={s.deleting !== null}
+            className={styles.confirmButton}
           >
-            {s.dangXoa ? D.deleting : D.confirm}
+            {s.deleting ? D.deleting : D.confirm}
           </button>
         </div>
       </div>

@@ -4,8 +4,8 @@ import type { SettingsTabKey } from "@/src/types/settings";
 
 // Giu dung mot bo luat voi may chu (backend/src/routes/userRoutes.js). Lech
 // nhau la nguoi dung chon duoc anh ma tai len lai bi tu choi.
-export const MAX_ANH_MB = 5;
-export const MIME_ANH = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+export const MAX_IMAGE_MB = 5;
+export const IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export const SETTINGS_NAV: {
   group: string;
@@ -178,7 +178,7 @@ export const USER_SETTINGS = {
       mismatch: "Xác nhận mật khẩu không khớp.",
       deactivateFailed: "Không thể vô hiệu hóa.",
       /** Loi chung "Mật khẩu ..." doi thanh "Mật khẩu mới ..." cho dung o dang sua. */
-      fromRule: (loi: string) => loi.replace("Mật khẩu", "Mật khẩu mới") + ".",
+      fromRule: (err: string) => err.replace("Mật khẩu", "Mật khẩu mới") + ".",
     },
   },
 

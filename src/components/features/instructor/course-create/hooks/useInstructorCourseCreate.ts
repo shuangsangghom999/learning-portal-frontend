@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { INSTRUCTOR_COURSE_CREATE as C } from "@/src/constants/instructor/course-create-page";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useStoredUser } from "@/src/hooks/userStore";
 import { convertToSlug } from "@/src/lib/slug";
 import { getCategories, Category } from "@/src/services/categoryService";
 import { createCourse } from "@/src/services/course";
@@ -31,8 +31,8 @@ export function useInstructorCourseCreate() {
   const [providers, setProviders] = useState<ProviderData[]>([]);
   const [formData, setFormData] = useState<CourseCreateFormData>(FORM_RONG);
 
-  const nguoiDung = useNguoiDungLuu();
-  const [daDien, setDaDien] = useState<string | null>(null);
+  const user = useStoredUser();
+  const [filled, setFilled] = useState<string | null>(null);
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -59,10 +59,10 @@ export function useInstructorCourseCreate() {
   // Tu dien doi tac neu giang vien da cau hinh san trong ho so.
   //
   // Chinh NGAY TRONG LUC VE, khong dung useEffect. Danh tinh den tu may chu
-  // (<NapNguoiDung />) nen luc fetchMetadata chay no con la null; con nhet vao
+  // (<UserBootstrap />) nen luc fetchMetadata chay no con la null; con nhet vao
   // effect thi eslint chan vi setState dong bo trong effect (--max-warnings 0).
   // Day la mau "dieu chinh state khi du lieu ngoai doi" ma React huong dan:
-  // co `daDien` chan lai nen chi chay dung mot lan cho moi doi tac, khong lap
+  // co `filled` chan lai nen chi chay dung mot lan cho moi doi tac, khong lap
   // vo tan, va nguoi dung tu doi o vao doi tac khac thi khong bi ghi de.
   //
   // Bu them: truong `provider` nay lay tu ho so DAY DU, con ban cu doc
@@ -70,14 +70,12 @@ export function useInstructorCourseCreate() {
   // nay truoc gio chua bao gio duoc dien tu dong.
   // typeof null cung la "object": giang vien chua gan doi tac thi provider la
   // null, phai dung ?. chu khong duoc doc thang ._id.
-  const doiTacHoSo =
-    typeof nguoiDung?.provider === "object"
-      ? nguoiDung.provider?._id
-      : nguoiDung?.provider;
+  const partnerProfile =
+    typeof user?.provider === "object" ? user.provider?._id : user?.provider;
 
-  if (doiTacHoSo && daDien !== doiTacHoSo) {
-    setDaDien(doiTacHoSo);
-    setFormData((prev) => ({ ...prev, providerId: doiTacHoSo }));
+  if (partnerProfile && filled !== partnerProfile) {
+    setFilled(partnerProfile);
+    setFormData((prev) => ({ ...prev, providerId: partnerProfile }));
   }
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

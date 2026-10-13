@@ -14,10 +14,10 @@ import styles from "./HomeFeatures.module.scss";
  *   - Nguoi doc man hinh doc duoc noi dung ben trong, khac han mot tam PNG.
  */
 
-function DanhSachDiem({ diem }: { diem: readonly string[] }) {
+function PointList({ diem: score }: { diem: readonly string[] }) {
   return (
     <ul className={styles.list}>
-      {diem.map((d) => (
+      {score.map((d) => (
         <li key={d} className={styles.item}>
           <i className={styles.grid}>✓</i>
           {d}
@@ -27,7 +27,7 @@ function DanhSachDiem({ diem }: { diem: readonly string[] }) {
   );
 }
 
-function KhungHinh({ children }: { children: React.ReactNode }) {
+function IconFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.card}>
       <div
@@ -56,7 +56,7 @@ export default function HomeFeatures({
       <div className={styles.col}>
         {/* --- Muc 1: hinh trai, chu phai --- */}
         <div className={styles.grid2}>
-          <KhungHinh>
+          <IconFrame>
             <div className={styles.card2}>
               {lessons.map((b, i) => (
                 <div
@@ -93,12 +93,12 @@ export default function HomeFeatures({
                 </div>
               </div>
             </div>
-          </KhungHinh>
+          </IconFrame>
 
           <div>
             <h2 className={styles.heading}>{lessonBlock.heading}</h2>
             <p className={styles.text}>{lessonBlock.text}</p>
-            <DanhSachDiem diem={lessonBlock.points} />
+            <PointList diem={lessonBlock.points} />
           </div>
         </div>
 
@@ -107,11 +107,11 @@ export default function HomeFeatures({
           <div className={styles.box7}>
             <h2 className={styles.heading}>{certificateBlock.heading}</h2>
             <p className={styles.text}>{certificateBlock.text}</p>
-            <DanhSachDiem diem={certificateBlock.points} />
+            <PointList diem={certificateBlock.points} />
           </div>
 
           <div className={styles.box8}>
-            <KhungHinh>
+            <IconFrame>
               <div className={styles.card3}>
                 <div className={styles.card4}>{certificate.mark}</div>
                 <h3 className={styles.subheading}>{certificate.title}</h3>
@@ -128,7 +128,7 @@ export default function HomeFeatures({
                   </span>
                 </div>
               </div>
-            </KhungHinh>
+            </IconFrame>
           </div>
         </div>
       </div>

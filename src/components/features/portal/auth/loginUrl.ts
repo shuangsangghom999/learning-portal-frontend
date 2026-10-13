@@ -8,29 +8,29 @@
 // Hop dang nhap nam o app/(portal)/layout.tsx nen tham so nay co tac dung tren
 // moi trang cua khu hoc vien. Xem features/portal/auth/AuthModalGate.tsx.
 
-/** Cac ly do hop le. Danh sach day du nam o CAU_GIAI_THICH trong AuthModalGate. */
-export type LyDoDangNhap = "hoc" | "ghidanh";
+/** Cac ly do hop le. Danh sach day du nam o EXPLANATION_TEXT trong AuthModalGate. */
+export type LoginReason = "hoc" | "ghidanh";
 
 /**
  * @param duongDan  pathname hien tai, tu usePathname()
- * @param thamSo    searchParams hien tai, tu useSearchParams()
+ * @param params    searchParams hien tai, tu useSearchParams()
  * @param lyDo      de hop dang nhap noi duoc vi sao no hien ra
  * @param che       mo o tab nao. AuthModalGate chi kiem `auth` CO hay KHONG,
  *                  con gia tri thi de AuthModal tu doc - nen truyen dung ten
  *                  tab vao day, dung tu ghep chuoi roi thay the o noi goi.
  */
-export const duongDanDangNhap = (
-  duongDan: string,
-  thamSo: { toString(): string },
-  lyDo?: LyDoDangNhap,
+export const loginUrl = (
+  path: string,
+  params: { toString(): string },
+  reason?: LoginReason,
   che: "login" | "register" = "login",
 ): string => {
   // Sao ra mot ban moi: doi tuong tu useSearchParams() la chi doc, ghi thang
   // vao no se nem.
-  const t = new URLSearchParams(thamSo.toString());
+  const t = new URLSearchParams(params.toString());
   t.set("auth", che);
-  if (lyDo) t.set("vi", lyDo);
-  return `${duongDan}?${t.toString()}`;
+  if (reason) t.set("vi", reason);
+  return `${path}?${t.toString()}`;
 };
 
 /**
@@ -48,18 +48,18 @@ export const duongDanDangNhap = (
  * Next co ho tro san pushState/replaceState: goi thang thi usePathname va
  * useSearchParams van cap nhat theo, nen AuthModalGate van thay tham so doi.
  *
- * @param thayThe true = replaceState (khong them mot buoc vao lich su).
+ * @param replacement true = replaceState (khong them mot buoc vao lich su).
  *                Dung khi CHUYEN HUONG tu dong - vi du khach chua dang nhap
  *                mo /learn - de bam Quay lai khong nem ho nguoc vao dung
  *                trang vua day ho ra. Bam tay thi de false cho Quay lai dong
  *                duoc hop.
  */
-export const doiDiaChi = (dia: string, thayThe = false): void => {
+export const updateUrl = (address: string, replacement = false): void => {
   if (typeof window === "undefined") return;
 
-  if (thayThe) {
-    window.history.replaceState(null, "", dia);
+  if (replacement) {
+    window.history.replaceState(null, "", address);
   } else {
-    window.history.pushState(null, "", dia);
+    window.history.pushState(null, "", address);
   }
 };

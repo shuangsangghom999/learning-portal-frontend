@@ -11,30 +11,30 @@ import styles from "./DocumentPanels.module.scss";
 
 /** Tab "Goi y cho ban" o trang Chia se tai lieu. Chi hien khi da dang nhap. */
 export default function DocumentRecommendations() {
-  const [kq, setKq] = useState<RecommendationResponse | null>(null);
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [outcome, setKq] = useState<RecommendationResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const tai = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const download = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
     try {
       setKq(await documentService.getRecommendations({ limit: 12 }));
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không tải được gợi ý."));
+      setErrorMessage(getErrorMessage(err, "Không tải được gợi ý."));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     // Hoan mot vong microtask - cung cach useFaqManager (src/hooks): goi
-    // thang thi setDangTai chay dong bo trong than effect (rule
+    // thang thi setLoading chay dong bo trong than effect (rule
     // react-hooks/set-state-in-effect).
-    void Promise.resolve().then(tai);
-  }, [tai]);
+    void Promise.resolve().then(download);
+  }, [download]);
 
-  if (dangTai) {
+  if (loading) {
     return (
       <div className={styles.empty}>
         <Loader2 size={18} className={styles.spin} />
@@ -42,13 +42,13 @@ export default function DocumentRecommendations() {
       </div>
     );
   }
-  if (loi)
+  if (errorMessage)
     return (
       <p role="alert" className={styles.error}>
-        {loi}
+        {errorMessage}
       </p>
     );
-  if (!kq || kq.documents.length === 0) {
+  if (!outcome || outcome.documents.length === 0) {
     return <div className={styles.empty}>Kho chưa có tài liệu nào để gợi ý.</div>;
   }
 
@@ -59,12 +59,12 @@ export default function DocumentRecommendations() {
           noi qua su that, va nguoi ta se khong tin muc nay nua. */}
       <p className={styles.note}>
         <Sparkles size={15} />
-        {kq.caNhanHoa
+        {outcome.caNhanHoa
           ? "Dựa trên các tài liệu bạn đã xem, đã tải và từ khóa bạn đã tìm."
           : "Bạn chưa xem hay tìm tài liệu nào, nên đây là tài liệu mới và được tải nhiều. Gợi ý sẽ sát hơn khi bạn dùng kho nhiều hơn."}
       </p>
       <ul className={styles.list}>
-        {kq.documents.map((d) => (
+        {outcome.documents.map((d) => (
           <DocumentRow key={d._id} doc={d} phu={<span>{d.viSaoGoiY}</span>} />
         ))}
       </ul>

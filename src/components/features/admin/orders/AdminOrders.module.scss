@@ -420,19 +420,19 @@
 }
 
 /* Mau nhan trang thai don, truoc day la chuoi lop Tailwind trong bang KIEU_NHAN. */
-.nhanCho {
+.pendingLabel {
   background-color: var(--color-amber-100);
   color: var(--color-amber-800);
 }
-.nhanXong {
+.doneLabel {
   background-color: var(--color-green-100);
   color: var(--color-green-800);
 }
-.nhanHuy {
+.cancelledLabel {
   background-color: var(--color-slate-200);
   color: var(--color-slate-700);
 }
-.nhanQuaHan {
+.expiredLabel {
   background-color: var(--color-red-100);
   color: var(--color-red-700);
 }

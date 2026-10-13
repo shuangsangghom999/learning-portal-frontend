@@ -16,14 +16,14 @@ export default function LessonInfo({
   s: CourseLearnState;
   lesson: Lesson;
 }) {
-  const daXong = s.checkLessonCompleted(lesson._id);
+  const done = s.checkLessonCompleted(lesson._id);
 
   return (
     <div className={styles.card6}>
       <div className={styles.stack5}>
         <div className={styles.row5}>
           <span className={styles.card7}>{I.ongoing}</span>
-          {daXong && <span className={styles.card8}>{I.completed}</span>}
+          {done && <span className={styles.card8}>{I.completed}</span>}
         </div>
         <h2 className={styles.heading}>{lesson.title}</h2>
         <p className={styles.text8}>{I.description}</p>
@@ -34,7 +34,7 @@ export default function LessonInfo({
             khong nhan duoc su kien "het video" nhu the <video> - thieu
             nut nay thi bai dung YouTube khong bao gio duoc tinh la
             xong, keo theo khong bao gio cap duoc chung nhan. */}
-        {s.nhungVideo && !daXong && (
+        {s.embedVideo && !done && (
           <button onClick={s.handleVideoEnded} className={styles.button4}>
             <CheckCircle size={16} />
             {I.markDone}

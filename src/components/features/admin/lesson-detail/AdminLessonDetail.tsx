@@ -88,8 +88,8 @@ function AdminLessonDetailContent() {
               {C.actions.cancel}
             </button>
             <button type="submit" disabled={busy} className={styles.button5}>
-              {s.tienDo !== null
-                ? C.actions.uploading(s.tienDo)
+              {s.progress !== null
+                ? C.actions.uploading(s.progress)
                 : s.submitting
                   ? C.actions.saving
                   : C.actions.save}

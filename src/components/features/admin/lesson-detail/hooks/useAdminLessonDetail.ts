@@ -9,7 +9,7 @@ import {
   deleteLesson,
   getLessonById,
   updateLesson,
-  uploadVideoKin,
+  uploadPrivateVideo,
 } from "@/src/services/lesson.api";
 
 /** Sua bai hoc cua admin: noi dung, thu tu, video (tai tep kin hoac dan link). */
@@ -30,10 +30,10 @@ export function useAdminLessonDetail() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string>("");
   // Video dang o kho kin: `videoUrl` luc tai trang la link ky chi de phat.
-  const [videoKin, setVideoKin] = useState(false);
-  const [linkKinBanDau, setLinkKinBanDau] = useState("");
+  const [privateVideo, setPrivateVideo] = useState(false);
+  const [initialPrivateUrl, setInitialPrivateUrl] = useState("");
   // % tai video len kho kin; null = khong dang tai.
-  const [tienDo, setTienDo] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
   const [order, setOrder] = useState(1);
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export function useAdminLessonDetail() {
         setTitle(lesson.title || "");
         setContent(lesson.content || "");
         setVideoUrl(lesson.videoUrl || "");
-        setVideoKin(Boolean(lesson.videoKin));
-        setLinkKinBanDau(lesson.videoKin ? lesson.videoUrl || "" : "");
+        setPrivateVideo(Boolean(lesson.videoKin));
+        setInitialPrivateUrl(lesson.videoKin ? lesson.videoUrl || "" : "");
         setOrder(lesson.order || 1);
       } catch (error) {
         console.error(error);
@@ -101,14 +101,14 @@ export function useAdminLessonDetail() {
       formData.append("order", String(order));
 
       // File moi: tai THANG len kho kin Cloudinary roi chi gui ma video - xem
-      // uploadVideoKin. Video kin cu ma khong doi gi thi KHONG gui videoUrl:
+      // uploadPrivateVideo. Video kin cu ma khong doi gi thi KHONG gui videoUrl:
       // o do dang chua link ky chi de phat, gui len la mat video kin (backend
       // cung tu bo qua, day la chot thu hai).
       if (videoFile) {
-        setTienDo(0);
-        const maVideo = await uploadVideoKin(videoFile, setTienDo);
-        formData.append("videoPublicId", maVideo);
-      } else if (videoUrl && !(videoKin && videoUrl === linkKinBanDau)) {
+        setProgress(0);
+        const videoId = await uploadPrivateVideo(videoFile, setProgress);
+        formData.append("videoPublicId", videoId);
+      } else if (videoUrl && !(privateVideo && videoUrl === initialPrivateUrl)) {
         formData.append("videoUrl", videoUrl);
       }
 
@@ -121,7 +121,7 @@ export function useAdminLessonDetail() {
       alert(getErrorMessage(error, C.messages.saveFailed));
     } finally {
       setSubmitting(false);
-      setTienDo(null);
+      setProgress(null);
     }
   };
 
@@ -154,7 +154,7 @@ export function useAdminLessonDetail() {
     setVideoUrl,
     videoFile,
     videoPreview,
-    tienDo,
+    progress,
     order,
     setOrder,
     backToCourse,

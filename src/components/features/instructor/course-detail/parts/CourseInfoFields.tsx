@@ -67,9 +67,9 @@ export default function CourseInfoFields({
             onChange={onChange}
             className={styles.select}
           >
-            {C.level.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {C.level.options.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
               </option>
             ))}
           </select>

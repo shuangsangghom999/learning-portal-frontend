@@ -4,19 +4,19 @@ import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { ChevronRight, GraduationCap, ListChecks, Search } from "lucide-react";
 
-import { DE_LUYEN_TAP, MON_HOC } from "./practiceData";
+import { PRACTICE_QUIZZES, SUBJECTS } from "./practiceData";
 
 import styles from "./PracticeHome.module.scss";
 
 // Hien san 8 mon nhu ban goc ("Xem them 30 mon"), con lai an sau nut.
-const SO_MON_HIEN = 8;
+const VISIBLE_SUBJECTS = 8;
 
 // Mau vach cua the de xoay vong: the dau dung mau chu dao cua trang, nhu ban
 // goc de the dau mang mau chu dao cua ho.
-const MAU_THE = ["#155dfc", "#306da6"];
+const CARD_COLORS = ["#155dfc", "#306da6"];
 
 // So sanh khong phan biet dau va hoa thuong: go "co so du lieu" van ra "Cơ sở dữ liệu"
-const boDau = (s: string) =>
+const stripAccents = (s: string) =>
   s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -25,26 +25,29 @@ const boDau = (s: string) =>
     .toLowerCase();
 
 export default function PracticeHome() {
-  const [tuKhoa, setTuKhoa] = useState("");
+  const [keyword, setKeyword] = useState("");
   // Mo trang la hien het de cua moi mon; bam mot mon thi loc theo mon do,
   // bam lai mon dang chon thi bo loc.
-  const [monChon, setMonChon] = useState<string | null>(null);
-  const [moRong, setMoRong] = useState(false);
+  const [pickedSubject, setPickedSubject] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
-  const tk = boDau(tuKhoa.trim());
-  const monLoc = tk ? MON_HOC.filter((m) => boDau(m.ten).includes(tk)) : MON_HOC;
-  const monHien = moRong || tk ? monLoc : monLoc.slice(0, SO_MON_HIEN);
-  const conAn = monLoc.length - monHien.length;
+  const tk = stripAccents(keyword.trim());
+  const subjectFilter = tk
+    ? SUBJECTS.filter((m) => stripAccents(m.ten).includes(tk))
+    : SUBJECTS;
+  const visibleSubjects =
+    expanded || tk ? subjectFilter : subjectFilter.slice(0, VISIBLE_SUBJECTS);
+  const stillHidden = subjectFilter.length - visibleSubjects.length;
 
-  const mon = MON_HOC.find((m) => m.id === monChon);
-  const tenMon = new Map(MON_HOC.map((m) => [m.id, m.ten]));
+  const subjectItem = SUBJECTS.find((m) => m.id === pickedSubject);
+  const subjectName = new Map(SUBJECTS.map((m) => [m.id, m.ten]));
   // Chua chon mon: hien het de, co go tim thi loc theo ten mon hoac ten de
-  const deHien = DE_LUYEN_TAP.filter((d) =>
-    monChon
-      ? d.monId === monChon
+  const visibleQuizzes = PRACTICE_QUIZZES.filter((d) =>
+    pickedSubject
+      ? d.subjectId === pickedSubject
       : !tk ||
-        boDau(tenMon.get(d.monId) ?? "").includes(tk) ||
-        boDau(d.title).includes(tk),
+        stripAccents(subjectName.get(d.subjectId) ?? "").includes(tk) ||
+        stripAccents(d.title).includes(tk),
   );
 
   return (
@@ -58,7 +61,7 @@ export default function PracticeHome() {
         </span>
         <h1 className={styles.heroTitle}>Ôn thi trắc nghiệm LMS</h1>
         <p className={styles.heroSub}>Luyện tập mỗi ngày – tự tin thi cử</p>
-        <span className={styles.heroBadge}>{MON_HOC.length} môn học</span>
+        <span className={styles.heroBadge}>{SUBJECTS.length} môn học</span>
       </section>
 
       <div className={styles.container}>
@@ -67,8 +70,8 @@ export default function PracticeHome() {
           <Search size={16} className={styles.searchIcon} aria-hidden="true" />
           <input
             type="search"
-            value={tuKhoa}
-            onChange={(e) => setTuKhoa(e.target.value)}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm kiếm môn học..."
             aria-label="Tìm kiếm môn học"
             className={styles.searchInput}
@@ -78,87 +81,98 @@ export default function PracticeHome() {
         {/* ============ MON HOC ============ */}
         <section className={styles.khoi}>
           <h2 className={styles.tieuDe}>Môn học</h2>
-          {monLoc.length === 0 ? (
-            <p className={styles.trong}>Không có môn nào khớp “{tuKhoa.trim()}”.</p>
+          {subjectFilter.length === 0 ? (
+            <p className={styles.trong}>Không có môn nào khớp “{keyword.trim()}”.</p>
           ) : (
             <div className={styles.chips}>
-              {monHien.map((m) => {
-                const chon = m.id === monChon;
+              {visibleSubjects.map((m) => {
+                const choice = m.id === pickedSubject;
                 return (
                   <button
                     key={m.id}
                     type="button"
-                    aria-pressed={chon}
-                    onClick={() => setMonChon(chon ? null : m.id)}
-                    className={chon ? `${styles.chip} ${styles.chipChon}` : styles.chip}
+                    aria-pressed={choice}
+                    onClick={() => setPickedSubject(choice ? null : m.id)}
+                    className={
+                      choice ? `${styles.chip} ${styles.selectedChip}` : styles.chip
+                    }
                     style={{ "--mau-mon": m.mau } as CSSProperties}
                   >
-                    <span className={styles.chipVach} aria-hidden="true" />
+                    <span className={styles.chipDivider} aria-hidden="true" />
                     <GraduationCap
                       size={17}
                       className={styles.chipIcon}
                       aria-hidden="true"
                     />
-                    <span className={styles.chipTen}>{m.ten}</span>
+                    <span className={styles.chipLabel}>{m.ten}</span>
                   </button>
                 );
               })}
             </div>
           )}
-          {!tk && (conAn > 0 || moRong) && (
+          {!tk && (stillHidden > 0 || expanded) && (
             <button
               type="button"
-              onClick={() => setMoRong((v) => !v)}
-              className={styles.xemThem}
+              onClick={() => setExpanded((v) => !v)}
+              className={styles.viewMore}
             >
-              {moRong ? "Thu gọn" : `Xem thêm ${conAn} môn`}
+              {expanded ? "Thu gọn" : `Xem thêm ${stillHidden} môn`}
             </button>
           )}
         </section>
 
         {/* ============ DE LUYEN TAP (tat ca, hoac cua mon dang chon) ============ */}
         <section className={styles.khoi}>
-          <div className={styles.tieuDeDong}>
+          <div className={styles.rowTitle}>
             <h2 className={styles.tieuDe}>
-              {mon ? mon.ten : "Tất cả bài luyện tập"} ({deHien.length})
+              {subjectItem ? subjectItem.ten : "Tất cả bài luyện tập"} (
+              {visibleQuizzes.length})
             </h2>
-            {mon && (
+            {subjectItem && (
               <button
                 type="button"
-                onClick={() => setMonChon(null)}
-                className={styles.xemThem}
+                onClick={() => setPickedSubject(null)}
+                className={styles.viewMore}
               >
                 Xem tất cả
               </button>
             )}
           </div>
-          {deHien.length === 0 ? (
+          {visibleQuizzes.length === 0 ? (
             <p className={styles.trong}>
-              {mon ? "Môn này chưa có đề luyện tập." : "Không có bài luyện tập nào khớp."}
+              {subjectItem
+                ? "Môn này chưa có đề luyện tập."
+                : "Không có bài luyện tập nào khớp."}
             </p>
           ) : (
             <div className={styles.luoi}>
-              {deHien.map((d, i) => (
+              {visibleQuizzes.map((d, i) => (
                 <Link
                   href={`/practice/${d.id}`}
                   key={d.id}
                   className={styles.the}
-                  style={{ "--mau-mon": MAU_THE[i % MAU_THE.length] } as CSSProperties}
+                  style={
+                    { "--mau-mon": CARD_COLORS[i % CARD_COLORS.length] } as CSSProperties
+                  }
                 >
-                  <span className={styles.theVach} aria-hidden="true" />
-                  <span className={styles.theThan}>
-                    <span className={styles.theDau}>
-                      <span className={styles.theMon}>{tenMon.get(d.monId)}</span>
+                  <span className={styles.dividerCard} aria-hidden="true" />
+                  <span className={styles.cardBody}>
+                    <span className={styles.firstCard}>
+                      <span className={styles.subjectCard}>
+                        {subjectName.get(d.subjectId)}
+                      </span>
                       <ChevronRight
                         size={20}
-                        className={styles.theMui}
+                        className={styles.cardTip}
                         aria-hidden="true"
                       />
                     </span>
-                    <h3 className={styles.theTen}>{d.title}</h3>
-                    {d.description && <p className={styles.theMoTa}>{d.description}</p>}
-                    <span className={styles.theSo}>
-                      <span className={styles.theSoCau}>
+                    <h3 className={styles.nameCard}>{d.title}</h3>
+                    {d.description && (
+                      <p className={styles.cardDescription}>{d.description}</p>
+                    )}
+                    <span className={styles.numberCard}>
+                      <span className={styles.questionCountCard}>
                         <ListChecks size={14} aria-hidden="true" />
                         {d.soCau} câu
                       </span>

@@ -20,8 +20,8 @@ export default function StatsOverview({
   onTab,
   onBack,
 }: StatsOverviewProps) {
-  const daNop = stats?.submittedList?.length || 0;
-  const chuaNop = stats?.unsubmittedList?.length || 0;
+  const submitted = stats?.submittedList?.length || 0;
+  const notSubmitted = stats?.unsubmittedList?.length || 0;
 
   return (
     <>
@@ -38,7 +38,7 @@ export default function StatsOverview({
       <div className={styles.grid}>
         <div className={styles.card}>
           <p className={styles.text2}>{C.summary.submitted}</p>
-          <p className={styles.text3}>{daNop}</p>
+          <p className={styles.text3}>{submitted}</p>
         </div>
         <div className={styles.card}>
           <p className={styles.text2}>{C.summary.average}</p>
@@ -50,7 +50,7 @@ export default function StatsOverview({
         </div>
         <div className={styles.card}>
           <p className={styles.text2}>{C.summary.unsubmitted}</p>
-          <p className={styles.text6}>{chuaNop}</p>
+          <p className={styles.text6}>{notSubmitted}</p>
         </div>
       </div>
 
@@ -59,13 +59,13 @@ export default function StatsOverview({
           onClick={() => onTab("submitted")}
           className={`${styles.button9} ${activeTab === "submitted" ? styles.button2 : styles.button3}`}
         >
-          {C.tabs.submitted(daNop)}
+          {C.tabs.submitted(submitted)}
         </button>
         <button
           onClick={() => onTab("unsubmitted")}
           className={`${styles.button9} ${activeTab === "unsubmitted" ? styles.button4 : styles.button3}`}
         >
-          {C.tabs.unsubmitted(chuaNop)}
+          {C.tabs.unsubmitted(notSubmitted)}
         </button>
       </div>
     </>

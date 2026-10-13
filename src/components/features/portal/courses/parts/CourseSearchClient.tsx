@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { layDanhSachKhoa, Course } from "@/src/services/course";
+import { getCourseList, Course } from "@/src/services/course";
 import { getCategories, Category } from "@/src/services/categoryService";
-import TieuDeMuc from "@/src/components/common/SectionHeading";
-import TheKhoaHoc from "@/src/components/common/CourseCard";
+import SectionTitle from "@/src/components/common/SectionHeading";
+import CourseCard from "@/src/components/common/CourseCard";
 
 import styles from "./CourseSearchClient.module.scss";
 interface Props {
@@ -29,9 +29,9 @@ interface Props {
 //
 // Hoan nhip giai quyet ca hai: loc o may chu (dung o moi quy mo) nhung go mot
 // tu sau chu chi ton MOT luot goi, khong phai sau.
-const HOAN_NHIP_MS = 350;
+const DEBOUNCE_MS = 350;
 
-const SO_MOI_TRANG = 24;
+const PAGE_SIZE = 24;
 
 export default function CourseSearchClient({ initialCourses, initialCategories }: Props) {
   const router = useRouter();
@@ -41,95 +41,95 @@ export default function CourseSearchClient({ initialCourses, initialCategories }
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Category[]>(initialCategories ?? []);
-  const [tong, setTong] = useState(0);
-  const [conNua, setConNua] = useState(false);
-  const [trang, setTrang] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [dangTaiThem, setDangTaiThem] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Dung ban dung san cho lan ve dau, va CHI khi khong loc gi.
   //
   // useRef chu khong useState: day la co dung mot lan, doi no khong duoc phep
   // lam ve lai. Dat trong state thi lan ve thu hai se doc gia tri cu va dung
   // lai ban dung san sau khi nguoi dung da go tu khoa.
-  const daDungBanSan = useRef(false);
+  const usedPrefetched = useRef(false);
 
   useEffect(() => {
     if (initialCategories) return;
 
     getCategories()
-      .then((ds) => {
-        if (Array.isArray(ds)) setCategories(ds);
+      .then((items) => {
+        if (Array.isArray(items)) setCategories(items);
       })
       .catch(() => {});
   }, [initialCategories]);
 
   useEffect(() => {
-    const khongLoc = !searchKeyword.trim() && !categoryParam.trim();
+    const noFilter = !searchKeyword.trim() && !categoryParam.trim();
 
-    if (!daDungBanSan.current && khongLoc && initialCourses?.length) {
-      daDungBanSan.current = true;
-      setCourses(initialCourses.slice(0, SO_MOI_TRANG));
-      setTong(initialCourses.length);
-      setConNua(initialCourses.length > SO_MOI_TRANG);
+    if (!usedPrefetched.current && noFilter && initialCourses?.length) {
+      usedPrefetched.current = true;
+      setCourses(initialCourses.slice(0, PAGE_SIZE));
+      setTotal(initialCourses.length);
+      setHasMore(initialCourses.length > PAGE_SIZE);
       setLoading(false);
       return;
     }
 
-    daDungBanSan.current = true;
+    usedPrefetched.current = true;
     setLoading(true);
 
     // Hoan nhip. Doi dia chi lien tuc (go tu khoa) thi lan hen truoc bi huy o
     // ham don dep, chi lan cuoi cung thuc su goi.
     const hen = setTimeout(() => {
-      layDanhSachKhoa({
+      getCourseList({
         trang: 1,
-        soDong: SO_MOI_TRANG,
+        soDong: PAGE_SIZE,
         search: searchKeyword,
         category: categoryParam,
       })
-        .then((kq) => {
-          setCourses(kq.danhSach);
-          setTong(kq.tong);
-          setConNua(kq.conNua);
-          setTrang(1);
+        .then((outcome) => {
+          setCourses(outcome.danhSach);
+          setTotal(outcome.tong);
+          setHasMore(outcome.conNua);
+          setPage(1);
         })
         .catch((error) => {
           console.error("Lỗi khi tìm kiếm khóa học:", error);
           setCourses([]);
-          setTong(0);
-          setConNua(false);
+          setTotal(0);
+          setHasMore(false);
         })
         .finally(() => setLoading(false));
-    }, HOAN_NHIP_MS);
+    }, DEBOUNCE_MS);
 
     return () => clearTimeout(hen);
   }, [searchKeyword, categoryParam, initialCourses]);
 
-  const taiThem = useCallback(async () => {
-    if (dangTaiThem || !conNua) return;
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
 
-    setDangTaiThem(true);
+    setLoadingMore(true);
 
     try {
-      const kq = await layDanhSachKhoa({
-        trang: trang + 1,
-        soDong: SO_MOI_TRANG,
+      const outcome = await getCourseList({
+        trang: page + 1,
+        soDong: PAGE_SIZE,
         search: searchKeyword,
         category: categoryParam,
       });
 
       // Noi vao cuoi chu khong thay the: nguoi dung dang doc do dai danh sach
       // hien co, thay ca danh sach la mat vi tri cuon.
-      setCourses((cu) => [...cu, ...kq.danhSach]);
-      setConNua(kq.conNua);
-      setTrang(kq.trang);
+      setCourses((old) => [...old, ...outcome.danhSach]);
+      setHasMore(outcome.conNua);
+      setPage(outcome.trang);
     } catch (error) {
       console.error("Lỗi khi tải thêm khóa học:", error);
     } finally {
-      setDangTaiThem(false);
+      setLoadingMore(false);
     }
-  }, [dangTaiThem, conNua, trang, searchKeyword, categoryParam]);
+  }, [loadingMore, hasMore, page, searchKeyword, categoryParam]);
 
   if (loading) {
     return (
@@ -146,7 +146,7 @@ export default function CourseSearchClient({ initialCourses, initialCategories }
           <ArrowLeft size={14} /> VỀ TRANG CHỦ
         </button>
 
-        <TieuDeMuc
+        <SectionTitle
           nhu="h1"
           tieuDe={
             searchKeyword
@@ -158,8 +158,8 @@ export default function CourseSearchClient({ initialCourses, initialCategories }
           moTa={
             // Dem TONG o may chu chu khong phai so the dang hien: dang hien 24
             // ma noi "24 khoa hoc" trong khi con 80 nua la noi sai.
-            tong > 0
-              ? `${tong} khoá học${categoryParam ? " trong danh mục này" : ""}.`
+            total > 0
+              ? `${total} khoá học${categoryParam ? " trong danh mục này" : ""}.`
               : undefined
           }
         />
@@ -182,7 +182,7 @@ export default function CourseSearchClient({ initialCourses, initialCategories }
           <>
             <div className={styles.grid}>
               {courses.map((course) => (
-                <TheKhoaHoc
+                <CourseCard
                   key={course._id}
                   khoa={course}
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -190,15 +190,15 @@ export default function CourseSearchClient({ initialCourses, initialCategories }
               ))}
             </div>
 
-            {conNua && (
+            {hasMore && (
               <div className={styles.row}>
                 <button
                   type="button"
-                  onClick={taiThem}
-                  disabled={dangTaiThem}
+                  onClick={loadMore}
+                  disabled={loadingMore}
                   className={styles.button2}
                 >
-                  {dangTaiThem ? "Đang tải…" : `Xem thêm (còn ${tong - courses.length})`}
+                  {loadingMore ? "Đang tải…" : `Xem thêm (còn ${total - courses.length})`}
                 </button>
               </div>
             )}

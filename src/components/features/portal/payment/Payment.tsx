@@ -13,28 +13,30 @@ import styles from "./Payment.module.scss";
 
 function PaymentContent() {
   const s = usePayment();
-  const { don } = s;
+  const { don: order } = s;
 
   if (!s.ma) return <PaymentNotice text={P.missingCode} />;
 
-  if (s.dangTai) {
+  if (s.loading) {
     return <div className={styles.container2}>{P.loadingOrder}</div>;
   }
 
-  if (s.loi && !don) return <PaymentNotice text={s.loi} />;
+  if (s.loi && !order) return <PaymentNotice text={s.loi} />;
 
-  if (!don) return null;
+  if (!order) return null;
 
   // --- Đơn đã thanh toán -----------------------------------------------
-  if (don.status === "paid") return <PaymentPaid don={don} />;
+  if (order.status === "paid") return <PaymentPaid don={order} />;
 
   // --- Đơn đã hủy hoặc hết hạn ------------------------------------------
-  if (don.status === "cancelled" || don.status === "expired") {
-    return <PaymentClosed don={don} dangTaoLai={s.dangTaoLai} onNewCode={s.taoMaMoi} />;
+  if (order.status === "cancelled" || order.status === "expired") {
+    return (
+      <PaymentClosed don={order} recreating={s.recreating} onNewCode={s.regenerateCode} />
+    );
   }
 
   // --- Đơn đang chờ thanh toán ------------------------------------------
-  return <PaymentPending s={s} don={don} />;
+  return <PaymentPending s={s} don={order} />;
 }
 
 export default function Payment() {

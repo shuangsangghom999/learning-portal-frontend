@@ -16,53 +16,53 @@ import {
   Printer,
   User,
 } from "lucide-react";
-import { lamSachHtml } from "@/src/lib/post-html";
+import { cleanHtml } from "@/src/lib/post-html";
 import {
   documentService,
   type RecommendedDocument,
   type SharedDocument,
 } from "@/src/services/document";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { useStoredUser } from "@/src/hooks/userStore";
 import DocumentComments from "./DocumentComments";
-import { doiKichThuoc, duoiChinh, tongDungLuong } from "@/src/lib/document/file-info";
+import { setPageSize, mainExtension, totalSize } from "@/src/lib/document/file-info";
 
 import styles from "./DocumentDetailClient.module.scss";
-import { DUONG_TAT_CA, duongTaiLieu } from "@/src/lib/document/duong-dan";
+import { ALL_PATH, documentPath } from "@/src/lib/document/paths";
 interface Props {
   doc: SharedDocument;
-  lienQuan?: RecommendedDocument[];
+  related?: RecommendedDocument[];
 }
 
-const ngayGon = (iso: string) =>
+const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 
-export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
-  const user = useNguoiDungLuu();
-  const idNguoiDung = user?._id;
+export default function DocumentDetailClient({ doc, related = [] }: Props) {
+  const user = useStoredUser();
+  const currentUserId = user?._id;
 
   // Chi CHU BAI thay dong dan sang trang ca nhan - noi duy nhat sua bai (theo
   // chu du an: trang nay de doc, quan ly bai gom ve trang ca nhan). Admin
   // quan ly o /admin/documents. Day chi la an hien dong dan - may chu van tu
   // kiem quyen o updateDocument.
-  const laChuBai = Boolean(user && user._id === doc.uploader?._id);
+  const isPostOwner = Boolean(user && user._id === doc.uploader?._id);
 
   // Ghi mot luot xem vao lich su. Goi tu TRINH DUYET chu khong phai luc may chu
   // dung trang: trang nay duoc dung san va luu 30 giay, luot dung do khong phai
   // mot nguoi that dang xem, va cung khong mang cookie cua ho.
   //
   // Chi goi khi da dang nhap - may chu cung tu bo qua khach, day chi la de
-  // khoi mot luot goi vo ich. Phu thuoc idNguoiDung chu khong phai ca `user`:
+  // khoi mot luot goi vo ich. Phu thuoc currentUserId chu khong phai ca `user`:
   // doi tuong user moi lan doc lai co the la mot tham chieu moi, ghi hai lan.
   useEffect(() => {
-    if (!idNguoiDung) return;
+    if (!currentUserId) return;
     documentService.logView(doc._id).catch(() => {});
-  }, [doc._id, idNguoiDung]);
+  }, [doc._id, currentUserId]);
 
-  const khiTai = () => {
+  const onDownload = () => {
     // Dem luot tai la viec phu: hong cung khong duoc chan nguoi dung tai file.
     documentService.countDownload(doc._id).catch(() => {});
   };
@@ -77,14 +77,14 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
   //
   // ?i= chon file thu may (dem tu 0). ?tai=1 doi Content-Disposition tu
   // inline sang attachment - thieu no thi bam "Tai" chi MO file ra tab moi.
-  const duongDanFile = (i: number) => `/api/documents/${doc._id}/file?i=${i}`;
-  const duongDanTai = (i: number) => `${duongDanFile(i)}&tai=1`;
-  const cacMon = doc.monHoc ?? [];
+  const filePath = (i: number) => `/api/documents/${doc._id}/file?i=${i}`;
+  const downloadUrl = (i: number) => `${filePath(i)}&tai=1`;
+  const subjects = doc.monHoc ?? [];
 
   // Nut chia se doc dia chi trang NGAY LUC BAM chu khong tinh san luc dung
   // trang. Tinh san bang window.location thi may chu khong co window -> React
   // bao lech giua ban dung o may chu va ban o trinh duyet.
-  const chiaSeFacebook = () => {
+  const shareOnFacebook = () => {
     const u = encodeURIComponent(window.location.href);
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${u}`,
@@ -92,10 +92,10 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
       "noopener",
     );
   };
-  const chiaSeEmail = () => {
-    const tieu = encodeURIComponent(doc.title);
-    const than = encodeURIComponent(`${doc.title}\n${window.location.href}`);
-    window.location.href = `mailto:?subject=${tieu}&body=${than}`;
+  const shareByEmail = () => {
+    const encodedTitle = encodeURIComponent(doc.title);
+    const body = encodeURIComponent(`${doc.title}\n${window.location.href}`);
+    window.location.href = `mailto:?subject=${encodedTitle}&body=${body}`;
   };
 
   return (
@@ -117,7 +117,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               Chia sẻ tài liệu
             </Link>
             <span className={styles.crumbSep}>›</span>
-            <Link href={DUONG_TAT_CA} className={styles.crumbLink}>
+            <Link href={ALL_PATH} className={styles.crumbLink}>
               Tất cả tài liệu
             </Link>
             <span className={styles.crumbSep}>›</span>
@@ -131,7 +131,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
         {/* Co tai lieu khac thi hai cot, khong co thi mot cot tran het chieu
             rong. Giu cot phai rong tron chi de bo cuc "on dinh" la de lai mot
             khoang trong vo nghia giua trang. */}
-        <div className={lienQuan.length ? styles.layout : styles.layoutMot}>
+        <div className={related.length ? styles.layout : styles.singleLayout}>
           <article className={styles.main}>
             <h2 className={styles.title}>{doc.title}</h2>
 
@@ -144,7 +144,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
                   {doc.truong}
                 </span>
               ) : null}
-              {cacMon.map((m) => (
+              {subjects.map((m) => (
                 <span key={m} className={`${styles.label} ${styles.mon}`}>
                   <BookOpen size={15} />
                   {m}
@@ -156,7 +156,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               </span>
               <span className={styles.label}>
                 <CalendarDays size={15} className={styles.box2} />
-                {ngayGon(doc.createdAt)}
+                {shortDate(doc.createdAt)}
               </span>
               <span className={styles.label}>
                 <Download size={15} className={styles.box2} />
@@ -165,15 +165,15 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               <span className={styles.label}>
                 <FileText size={15} className={styles.box2} />
                 {doc.files.length
-                  ? `${doc.files.length} file · ${doiKichThuoc(tongDungLuong(doc.files))}`
+                  ? `${doc.files.length} file · ${setPageSize(totalSize(doc.files))}`
                   : "Bài viết"}
               </span>
             </div>
 
-            {laChuBai && (
+            {isPostOwner && (
               <Link
                 href={`/user/profile?tab=tai-lieu&sua=${doc._id}`}
-                className={styles.nutSua}
+                className={styles.editButton}
               >
                 <Pencil size={14} />
                 Sửa trong trang cá nhân
@@ -192,46 +192,50 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
             <div
               className={styles.body}
               // LOP CHAN CHINH NAM O MAY CHU, khong phai o day:
-              // documentController goi chuanHoaNoiDung() TRUOC KHI LUU, va ham
+              // documentController goi normalizeContent() TRUOC KHI LUU, va ham
               // do chay sanitize-html voi danh sach the cho phep - chan script,
               // style, iframe, svg, va chi nhan http/https/mailto nen
               // "javascript:" hay "data:" khong lot qua. Tuc la chuoi trong CSDL
               // da sach san.
               //
-              // lamSachHtml() o day la lop thu hai, va PHAI biet gioi han cua
+              // cleanHtml() o day la lop thu hai, va PHAI biet gioi han cua
               // no: no dung DOMParser nen chi chay duoc trong trinh duyet - lan
               // dung san o may chu no tra ve nguyen chuoi. Cho nen dung bao gio
               // coi no la cho chan duy nhat; cho chan that la ben may chu.
-              dangerouslySetInnerHTML={{ __html: lamSachHtml(doc.description) }}
+              dangerouslySetInnerHTML={{ __html: cleanHtml(doc.description) }}
             />
             {/* Danh sach file dinh kem - mot bai toi da 5 file (chuong 1..5).
                 Moi file hai nut: Xem (mo tab moi) va Tai ve. */}
             {/* Bai huong dan kieu blog co the khong kem file - an ca muc. */}
             {doc.files.length > 0 && (
               <section className={styles.tep} aria-labelledby="tieu-de-tep">
-                <h3 id="tieu-de-tep" className={styles.tepTieuDe}>
+                <h3 id="tieu-de-tep" className={styles.fileTitle}>
                   Tài liệu đính kèm ({doc.files.length})
                 </h3>
                 <ul className={styles.tepDs}>
                   {doc.files.map((f, i) => (
-                    <li key={i} className={styles.tepMuc}>
-                      <span className={styles.tepDuoi}>{f.fileExt.toUpperCase()}</span>
-                      <span className={styles.tepThongTin}>
-                        <span className={styles.tepTen}>
+                    <li key={i} className={styles.fileItem}>
+                      <span className={styles.fileExt}>{f.fileExt.toUpperCase()}</span>
+                      <span className={styles.fileInfo}>
+                        <span className={styles.fileName}>
                           {f.fileName || `${doc.title} (${i + 1}).${f.fileExt}`}
                         </span>
-                        <span className={styles.tepCo}>{doiKichThuoc(f.fileSize)}</span>
+                        <span className={styles.fileSize}>{setPageSize(f.fileSize)}</span>
                       </span>
                       <a
-                        href={duongDanFile(i)}
+                        href={filePath(i)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={styles.tepXem}
+                        className={styles.fileView}
                       >
                         <Eye size={15} />
                         Xem
                       </a>
-                      <a href={duongDanTai(i)} onClick={khiTai} className={styles.tepTai}>
+                      <a
+                        href={downloadUrl(i)}
+                        onClick={onDownload}
+                        className={styles.fileDownload}
+                      >
                         <Download size={15} />
                         Tải
                       </a>
@@ -245,7 +249,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               <span className={styles.shareLabel}>Chia sẻ:</span>
               <button
                 type="button"
-                onClick={chiaSeFacebook}
+                onClick={shareOnFacebook}
                 className={styles.shareBtn}
                 aria-label="Chia sẻ lên Facebook"
               >
@@ -257,7 +261,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               </button>
               <button
                 type="button"
-                onClick={chiaSeEmail}
+                onClick={shareByEmail}
                 className={styles.shareBtn}
                 aria-label="Gửi qua email"
               >
@@ -273,16 +277,16 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
               </button>
             </div>
 
-            <DocumentComments docId={doc._id} />
+            <DocumentComments documentId={doc._id} />
           </article>
 
-          {lienQuan.length > 0 && (
+          {related.length > 0 && (
             <aside className={styles.aside}>
               <h2 className={styles.asideTitle}>Tài liệu liên quan</h2>
               <ul className={styles.asideList}>
-                {lienQuan.map((d) => (
+                {related.map((d) => (
                   <li key={d._id}>
-                    <Link href={duongTaiLieu(d._id)} className={styles.asideItem}>
+                    <Link href={documentPath(d._id)} className={styles.asideItem}>
                       {/* O nay la DUOI FILE chu khong phai anh thu nho.
                           Ban mau tham chieu dat anh bia cua tung bai; tai lieu
                           o day khong co truong anh nao, va sinh mot tam anh
@@ -292,7 +296,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
                         {/* Bai viet (khong kem file) thi khong co duoi nao de
                             noi - ve bieu tuong bai viet thay vi mac dinh "PDF". */}
                         {d.files.length ? (
-                          duoiChinh(d.files).toUpperCase()
+                          mainExtension(d.files).toUpperCase()
                         ) : (
                           <Newspaper size={22} aria-label="Bài viết" />
                         )}
@@ -300,7 +304,7 @@ export default function DocumentDetailClient({ doc, lienQuan = [] }: Props) {
                       <span className={styles.asideText}>
                         <span className={styles.asideDate}>
                           <CalendarDays size={13} />
-                          {ngayGon(d.createdAt)}
+                          {shortDate(d.createdAt)}
                         </span>
                         <span className={styles.asideName}>{d.title}</span>
                         {/* Vi sao goi y tai lieu nay - may chu tra kem. Khong co

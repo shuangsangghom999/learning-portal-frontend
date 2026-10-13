@@ -1,7 +1,10 @@
 /**
- * Ba trang ghim khoa hoc len trang chu cua admin:
+ * Ba trang xem thu hang khoa hoc tren trang chu cua admin:
  * /admin/home-most-popular, /admin/home-trending-now, /admin/home-new-releases.
- * Cung mot bo cuc, chi khac nguon du lieu, co ghim, cot so lieu va chu.
+ * Cung mot bo cuc, chi khac nguon du lieu, cot so lieu va chu.
+ *
+ * Ba muc nay TU XEP theo luot xem va ngay tao (backend/src/utils/viewCount.js),
+ * admin khong ghim tay nua - trang nay chi de xem khoa nao dang len trang chu.
  */
 export const ADMIN_HOME_SECTION_COMMON = {
   searchPlaceholder: "Tìm kiếm khóa học...",
@@ -10,40 +13,41 @@ export const ADMIN_HOME_SECTION_COMMON = {
   columns: {
     course: "Khóa học",
     instructor: "Giảng viên / Cấp độ",
-    showOnHome: "Hiện Trang Chủ",
+    showOnHome: "Trang chủ",
   },
   instructorFallback: (id: string) => `ID: ${id}`,
-  students: "học viên",
+  views: "lượt xem",
   noDate: "N/A",
+  onHome: (rank: number) => `Đang hiện #${rank}`,
+  offHome: "—",
 } as const;
+
+/** So khoa moi muc hien ngoai trang chu - khop COURSE_COUNT trong getHomeSections. */
+export const HOME_COURSE_COUNT = 5;
 
 export const ADMIN_HOME_SECTIONS = {
   popular: {
     loading: "Đang tải danh sách phổ biến...",
     title: "Most Popular Section",
     description:
-      "Danh sách sắp xếp theo số lượng học viên giảm dần. Tích chọn để hiển thị ra trang chủ.",
-    metricColumn: "Tổng Học viên",
+      "Tự xếp theo tổng lượt xem từ trước tới nay, không bao giờ reset. Mỗi lần học viên mở trang khóa học hoặc trang học (kể cả F5) là một lượt.",
+    metricColumn: "Tổng lượt xem",
     loadError: "Lỗi lấy danh sách khóa học phổ biến:",
-    toggleFailed: "Cập nhật trạng thái ghim thất bại!",
   },
   trending: {
     loading: "Đang tải danh sách xu hướng...",
     title: "Trending Now Section",
     description:
-      "Danh sách sắp xếp ưu tiên theo Khóa được ghim, Rating và số lượng học viên. Tích chọn để hiển thị ra trang chủ.",
-    metricColumn: "Tổng Học viên",
+      "Tự xếp theo lượt xem trong tháng này, sang tháng mới tự về 0. Khi chưa đủ 5 khóa có lượt xem trong tháng, trang chủ bù bằng khóa phổ biến nhất.",
+    metricColumn: "Lượt xem tháng này",
     loadError: "Lỗi lấy danh sách khóa học xu hướng:",
-    toggleFailed: "Cập nhật trạng thái ghim xu hướng thất bại!",
   },
   newReleases: {
     loading: "Đang tải danh sách mới phát hành...",
     title: "New Releases Section",
-    description:
-      "Danh sách sắp xếp theo thời gian khởi tạo mới nhất. Tích chọn để hiển thị ép buộc lên đầu mục ngoài trang chủ.",
+    description: "Tự xếp theo ngày tạo, khóa mới nhất đứng đầu.",
     metricColumn: "Ngày Tạo",
     loadError: "Lỗi lấy danh sách khóa học mới phát hành:",
-    toggleFailed: "Cập nhật trạng thái ghim mới phát hành thất bại!",
   },
 } as const;
 

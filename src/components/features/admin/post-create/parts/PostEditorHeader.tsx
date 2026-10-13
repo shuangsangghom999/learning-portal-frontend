@@ -28,33 +28,33 @@ export default function PostEditorHeader({ s }: { s: PostEditorState }) {
           </Link>
           <h3 className={styles.subheading}>
             <PenLine className={styles.box2} size={26} />
-            {s.laSua ? H.editTitle : H.createTitle}
+            {s.isEdit ? H.editTitle : H.createTitle}
           </h3>
           <p className={styles.text2}>{H.intro}</p>
         </div>
 
         <div className={styles.row2}>
-          {s.laSua && s.daDang && s.slug && (
+          {s.isEdit && s.published && s.slug && (
             <Link href={C.viewHref(s.slug)} target="_blank" className={styles.box3}>
               <ExternalLink size={16} />
               {H.view}
             </Link>
           )}
-          <button type="submit" disabled={s.dangLuu} className={styles.button}>
-            {s.dangLuu ? (
+          <button type="submit" disabled={s.saving} className={styles.button}>
+            {s.saving ? (
               <Loader2 className={styles.spinner2} size={16} />
             ) : (
               <Save size={16} />
             )}
-            {s.laSua ? H.save : s.daDang ? H.publish : H.saveDraft}
+            {s.isEdit ? H.save : s.published ? H.publish : H.saveDraft}
           </button>
         </div>
       </div>
 
-      {s.thanhCong && (
+      {s.success && (
         <div className={styles.card2}>
           <CheckCircle className={styles.box4} size={20} />
-          <span className={styles.text}>{s.thanhCong}</span>
+          <span className={styles.text}>{s.success}</span>
         </div>
       )}
       {s.loi && (

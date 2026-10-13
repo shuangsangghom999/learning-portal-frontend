@@ -29,12 +29,12 @@
   color: var(--color-slate-900);
 }
 
-.loc {
+.query {
   display: flex;
   gap: calc(var(--spacing) * 1.5);
 }
 
-.nutLoc {
+.filterButton {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -47,7 +47,7 @@
   cursor: pointer;
 }
 
-.nutLocOn {
+.activeFilterButton {
   border-color: var(--color-blue-600);
   background-color: var(--color-blue-600);
   color: #fff;
@@ -89,7 +89,7 @@
   color: var(--color-slate-500);
 }
 
-.lienKet {
+.link {
   font-weight: 600;
   color: var(--color-blue-600);
 }
@@ -119,17 +119,17 @@
   border-radius: var(--radius-lg);
 }
 
-.btTaiLieu {
+.savedDocuments {
   background-color: #eff6ff;
   color: var(--color-blue-700);
 }
 
-.btBaiViet {
+.savedPosts {
   background-color: #f5f3ff;
   color: #6d28d9;
 }
 
-.thongTin {
+.info {
   flex: 1;
   min-width: 0;
 }
@@ -164,12 +164,12 @@
   }
 }
 
-.nhanLoai {
+.typeLabel {
   font-weight: 600;
   color: var(--color-slate-700);
 }
 
-.nutBo {
+.removeButton {
   flex-shrink: 0;
   display: grid;
   place-items: center;

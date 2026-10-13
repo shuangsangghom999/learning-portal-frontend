@@ -543,3 +543,31 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-slate-800);
 }
+
+// Gia o hang thong tin (08/10/2026): truoc day "Mien phi" va "799.000d" cung
+// mot kieu chu dam 11px nen nhin lan voi nhau. Gio la hai nhan cung khuon
+// (cung co, cung cao) day ve cuoi hang; mien phi nen xanh la, co gia nen xanh
+// duong - phan biet bang mau va chu, khong lech kich thuoc.
+.freeBadge,
+.price {
+  margin-left: auto;
+  white-space: nowrap;
+  // Cung khuon cho ca hai: cung co chu, do dam, chieu cao va bo goc, de hai
+  // nhan thang hang voi nhau; chi khac mau nen va mau chu.
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+.freeBadge {
+  background-color: var(--color-emerald-50);
+  color: var(--color-emerald-700);
+  box-shadow: inset 0 0 0 1px var(--color-emerald-200);
+}
+.price {
+  background-color: var(--color-blue-50);
+  color: var(--color-blue-700);
+  box-shadow: inset 0 0 0 1px var(--color-blue-200);
+}

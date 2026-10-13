@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
-import { xoaPhien } from "@/src/services/apiHelper";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
+import { clearSession } from "@/src/services/apiHelper";
 
 /** Gac cong quan tri, trang thai mo cac nhom menu va dang xuat. */
 export function useAdminShell() {
@@ -13,28 +13,28 @@ export function useAdminShell() {
 
   // Doc localStorage bang useSyncExternalStore thay vi useEffect + setState,
   // xem src/hooks/userStore.ts. Effect ben duoi chi con lo viec chuyen huong.
-  const nguoiDung = useNguoiDungLuu();
-  const dangTaiNguoiDung = useDangTaiNguoiDung();
-  const adminName = nguoiDung?.name ?? "";
+  const user = useStoredUser();
+  const loadingUser = useUserLoading();
+  const adminName = user?.name ?? "";
 
   // `loading` SUY RA duoc, khong can state rieng: con dang hoi may chu, hoac
   // sai vai tro va dang bi day ra. Giu state rieng thi phai setLoading() ngay
   // trong effect - React canh bao vi no de sinh vong ve lai day chuyen, va
   // eslint o day chay voi --max-warnings 0.
-  const loading = dangTaiNguoiDung || nguoiDung?.role !== "admin";
+  const loading = loadingUser || user?.role !== "admin";
 
   // null = "chua bam gi, cu theo duong dan"; true/false = nguoi dung da tu bam.
   //
   // Truoc day hai o nay la boolean thuong, mo ra bang mot useEffect chay theo
   // pathname - tuc la React ve mot lan voi menu dong roi ve lai voi menu mo.
   // Suy ra ngay luc ve thi khong con vong thua nao.
-  const [menuKhoaTuBam, setMenuKhoaTuBam] = useState<boolean | null>(null);
-  const [menuTrangChuTuBam, setMenuTrangChuTuBam] = useState<boolean | null>(null);
+  const [courseMenuOpened, setCourseMenuOpened] = useState<boolean | null>(null);
+  const [homeMenuOpened, setHomeMenuOpened] = useState<boolean | null>(null);
 
   // Tu dong mo nhom menu theo duong dan tren thanh dia chi
-  const oKhuTrangChu = pathname.startsWith("/admin/home-most-popular");
-  const oKhuKhoaHoc =
-    (pathname.startsWith("/admin/courses") && !oKhuTrangChu) ||
+  const inHomeArea = pathname.startsWith("/admin/home-most-popular");
+  const inCourseArea =
+    (pathname.startsWith("/admin/courses") && !inHomeArea) ||
     pathname.startsWith("/admin/categories") ||
     pathname.startsWith("/admin/providers") ||
     pathname.startsWith("/admin/lessons");
@@ -42,15 +42,15 @@ export function useAdminShell() {
   // Chuyen SANG mot trang thuoc khu do thi bo lua chon tu bam, cho menu mo lai.
   // Chuyen sang trang khac thi giu nguyen y nguoi dung - dung y het hanh vi cua
   // useEffect cu, chi khac la khong ton mot vong ve lai.
-  const [duongDanCu, setDuongDanCu] = useState(pathname);
-  if (duongDanCu !== pathname) {
-    setDuongDanCu(pathname);
-    if (oKhuKhoaHoc) setMenuKhoaTuBam(null);
-    if (oKhuTrangChu) setMenuTrangChuTuBam(null);
+  const [previousPath, setPreviousPath] = useState(pathname);
+  if (previousPath !== pathname) {
+    setPreviousPath(pathname);
+    if (inCourseArea) setCourseMenuOpened(null);
+    if (inHomeArea) setHomeMenuOpened(null);
   }
 
-  const isCourseMenuOpen = menuKhoaTuBam ?? oKhuKhoaHoc;
-  const isHomeMenuOpen = menuTrangChuTuBam ?? oKhuTrangChu;
+  const isCourseMenuOpen = courseMenuOpened ?? inCourseArea;
+  const isHomeMenuOpen = homeMenuOpened ?? inHomeArea;
 
   // Gac cong khu quan tri bang cau tra loi cua MAY CHU.
   //
@@ -65,7 +65,7 @@ export function useAdminShell() {
   // payload nguoi dung tu go ra - y het van de cu, lai them nguy co XSS doc
   // trom token (xem ghi chu dau utils/cookieToken.js ben backend).
   //
-  // Duong dung la HOI MAY CHU. <NapNguoiDung /> o root layout da goi
+  // Duong dung la HOI MAY CHU. <UserBootstrap /> o root layout da goi
   // GET /users/profile mot lan va cat ket qua vao kho trong RAM; vai tro trong
   // do lay thang tu CSDL nen khong sua duoc tu trinh duyet.
   //
@@ -73,18 +73,18 @@ export function useAdminShell() {
   // mot luot mang trung lap, va apiHelper gap 401 se tu day ve trang chu -
   // hai duong chuyen huong chay dua nhau thi rat kho lan ra khi co su co.
   useEffect(() => {
-    if (dangTaiNguoiDung) return;
+    if (loadingUser) return;
 
-    if (nguoiDung?.role !== "admin") router.push("/");
-  }, [dangTaiNguoiDung, nguoiDung, router]);
+    if (user?.role !== "admin") router.push("/");
+  }, [loadingUser, user, router]);
 
   const logoutHandler = async () => {
     // Truoc day cho nay chi xoa userInfo, KHONG xoa authToken - da "dang xuat"
     // ma getHeaders van gan token cu vao moi request, nguoi ke tiep dung may
-    // van con la admin voi backend. xoaPhien() lam du bon viec, xem apiHelper.
+    // van con la admin voi backend. clearSession() lam du bon viec, xem apiHelper.
     // PHAI await, neu khong dieu huong se huy request dang xuat giua chung va
     // cookie con nguyen - xem ghi chu o apiHelper.
-    await xoaPhien();
+    await clearSession();
     router.push("/");
   };
 
@@ -94,8 +94,8 @@ export function useAdminShell() {
     loading,
     isCourseMenuOpen,
     isHomeMenuOpen,
-    toggleCourseMenu: () => setMenuKhoaTuBam(!isCourseMenuOpen),
-    toggleHomeMenu: () => setMenuTrangChuTuBam(!isHomeMenuOpen),
+    toggleCourseMenu: () => setCourseMenuOpened(!isCourseMenuOpen),
+    toggleHomeMenu: () => setHomeMenuOpened(!isHomeMenuOpen),
     logoutHandler,
   };
 }

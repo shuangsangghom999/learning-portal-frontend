@@ -29,6 +29,10 @@ export const LEARN = {
     lockedText:
       "Khóa học này có phí. Sau khi bạn chuyển khoản, ban quản trị đối chiếu rồi xác nhận đơn — toàn bộ bài giảng sẽ mở ra ngay tại đây.",
     lockedCta: "Xem cách đăng ký khóa học",
+    expiredTitle: "Khóa học đã hết thời hạn học",
+    expiredText:
+      "Tiến độ và lịch sử bài làm của bạn vẫn được giữ. Mua lại để học tiếp, ngày còn dư được cộng dồn.",
+    expiredCta: "Gia hạn khóa học",
     noVideo: "Bài học này chưa được cấu hình liên kết Video bài giảng",
   },
 

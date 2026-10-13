@@ -51,13 +51,12 @@ export default function AdminHomeSection({ kind }: { kind: AdminHomeSectionKind 
               </tr>
             </thead>
             <tbody className={styles.tbody}>
-              {s.filteredCourses.map((course) => (
+              {s.filteredCourses.map(({ course, rank }) => (
                 <HomeSectionRow
                   key={course._id}
                   kind={kind}
                   course={course}
-                  updating={s.updatingId === course._id}
-                  onToggle={s.handleToggle}
+                  rank={rank}
                 />
               ))}
             </tbody>

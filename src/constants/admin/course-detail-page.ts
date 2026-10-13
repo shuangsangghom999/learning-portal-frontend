@@ -27,7 +27,7 @@ export const ADMIN_COURSE_DETAIL = {
     draft: "Bản Nháp (Ẩn)",
     busy: "Đang xử lý...",
     unpublish: "Gỡ bài xuống (Draft)",
-    doPublish: "Phát hành (Publish)",
+    publishColor: "Phát hành (Publish)",
   },
   instructorNotice:
     "⚠️ Bạn đang đăng nhập dưới quyền **Giảng viên (Instructor)**. Bạn có toàn quyền sửa đổi nội dung bài giảng, ảnh bìa và giá bán, nhưng quyền **Xét duyệt công khai** khóa học lên trang chủ thuộc về Admin.",
@@ -40,6 +40,9 @@ export const ADMIN_COURSE_DETAIL = {
   },
   courseTitle: "Tiêu đề khóa học",
   price: "Giá bán (VND)",
+  accessDays: "Thời hạn học (ngày)",
+  accessDaysHint:
+    "Áp dụng cho khóa có phí, tính từ lúc thanh toán. Khóa miễn phí luôn học không giới hạn.",
   slug: "Đường dẫn SEO (Slug)",
   description: "Mô tả chi tiết khóa học",
   level: { label: "Trình độ học viên hướng tới", options: COURSE_LEVEL_OPTIONS },

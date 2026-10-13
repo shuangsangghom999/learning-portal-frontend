@@ -45,7 +45,7 @@
 
 /* --------------------------------- Tim --------------------------------- */
 
-.timKhung {
+.searchBox {
   position: relative;
   margin-top: calc(var(--spacing) * 5);
   display: flex;
@@ -53,14 +53,14 @@
   gap: calc(var(--spacing) * 2);
 }
 
-.timIcon {
+.searchIcon {
   position: absolute;
   left: calc(var(--spacing) * 3);
   color: var(--color-slate-400);
   pointer-events: none;
 }
 
-.timInput {
+.searchInput {
   flex: 1;
   min-width: 0;
   border-radius: var(--radius-lg);
@@ -80,7 +80,7 @@
 }
 
 /* Nam trong long o nhap, sat le phai - phai tru cho nut Tim ben ngoai. */
-.timXoa {
+.clearSearch {
   position: absolute;
   right: calc(var(--spacing) * 20);
   display: grid;
@@ -99,7 +99,7 @@
   }
 }
 
-.timNut {
+.searchButton {
   flex-shrink: 0;
   border-radius: var(--radius-lg);
   background-color: var(--color-blue-600);
@@ -119,7 +119,7 @@
 
 /* ------------------------------ Bao trang thai ------------------------------ */
 
-.bangLoi,
+.errorTable,
 .bangOk {
   position: relative;
   margin-top: calc(var(--spacing) * 4);
@@ -131,7 +131,7 @@
   font-size: 0.9rem;
 }
 
-.bangLoi {
+.errorTable {
   background-color: #fef2f2;
   color: #b91c1c;
 }
@@ -141,7 +141,7 @@
   color: #15803d;
 }
 
-.dong {
+.rows {
   margin-left: auto;
   cursor: pointer;
   opacity: 0.7;
@@ -180,7 +180,7 @@
 
 /* Cuon ngang tren man hep thay vi bop cot cho be lai: ten tai lieu va ten
    nguoi dang deu la chu, bop nua thi vo dong lung tung khong doc duoc. */
-.bangBoc {
+.tableWrap {
   margin-top: calc(var(--spacing) * 5);
   overflow-x: auto;
   border-radius: var(--radius-xl);
@@ -223,7 +223,7 @@
   text-align: right;
 }
 
-.tenTaiLieu {
+.documentTitle {
   display: block;
   font-weight: 600;
   color: var(--color-slate-900);
@@ -243,13 +243,13 @@
   color: var(--color-slate-500);
 }
 
-.thaoTac {
+.actions {
   display: inline-flex;
   gap: calc(var(--spacing) * 2);
 }
 
-.nutPhu,
-.nutXoa {
+.secondaryButton,
+.deleteButton {
   display: inline-grid;
   place-items: center;
   width: 32px;
@@ -261,7 +261,7 @@
     color 0.12s ease;
 }
 
-.nutPhu {
+.secondaryButton {
   background-color: var(--color-slate-100);
   color: var(--color-slate-600);
 
@@ -275,7 +275,7 @@
 
 /* Nut xoa PHAI khac mau han nut con lai: no la thao tac khong lay lai duoc,
    khong duoc de bam nham vi trong giong nut ben canh. */
-.nutXoa {
+.deleteButton {
   background-color: #fef2f2;
   color: #dc2626;
 
@@ -302,7 +302,7 @@
   gap: calc(var(--spacing) * 3);
 }
 
-.nutTrang {
+.pageButton {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-slate-300);
   background-color: #fff;
@@ -325,14 +325,14 @@
   }
 }
 
-.soTrang {
+.pageCount {
   font-size: 0.88rem;
   color: var(--color-slate-600);
 }
 
 /* ------------------------------- Hop thoai ------------------------------- */
 
-.lopPhu {
+.overlay {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -342,7 +342,7 @@
   padding: calc(var(--spacing) * 4);
 }
 
-.hopThoai {
+.dialog {
   width: 100%;
   max-width: 26rem;
   border-radius: var(--radius-xl);
@@ -351,27 +351,27 @@
   box-shadow: 0 20px 40px -12px rgb(15 23 42 / 0.35);
 }
 
-.hopTieuDe {
+.titleBox {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-slate-900);
 }
 
-.hopChu {
+.textBox {
   margin-top: calc(var(--spacing) * 3);
   font-size: 0.9rem;
   line-height: 1.6;
   color: var(--color-slate-600);
 }
 
-.hopNut {
+.buttonBox {
   margin-top: calc(var(--spacing) * 6);
   display: flex;
   justify-content: flex-end;
   gap: calc(var(--spacing) * 3);
 }
 
-.nutHuy {
+.cancelButton {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-slate-300);
   padding-inline: calc(var(--spacing) * 4);
@@ -388,7 +388,7 @@
   }
 }
 
-.nutXacNhan {
+.confirmButton {
   border-radius: var(--radius-lg);
   background-color: #dc2626;
   padding-inline: calc(var(--spacing) * 4);
@@ -419,7 +419,7 @@
 }
 
 .mon,
-.monTrong {
+.subjectInside {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -450,13 +450,13 @@
 }
 
 /* Chua co mon: vien dut, noi bat - la dong admin can xu ly. */
-.monTrong {
+.subjectInside {
   border: 1px dashed #f59e0b;
   background-color: #fffbeb;
   color: #b45309;
 }
 
-.suaMon {
+.editSubject {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -476,7 +476,7 @@
   }
 }
 
-.nutLuu {
+.saveButton {
   display: inline-grid;
   place-items: center;
   width: 30px;
@@ -495,12 +495,12 @@
 /* ------------------------------- Tai lieu da an ------------------------------- */
 
 /* Dong da an: mo di, de admin nhin la biet nguoi dung khong con thay no. */
-.dongAn td {
+.hiddenRow td {
   background-color: #fffbeb;
   opacity: 0.75;
 }
 
-.nhanAn {
+.hiddenLabel {
   margin-right: calc(var(--spacing) * 2);
   border-radius: 999px;
   background-color: #fef3c7;
@@ -512,7 +512,7 @@
 }
 
 // Sua nhieu mon ngay trong o bang: bo chon the + hang nut Luu / Huy.
-.suaMonNhieu {
+.bulkEditSubject {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 2);

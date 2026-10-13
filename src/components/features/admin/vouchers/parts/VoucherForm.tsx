@@ -1,5 +1,5 @@
 import { ADMIN_VOUCHERS as C } from "@/src/constants/admin/vouchers-page";
-import type { ThanMaGiamGia } from "@/src/services/voucher";
+import type { VoucherPayload } from "@/src/services/voucher";
 
 import type { AdminVouchersState } from "../hooks/useAdminVouchers";
 import styles from "../AdminVouchers.module.scss";
@@ -7,23 +7,23 @@ import styles from "../AdminVouchers.module.scss";
 /** Bieu mau tao / sua ma giam gia. */
 export default function VoucherForm({ s }: { s: AdminVouchersState }) {
   const F = C.form;
-  const { than, setThan } = s;
-  const phanTram = than.loai === "phanTram";
+  const { than: body, setBody } = s;
+  const percent = body.loai === "phanTram";
 
   return (
     <div className={styles.card}>
-      <h2 className={styles.heading}>{s.suaId ? F.editTitle : F.createTitle}</h2>
+      <h2 className={styles.heading}>{s.editId ? F.editTitle : F.createTitle}</h2>
 
       <div className={styles.grid}>
-        {!s.suaId && (
+        {!s.editId && (
           <label className={styles.fieldLabel}>
             <span className={styles.label}>{F.code}</span>
             <input
               id="mgg-ma"
-              value={than.ma ?? ""}
+              value={body.ma ?? ""}
               onChange={(e) =>
-                setThan({
-                  ...than,
+                setBody({
+                  ...body,
                   ma: e.target.value.toUpperCase().slice(0, C.codeMaxLength),
                 })
               }
@@ -37,8 +37,8 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
           <span className={styles.label}>{F.description}</span>
           <input
             id="mgg-mota"
-            value={than.moTa ?? ""}
-            onChange={(e) => setThan({ ...than, moTa: e.target.value })}
+            value={body.moTa ?? ""}
+            onChange={(e) => setBody({ ...body, moTa: e.target.value })}
             placeholder={F.descriptionPlaceholder}
             className={styles.input2}
           />
@@ -48,14 +48,14 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
           <span className={styles.label}>{F.kind}</span>
           <select
             id="mgg-loai"
-            value={than.loai}
+            value={body.loai}
             onChange={(e) =>
-              setThan({
-                ...than,
-                loai: e.target.value as ThanMaGiamGia["loai"],
+              setBody({
+                ...body,
+                loai: e.target.value as VoucherPayload["loai"],
                 // Doi sang so tien thi tran giam khong con nghia - xoa luon
                 // de khong luu mot gia tri vo nghia vao CSDL.
-                giamToiDa: e.target.value === "phanTram" ? than.giamToiDa : null,
+                giamToiDa: e.target.value === "phanTram" ? body.giamToiDa : null,
               })
             }
             className={styles.input2}
@@ -69,31 +69,31 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
         </label>
 
         <label className={styles.fieldLabel}>
-          <span className={styles.label}>{F.value(phanTram)}</span>
+          <span className={styles.label}>{F.value(percent)}</span>
           <input
             id="mgg-giatri"
             type="number"
-            min={phanTram ? 1 : 0}
-            max={phanTram ? 100 : undefined}
-            value={than.giaTri}
-            onChange={(e) => setThan({ ...than, giaTri: Number(e.target.value) })}
+            min={percent ? 1 : 0}
+            max={percent ? 100 : undefined}
+            value={body.giaTri}
+            onChange={(e) => setBody({ ...body, giaTri: Number(e.target.value) })}
             className={styles.input2}
           />
         </label>
 
         {/* Tran giam chi co nghia voi ma phan tram. Hien no o ma so tien la
             mot o khong bao gio duoc dung toi - nguoi go se phan van. */}
-        {phanTram && (
+        {percent && (
           <label className={styles.fieldLabel}>
             <span className={styles.label}>{F.cap}</span>
             <input
               id="mgg-tran"
               type="number"
               min={0}
-              value={than.giamToiDa ?? ""}
+              value={body.giamToiDa ?? ""}
               onChange={(e) =>
-                setThan({
-                  ...than,
+                setBody({
+                  ...body,
                   giamToiDa: e.target.value ? Number(e.target.value) : null,
                 })
               }
@@ -108,8 +108,8 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
             id="mgg-toithieu"
             type="number"
             min={0}
-            value={than.donToiThieu ?? 0}
-            onChange={(e) => setThan({ ...than, donToiThieu: Number(e.target.value) })}
+            value={body.donToiThieu ?? 0}
+            onChange={(e) => setBody({ ...body, donToiThieu: Number(e.target.value) })}
             className={styles.input2}
           />
         </label>
@@ -119,8 +119,8 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
           <input
             id="mgg-batdau"
             type="date"
-            value={(than.batDau ?? "").slice(0, 10)}
-            onChange={(e) => setThan({ ...than, batDau: e.target.value })}
+            value={(body.batDau ?? "").slice(0, 10)}
+            onChange={(e) => setBody({ ...body, batDau: e.target.value })}
             className={styles.input2}
           />
         </label>
@@ -130,8 +130,8 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
           <input
             id="mgg-ketthuc"
             type="date"
-            value={(than.ketThuc ?? "").slice(0, 10)}
-            onChange={(e) => setThan({ ...than, ketThuc: e.target.value })}
+            value={(body.ketThuc ?? "").slice(0, 10)}
+            onChange={(e) => setBody({ ...body, ketThuc: e.target.value })}
             className={styles.input2}
           />
         </label>
@@ -142,10 +142,10 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
             id="mgg-soluot"
             type="number"
             min={1}
-            value={than.soLuotToiDa ?? ""}
+            value={body.soLuotToiDa ?? ""}
             onChange={(e) =>
-              setThan({
-                ...than,
+              setBody({
+                ...body,
                 soLuotToiDa: e.target.value ? Number(e.target.value) : null,
               })
             }
@@ -157,8 +157,8 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
           <input
             id="mgg-motlan"
             type="checkbox"
-            checked={than.moiNguoiMotLan !== false}
-            onChange={(e) => setThan({ ...than, moiNguoiMotLan: e.target.checked })}
+            checked={body.moiNguoiMotLan !== false}
+            onChange={(e) => setBody({ ...body, moiNguoiMotLan: e.target.checked })}
             className={styles.input3}
           />
           <span className={styles.label2}>
@@ -169,16 +169,16 @@ export default function VoucherForm({ s }: { s: AdminVouchersState }) {
       </div>
 
       <div className={styles.row3}>
-        <button type="button" onClick={s.dongForm} className={styles.button2}>
+        <button type="button" onClick={s.closeForm} className={styles.button2}>
           {F.cancel}
         </button>
         <button
           type="button"
           onClick={s.luu}
-          disabled={s.dangLuu || (!s.suaId && !than.ma?.trim())}
+          disabled={s.saving || (!s.editId && !body.ma?.trim())}
           className={styles.button3}
         >
-          {s.dangLuu ? F.saving : F.save}
+          {s.saving ? F.saving : F.save}
         </button>
       </div>
     </div>

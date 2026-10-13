@@ -48,7 +48,7 @@ export default function UserSettings() {
       <div className={styles.container2}>
         <div className={styles.grid}>
           {/* ============ THANH DIEU HUONG ============ */}
-          <SettingsNav tab={s.tab} onChange={s.chonTab} />
+          <SettingsNav tab={s.tab} onChange={s.selectTab} />
 
           {/* ============ NOI DUNG ============ */}
           <main className={styles.main}>

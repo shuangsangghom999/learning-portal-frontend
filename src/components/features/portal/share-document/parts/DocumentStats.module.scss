@@ -93,14 +93,14 @@
 }
 
 // ---- mang mau trang tri (dung lai SVG da ve cho dai dau trang)
-.hinh {
+.icon {
   position: absolute;
   z-index: 0;
   pointer-events: none;
   background: center / contain no-repeat;
 }
 
-.trenTrai {
+.topLeft {
   top: -40px;
   left: -60px;
   width: 240px;
@@ -109,7 +109,7 @@
   transform: rotate(35deg);
 }
 
-.duoiTrai {
+.bottomLeft {
   bottom: -30px;
   left: 6%;
   width: 90px;
@@ -117,7 +117,7 @@
   background-image: url("/images/share-document/giot-tim.svg");
 }
 
-.trenPhai {
+.topRight {
   top: 30px;
   right: -50px;
   width: 170px;
@@ -126,7 +126,7 @@
   transform: rotate(-20deg);
 }
 
-.duoiPhai {
+.bottomRight {
   bottom: -20px;
   right: 8%;
   width: 70px;
@@ -145,12 +145,12 @@
     margin-inline: auto;
   }
 
-  .trenTrai,
-  .duoiPhai {
+  .topLeft,
+  .bottomRight {
     display: none;
   }
 
-  .trenPhai {
+  .topRight {
     width: 90px;
     height: 110px;
     right: -30px;

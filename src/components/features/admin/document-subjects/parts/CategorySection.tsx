@@ -1,16 +1,13 @@
 import { Check, Layers, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 
-import { BIEU_TUONG } from "@/src/components/features/portal/share-document/parts/DocumentCategories";
+import { ICONS } from "@/src/components/features/portal/share-document/parts/DocumentCategories";
 import { ADMIN_DOCUMENT_SUBJECTS as C } from "@/src/constants/admin/document-subjects-page";
-import type { BieuTuongLinhVuc } from "@/src/services/document";
+import type { FieldIcon } from "@/src/services/document";
 
 import type { DocumentCatalogState } from "../hooks/useDocumentCatalog";
 import styles from "../AdminDocumentSubjects.module.scss";
 
-const DS_BIEU_TUONG = Object.entries(BIEU_TUONG) as [
-  BieuTuongLinhVuc,
-  (typeof BIEU_TUONG)[BieuTuongLinhVuc],
-][];
+const DS_BIEU_TUONG = Object.entries(ICONS) as [FieldIcon, (typeof ICONS)[FieldIcon]][];
 
 function BieuTuongOptions() {
   return (
@@ -34,29 +31,29 @@ export default function CategorySection({ s }: { s: DocumentCatalogState }) {
         <Layers size={18} />
         {K.heading}
       </h2>
-      <form onSubmit={s.themNhom} className={styles.them}>
+      <form onSubmit={s.addGroup} className={styles.them}>
         <input
-          value={s.tenNhomMoi}
-          onChange={(e) => s.setTenNhomMoi(e.target.value)}
+          value={s.newGroupName}
+          onChange={(e) => s.setNewGroupName(e.target.value)}
           maxLength={K.maxLength}
           placeholder={K.placeholder}
           aria-label={K.nameAria}
           className={styles.o}
         />
         <select
-          value={s.bieuTuongMoi}
-          onChange={(e) => s.setBieuTuongMoi(e.target.value as BieuTuongLinhVuc)}
+          value={s.newIcon}
+          onChange={(e) => s.setNewIcon(e.target.value as FieldIcon)}
           aria-label={K.iconAria}
-          className={styles.oChon}
+          className={styles.selectInput}
         >
           <BieuTuongOptions />
         </select>
         <button
           type="submit"
-          disabled={s.dangThemNhom || !s.tenNhomMoi.trim()}
-          className={styles.nutChinh}
+          disabled={s.addingGroup || !s.newGroupName.trim()}
+          className={styles.primaryButton}
         >
-          {s.dangThemNhom ? (
+          {s.addingGroup ? (
             <Loader2 size={15} className={styles.quay} />
           ) : (
             <Plus size={15} />
@@ -65,23 +62,23 @@ export default function CategorySection({ s }: { s: DocumentCatalogState }) {
         </button>
       </form>
 
-      {!s.dangTai && s.dsNhom.length > 0 && (
+      {!s.loading && s.groupList.length > 0 && (
         <ul className={styles.ds}>
-          {s.dsNhom.map((n) => {
-            const bt = BIEU_TUONG[n.bieuTuong] ?? BIEU_TUONG.sach;
+          {s.groupList.map((n) => {
+            const icon = ICONS[n.bieuTuong] ?? ICONS.sach;
             return (
               <li key={n._id} className={styles.dong1}>
                 <span className={styles.bieuTuong} aria-hidden>
-                  <bt.Icon size={16} />
+                  <icon.Icon size={16} />
                 </span>
-                {s.suaNhom === n._id ? (
+                {s.editGroup === n._id ? (
                   <div className={styles.sua}>
                     <input
-                      value={s.tenNhomSua}
-                      onChange={(e) => s.setTenNhomSua(e.target.value)}
+                      value={s.editGroupName}
+                      onChange={(e) => s.setEditGroupName(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") s.capNhatNhom(n, { ten: s.tenNhomSua });
-                        if (e.key === "Escape") s.setSuaNhom(null);
+                        if (e.key === "Enter") s.updateGroup(n, { ten: s.editGroupName });
+                        if (e.key === "Escape") s.setEditGroup(null);
                       }}
                       maxLength={K.maxLength}
                       autoFocus
@@ -90,16 +87,16 @@ export default function CategorySection({ s }: { s: DocumentCatalogState }) {
                     />
                     <button
                       type="button"
-                      onClick={() => s.capNhatNhom(n, { ten: s.tenNhomSua })}
-                      className={styles.nutIcon}
+                      onClick={() => s.updateGroup(n, { ten: s.editGroupName })}
+                      className={styles.iconButton}
                       aria-label={C.saveNameAria}
                     >
                       <Check size={15} />
                     </button>
                     <button
                       type="button"
-                      onClick={() => s.setSuaNhom(null)}
-                      className={styles.nutIcon}
+                      onClick={() => s.setEditGroup(null)}
+                      className={styles.iconButton}
                       aria-label={C.cancelAria}
                     >
                       <X size={15} />
@@ -109,23 +106,23 @@ export default function CategorySection({ s }: { s: DocumentCatalogState }) {
                   <>
                     <span className={styles.ten}>{n.ten}</span>
                     <span className={styles.so}>{K.count(n.soMon, n.soTaiLieu)}</span>
-                    <div className={styles.thaoTac}>
+                    <div className={styles.actions}>
                       <select
                         value={n.bieuTuong}
                         onChange={(e) =>
-                          s.capNhatNhom(n, {
-                            bieuTuong: e.target.value as BieuTuongLinhVuc,
+                          s.updateGroup(n, {
+                            bieuTuong: e.target.value as FieldIcon,
                           })
                         }
                         aria-label={K.iconOfAria(n.ten)}
-                        className={styles.oChonNho}
+                        className={styles.smallSelect}
                       >
                         <BieuTuongOptions />
                       </select>
                       <button
                         type="button"
-                        onClick={() => s.batDauSuaNhom(n)}
-                        className={styles.nutIcon}
+                        onClick={() => s.startEditGroup(n)}
+                        className={styles.iconButton}
                         title={C.renameTitle}
                         aria-label={C.renameAria(n.ten)}
                       >
@@ -133,8 +130,8 @@ export default function CategorySection({ s }: { s: DocumentCatalogState }) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => s.xoaNhom(n)}
-                        className={styles.nutXoa}
+                        onClick={() => s.deleteGroup(n)}
+                        className={styles.deleteButton}
                         title={K.deleteTitle}
                         aria-label={C.deleteAria(n.ten)}
                       >

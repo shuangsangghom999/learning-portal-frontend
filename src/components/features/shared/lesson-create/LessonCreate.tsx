@@ -44,7 +44,7 @@ function LessonCreateContent({ role }: { role: LessonCreateRole }) {
             role={role}
             courseId={f.courseId}
             submitting={f.submitting}
-            tienDo={f.tienDo}
+            progress={f.progress}
           />
         </form>
       </div>

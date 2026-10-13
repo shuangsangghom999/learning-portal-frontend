@@ -47,7 +47,7 @@
   }
 }
 
-.formChan {
+.blockedForm {
   margin-top: calc(var(--spacing) * 2);
   display: flex;
   align-items: center;
@@ -60,13 +60,13 @@
   color: var(--color-slate-400);
 }
 
-.formNut {
+.formButton {
   display: flex;
   gap: calc(var(--spacing) * 2);
 }
 
-.nutGui,
-.nutHuy {
+.sendButton,
+.cancelButton {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -78,7 +78,7 @@
   cursor: pointer;
 }
 
-.nutGui {
+.sendButton {
   background-color: var(--color-blue-600);
   color: #fff;
 
@@ -94,7 +94,7 @@
   }
 }
 
-.nutHuy {
+.cancelButton {
   color: var(--color-slate-600);
 
   @media (hover: hover) {
@@ -104,7 +104,7 @@
   }
 }
 
-.moiDangNhap {
+.promptLogin {
   margin-bottom: calc(var(--spacing) * 5);
   border-radius: var(--radius-lg);
   background-color: var(--color-slate-50);
@@ -113,7 +113,7 @@
   color: var(--color-slate-600);
 }
 
-.linkDangNhap {
+.loginLink {
   font-weight: 600;
   color: var(--color-blue-700);
   text-decoration: underline;
@@ -167,9 +167,9 @@
   color: var(--color-slate-900);
 }
 
-.nhanTacGia,
-.nhanAdmin,
-.nhanAn {
+.authorLabel,
+.adminLabel,
+.hiddenLabel {
   border-radius: 999px;
   padding-inline: calc(var(--spacing) * 2);
   padding-block: 1px;
@@ -177,17 +177,17 @@
   font-weight: 600;
 }
 
-.nhanTacGia {
+.authorLabel {
   background-color: #eef1fb;
   color: var(--color-blue-700);
 }
 
-.nhanAdmin {
+.adminLabel {
   background-color: #f5f3ff;
   color: #6d28d9;
 }
 
-.nhanAn {
+.hiddenLabel {
   background-color: #fffbeb;
   color: #b45309;
 }
@@ -208,14 +208,14 @@
   color: var(--color-slate-700);
 }
 
-.thaoTac {
+.actions {
   margin-top: calc(var(--spacing) * 1.5);
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 1);
 }
 
-.nutNho {
+.smallButton {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1);

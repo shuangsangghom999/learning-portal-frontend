@@ -1094,15 +1094,15 @@
 }
 
 /* Mau nhan trang thai ghi danh, truoc day la chuoi lop Tailwind trong STATUS_LABEL. */
-.nhanDangHoc {
+.learningLabel {
   background-color: var(--color-blue-50);
   color: var(--color-blue-700);
 }
-.nhanHoanThanh {
+.completedLabel {
   background-color: var(--color-green-50);
   color: var(--color-green-800);
 }
-.nhanDaDung {
+.usedLabel {
   background-color: var(--color-slate-100);
   color: var(--color-slate-700);
 }

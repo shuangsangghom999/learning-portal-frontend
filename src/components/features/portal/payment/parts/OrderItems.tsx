@@ -1,6 +1,6 @@
 import { PAYMENT as P } from "@/src/constants/portal/payment-page";
-import { khoaTrongDon } from "@/src/lib/order";
-import { dinhDangTien, type DonHang } from "@/src/services/order";
+import { coursesInOrder } from "@/src/lib/order";
+import { formatMoney, type Order } from "@/src/services/order";
 
 import styles from "../Payment.module.scss";
 
@@ -12,14 +12,14 @@ function OrderItemRow({ title, price }: { title: string; price: number }) {
         <h3 className={styles.subheading}>{title}</h3>
         <p className={styles.text3}>{P.items.course}</p>
       </div>
-      <p className={styles.text4}>{dinhDangTien(price)}</p>
+      <p className={styles.text4}>{formatMoney(price)}</p>
     </div>
   );
 }
 
 /** Cac muc trong don. */
-export default function OrderItems({ don }: { don: DonHang }) {
-  const ds = khoaTrongDon(don);
+export default function OrderItems({ don: order }: { don: Order }) {
+  const items = coursesInOrder(order);
 
   return (
     <section className={styles.section} aria-labelledby="muc-don-hang">
@@ -28,10 +28,13 @@ export default function OrderItems({ don }: { don: DonHang }) {
       </h2>
       {/* Don gio hang co nhieu dong; moi dong la gia cua khoa do. Dong
           tong (da tru ma giam gia neu co) nam o cau "Bạn cần chuyển" ben tren. */}
-      {ds.length > 1 ? (
-        ds.map((k) => <OrderItemRow key={k._id} title={k.title} price={k.price} />)
+      {items.length > 1 ? (
+        items.map((k) => <OrderItemRow key={k._id} title={k.title} price={k.price} />)
       ) : (
-        <OrderItemRow title={don.course?.title ?? P.items.course} price={don.amount} />
+        <OrderItemRow
+          title={order.course?.title ?? P.items.course}
+          price={order.amount}
+        />
       )}
     </section>
   );

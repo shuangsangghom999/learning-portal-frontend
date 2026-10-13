@@ -1,6 +1,6 @@
 import { Clock, Flame, Users } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { USER_PROFILE as C } from "@/src/constants/portal/user-profile-page";
 import type { ActivitySummary, User } from "@/src/services/userApi";
 
@@ -24,11 +24,11 @@ export default function ProfileSidebar({
     <aside className={styles.aside}>
       <div className={styles.card}>
         <div className={styles.col}>
-          <AnhDaiDien
+          <Avatar
             src={user.avatar || user.googlePicture}
             ten={user.name}
             size={96}
-            nenChuCai={styles.box4}
+            letterBackground={styles.box4}
           />
 
           <h1 className={styles.title}>{user.fullname || user.name}</h1>

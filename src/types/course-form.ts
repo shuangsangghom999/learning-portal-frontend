@@ -31,5 +31,7 @@ export interface AdminCourseCreateFormData extends CourseCreateFormData {
 
 /** Bieu mau sua khoa hoc cua admin: sua duoc slug va giang vien. */
 export interface AdminCourseEditFormData extends CourseCreateFormData {
+  /** So ngay duoc hoc sau khi thanh toan (khoa co phi). */
+  accessDays: number;
   instructorId: string;
 }

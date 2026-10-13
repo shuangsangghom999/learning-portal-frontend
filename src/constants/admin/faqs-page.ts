@@ -1,4 +1,4 @@
-import type { ViTriFaq } from "@/src/services/faq";
+import type { FaqArea } from "@/src/services/faq";
 
 /** Chu va cau hinh cua trang /admin/faqs (FAQ khong gan khoa hoc). */
 export const ADMIN_FAQS = {
@@ -10,7 +10,7 @@ export const ADMIN_FAQS = {
       nhan: "Chia sẻ tài liệu",
       moTa: "Hiển thị ở cuối trang Chia sẻ tài liệu (/share-document).",
     },
-  ] satisfies { khoa: ViTriFaq; nhan: string; moTa: string }[],
+  ] satisfies { khoa: FaqArea; nhan: string; moTa: string }[],
   areasAria: "Khu vực hiển thị FAQ",
 
   title: "FAQs Management",

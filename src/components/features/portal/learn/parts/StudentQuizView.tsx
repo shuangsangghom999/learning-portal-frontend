@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/src/services/apiHelper";
 
+import QuizAttemptHistory from "./QuizAttemptHistory";
 import styles from "./StudentQuizView.module.scss";
 import {
   ArrowLeft,
@@ -15,15 +16,16 @@ import {
 } from "lucide-react";
 import {
   getQuizById,
+  resetMyQuizAttempts,
   submitQuizAttempt,
-  type KetQuaLamBai,
+  type AttemptResult,
   type QuizAnswer,
   type QuizQuestion,
   type QuizWithAttempt,
 } from "@/src/services/quizService";
 
 // questionId khi la chuoi, khi la doi tuong da populate - tuy endpoint tra ve.
-const layIdCauHoi = (id: QuizAnswer["questionId"]): string =>
+const getQuestionId = (id: QuizAnswer["questionId"]): string =>
   typeof id === "string" ? id : id._id;
 
 interface StudentQuizViewProps {
@@ -43,9 +45,39 @@ export default function StudentQuizView({
   const [startedAt, setStartedAt] = useState<string>("");
 
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-  const [result, setResult] = useState<KetQuaLamBai | null>(null);
+  const [result, setResult] = useState<AttemptResult | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isLocked, setIsLocked] = useState<boolean>(false);
+  // Doi sau moi lan nop de lich su lam bai tai lai.
+  const [historyKey, setHistoryKey] = useState<string>("");
+  // Tang len de tai lai de tu may chu (vd nop bi tu choi vi het luot).
+  const [reloadKey, setReloadKey] = useState(0);
+  const [resetting, setResetting] = useState(false);
+
+  // Dat lai bai lam: cac luot cu thanh "khong tinh" (van nam trong lich su),
+  // roi tai lai de de lam tu dau voi du so luot.
+  const handleReset = async () => {
+    if (resetting) return;
+    if (
+      !window.confirm(
+        "Đặt lại bài làm? Các lượt cũ vẫn được giữ trong lịch sử nhưng không tính nữa, bạn sẽ làm lại từ đầu.",
+      )
+    )
+      return;
+    setResetting(true);
+    try {
+      await resetMyQuizAttempts(quizId);
+      setResult(null);
+      setAnswers({});
+      setIsLocked(false);
+      setHistoryKey(String(Date.now()));
+      setReloadKey((k) => k + 1);
+    } catch (error) {
+      alert(getErrorMessage(error, "Không đặt lại được bài làm, vui lòng thử lại!"));
+    } finally {
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     if (!quizId) return;
@@ -64,13 +96,15 @@ export default function StudentQuizView({
             attempt.answers.forEach((ans) => {
               // studentAnswer la Mixed ben may chu (cau dung/sai tra ve boolean),
               // con o day chi so sanh voi chu cua phuong an nen ep ve chuoi.
-              oldAnswers[layIdCauHoi(ans.questionId)] = String(ans.studentAnswer);
+              oldAnswers[getQuestionId(ans.questionId)] = String(ans.studentAnswer);
             });
             setAnswers(oldAnswers);
           }
 
           const maxAttemptsAllowed = data.attempts || 1;
-          const currentAttemptCount = attempt.attemptNumber || 1;
+          // So luot HOP LE (may chu dem, khong tinh luot giang vien cho lam lai).
+          // attemptNumber dem ca luot do nen khong dung de khoa duoc nua.
+          const currentAttemptCount = data.usedAttempts ?? attempt.attemptNumber ?? 1;
 
           if (attempt.passed || currentAttemptCount >= maxAttemptsAllowed) {
             setIsLocked(true);
@@ -92,7 +126,7 @@ export default function StudentQuizView({
         alert("Không thể tải bài kiểm tra này!");
       })
       .finally(() => setLoading(false));
-  }, [quizId]);
+  }, [quizId, reloadKey]);
 
   async function executeSubmit() {
     if (!quiz || submitting || isLocked) return;
@@ -108,9 +142,11 @@ export default function StudentQuizView({
       const res = await submitQuizAttempt(quizId, formattedAnswers, startedAt);
       setResult(res);
 
-      if (res.passed || quiz.attempts === 1) {
+      if (res.passed || (res.usedAttempts ?? 1) >= (quiz.attempts || 1)) {
         setIsLocked(true);
       }
+      setQuiz({ ...quiz, usedAttempts: res.usedAttempts ?? quiz.usedAttempts });
+      setHistoryKey(res._id);
 
       if (res.passed && onSuccess) {
         await onSuccess();
@@ -126,6 +162,9 @@ export default function StudentQuizView({
           "Đã xảy ra lỗi trong quá trình nộp bài, vui lòng thử lại!",
         ),
       );
+      // Tai lai de: may chu co the da co luot lam ma man hinh chua biet (het
+      // luot, mo bai o tab khac...). Khong tai lai thi nguoi dung ket o de trong.
+      setReloadKey((k) => k + 1);
     } finally {
       setSubmitting(false);
     }
@@ -195,9 +234,9 @@ export default function StudentQuizView({
     return <div className={styles.card2}>Không tìm thấy thông tin bài kiểm tra.</div>;
   }
 
-  // attemptNumber co the vang mat trong phan hoi; coi nhu lan thu nhat.
-  const canRetry =
-    result && !result.passed && (result.attemptNumber ?? 1) < (quiz.attempts || 1);
+  // So luot hop le da dung; thieu thi coi nhu lan thu nhat.
+  const used = result?.usedAttempts ?? quiz.usedAttempts ?? result?.attemptNumber ?? 1;
+  const canRetry = result && !result.passed && used < (quiz.attempts || 1);
 
   return (
     <div className={styles.stack}>
@@ -246,7 +285,7 @@ export default function StudentQuizView({
             <p className={styles.text2}>
               Bạn đã hoàn thành bài kiểm tra ở lượt thứ{" "}
               <span className={styles.label3}>
-                {result.attemptNumber || 1}/{quiz.attempts}
+                {used}/{quiz.attempts}
               </span>
               .<br />
               Đạt tỉ lệ: <span className={styles.label4}>{result.percentage}%</span> |
@@ -279,6 +318,16 @@ export default function StudentQuizView({
               {result.passed ? "✓ Đã Hoàn Thành" : "✕ Đã Hết Lượt Làm Bài"}
             </span>
           )}
+          {!canRetry && (
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={resetting}
+              className={styles.button2}
+            >
+              {resetting ? "Đang đặt lại…" : "Đặt lại bài làm"}
+            </button>
+          )}
         </div>
       )}
 
@@ -286,7 +335,7 @@ export default function StudentQuizView({
       <div className={styles.stack2}>
         {quiz.questions.map((q, index: number) => {
           const studentAnswerRecord = result?.answers?.find(
-            (ans) => layIdCauHoi(ans.questionId) === q._id,
+            (ans) => getQuestionId(ans.questionId) === q._id,
           );
 
           const isQuestionCorrect = studentAnswerRecord?.isCorrect === true;
@@ -348,6 +397,9 @@ export default function StudentQuizView({
           );
         })}
       </div>
+
+      {/* LICH SU MOI LUOT - xem lai cau nao sai o luot nao */}
+      <QuizAttemptHistory quizId={quizId} refreshKey={historyKey} />
 
       {/* KHỐI GỬI BÀI CHẤM ĐIỂM */}
       {!result && !isLocked && (

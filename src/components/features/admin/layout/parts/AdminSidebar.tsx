@@ -107,7 +107,7 @@ export default function AdminSidebar({ s }: { s: AdminShellState }) {
         </Link>
       </div>
 
-      <nav className={`${styles.thanhCuonGon} ${styles.nav}`}>
+      <nav className={`${styles.thinScroll} ${styles.nav}`}>
         <div className={styles.box2}>{C.groupFeatures}</div>
 
         {ADMIN_MENU.map((item, index) => (

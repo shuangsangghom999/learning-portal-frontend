@@ -71,6 +71,26 @@ export default function CourseEditFields({
             required
           />
         </div>
+        <div>
+          <label htmlFor="accessDays" className={styles.fieldLabel2}>
+            {C.accessDays}
+          </label>
+          <input
+            id="accessDays"
+            type="number"
+            name="accessDays"
+            value={formData.accessDays}
+            onChange={onChange}
+            className={styles.input2}
+            min={1}
+            max={3650}
+            required
+            aria-describedby="accessDaysHint"
+          />
+          <p id="accessDaysHint" className={styles.hint}>
+            {C.accessDaysHint}
+          </p>
+        </div>
       </div>
 
       <div>
@@ -106,9 +126,9 @@ export default function CourseEditFields({
             onChange={onChange}
             className={styles.select}
           >
-            {C.level.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {C.level.options.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
               </option>
             ))}
           </select>

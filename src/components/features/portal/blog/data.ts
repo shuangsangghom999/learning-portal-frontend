@@ -1,11 +1,11 @@
 import { BLOG } from "@/src/constants/portal/blog-page";
 import type { BlogPost, PostListResponse, Topic } from "@/src/services/post";
-import { GOC_API, layTuMayChu } from "@/src/services/serverFetch";
+import { GOC_API, fetchFromServer } from "@/src/services/serverFetch";
 
 const RONG: PostListResponse = { posts: [], total: 0, page: 1, totalPages: 1 };
 
 /** Danh sach bai (theo chu de + trang) va danh sach chu de, lay o may chu. */
-export async function layDanhSachBai(topic: string, page: number) {
+export async function getPostList(topic: string, page: number) {
   // Loc theo chu de qua DUONG DAN chu khong qua trang thai client: nho vay
   // trang van dung san duoc, chia se link ra ngoai van giu bo loc, va nut
   // Back cua trinh duyet hoat dong dung.
@@ -13,15 +13,19 @@ export async function layDanhSachBai(topic: string, page: number) {
   if (topic) qs.set("topic", topic);
 
   const [data, topics] = await Promise.all([
-    layTuMayChu<PostListResponse>(BLOG.postsApi(qs.toString()), RONG, BLOG.revalidate),
-    layTuMayChu<Topic[]>(BLOG.topicsApi, [], BLOG.revalidate),
+    fetchFromServer<PostListResponse>(
+      BLOG.postsApi(qs.toString()),
+      RONG,
+      BLOG.revalidate,
+    ),
+    fetchFromServer<Topic[]>(BLOG.topicsApi, [], BLOG.revalidate),
   ]);
 
   return { data, topics };
 }
 
 /** Mot bai theo slug; null khi khong co hoac loi mang. */
-export async function layBai(slug: string): Promise<BlogPost | null> {
+export async function getPost(slug: string): Promise<BlogPost | null> {
   try {
     const res = await fetch(`${GOC_API}${BLOG.postApi(slug)}`, {
       next: { revalidate: BLOG.revalidate },
@@ -34,12 +38,12 @@ export async function layBai(slug: string): Promise<BlogPost | null> {
 }
 
 /** Duong dan /blog giu chu de dang chon, chi them ?page khi > 1. */
-export function taoDuongDanBlog(
-  topicHienTai: string,
+export function buildBlogPath(
+  currentTopic: string,
   p: { topic?: string; page?: number },
 ): string {
   const u = new URLSearchParams();
-  const t = p.topic ?? topicHienTai;
+  const t = p.topic ?? currentTopic;
   if (t) u.set("topic", t);
   if (p.page && p.page > 1) u.set("page", String(p.page));
   const s = u.toString();

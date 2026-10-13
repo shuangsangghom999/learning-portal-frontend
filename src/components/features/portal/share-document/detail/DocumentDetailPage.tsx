@@ -6,17 +6,17 @@ import styles from "./DocumentDetailPage.module.scss";
 /** Trang mot tai lieu: noi dung chinh + cot lien quan. */
 export default function DocumentDetailPage({
   doc,
-  lienQuan,
+  related,
 }: {
   doc: SharedDocument;
-  lienQuan: RecommendedDocument[];
+  related: RecommendedDocument[];
 }) {
   return (
     <div className={styles.page}>
       {/* key theo id: bam sang tai lieu khac o cot lien quan thi React dung
           lai component tu dau, khong mang state cu (vd. binh luan dang go) cua
           tai lieu truoc sang. */}
-      <DocumentDetailClient key={doc._id} doc={doc} lienQuan={lienQuan} />
+      <DocumentDetailClient key={doc._id} doc={doc} related={related} />
     </div>
   );
 }

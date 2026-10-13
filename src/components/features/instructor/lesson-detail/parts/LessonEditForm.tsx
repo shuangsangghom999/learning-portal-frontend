@@ -8,6 +8,8 @@ interface LessonEditFormProps {
   title: string;
   content: string;
   videoUrl: string;
+  /** Bai dang dung video kho kin: hien loi nhac giu nguyen. */
+  privateVideo?: boolean;
   order: number;
   submitting: boolean;
   busy: boolean;
@@ -24,6 +26,7 @@ export default function LessonEditForm({
   title,
   content,
   videoUrl,
+  privateVideo,
   order,
   submitting,
   busy,
@@ -70,6 +73,7 @@ export default function LessonEditForm({
           placeholder={C.fields.videoUrlPlaceholder}
           className={styles.input2}
         />
+        {privateVideo && <p className={styles.fieldLabel}>{C.fields.privateVideoNote}</p>}
       </div>
 
       <div>

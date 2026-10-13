@@ -8,18 +8,18 @@ import styles from "./ShareDocumentHero.module.scss";
 
 interface Props {
   /** Chua dang nhap thi tha file / bam chon file se mo hop dang nhap. */
-  daDangNhap: boolean;
-  gioiHanMb: number;
+  loggedIn: boolean;
+  limitMb: number;
   /** Nguoi dung vua tha hoac chon file (toi da 5) - form dang bai lo kiem tra va mo ra. */
-  khiChonFile: (files: File[]) => void;
+  onPickFile: (files: File[]) => void;
   /** Can dang nhap truoc khi dang - trang mo hop dang nhap ngay tai cho. */
-  khiCanDangNhap: () => void;
+  onNeedLogin: () => void;
   tuKhoa: string;
-  doiTuKhoa: (v: string) => void;
-  khiTim: () => void;
+  changeKeyword: (v: string) => void;
+  onSearch: () => void;
   /** Vai mon nhieu tai lieu nhat - loi tat loc nhanh ngay duoi o tim. */
-  monNoiBat: DocumentSubject[];
-  khiChonMon: (key: string) => void;
+  featuredSubject: DocumentSubject[];
+  onPickSubject: (key: string) => void;
 }
 
 /**
@@ -32,41 +32,41 @@ interface Props {
  * de trang tri, khong can alt, va khong di qua bo toi uu anh cua Next.
  */
 export default function ShareDocumentHero({
-  daDangNhap,
-  gioiHanMb,
-  khiChonFile,
-  khiCanDangNhap,
-  tuKhoa,
-  doiTuKhoa,
-  khiTim,
-  monNoiBat,
-  khiChonMon,
+  loggedIn,
+  limitMb,
+  onPickFile,
+  onNeedLogin,
+  tuKhoa: keyword,
+  changeKeyword,
+  onSearch,
+  featuredSubject,
+  onPickSubject,
 }: Props) {
   const oFile = useRef<HTMLInputElement>(null);
-  const [dangKeo, setDangKeo] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
-  const moChonFile = () => {
-    if (!daDangNhap) return khiCanDangNhap();
+  const openFilePicker = () => {
+    if (!loggedIn) return onNeedLogin();
     oFile.current?.click();
   };
 
-  const khiTha = (e: React.DragEvent) => {
+  const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setDangKeo(false);
-    if (!daDangNhap) return khiCanDangNhap();
-    const ds = Array.from(e.dataTransfer.files ?? []);
-    if (ds.length) khiChonFile(ds);
+    setDragging(false);
+    if (!loggedIn) return onNeedLogin();
+    const items = Array.from(e.dataTransfer.files ?? []);
+    if (items.length) onPickFile(items);
   };
 
   return (
     <section className={styles.hero}>
-      <span aria-hidden className={`${styles.hinh} ${styles.giotTim}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.trungCam}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.sungHong}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.chamChanh}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.giotXanh}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.laChanh}`} />
-      <span aria-hidden className={`${styles.hinh} ${styles.chamHong}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.searchDrop}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.orangeAccent}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.pinkGlow}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.dotTeal}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.dropGreen}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.leafTeal}`} />
+      <span aria-hidden className={`${styles.icon} ${styles.dotPink}`} />
 
       <div className={styles.noiDung}>
         <h1 className={styles.tieuDe}>Tài liệu thật. Từ chính sinh viên.</h1>
@@ -81,29 +81,29 @@ export default function ShareDocumentHero({
           <div
             role="button"
             tabIndex={0}
-            onClick={moChonFile}
+            onClick={openFilePicker}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                moChonFile();
+                openFilePicker();
               }
             }}
             onDragOver={(e) => {
               e.preventDefault();
-              setDangKeo(true);
+              setDragging(true);
             }}
-            onDragLeave={() => setDangKeo(false)}
-            onDrop={khiTha}
-            className={`${styles.vungTha} ${dangKeo ? styles.vungThaKeo : ""}`}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            className={`${styles.dropZone} ${dragging ? styles.dragDropZone : ""}`}
           >
-            <CloudUpload size={34} className={styles.iconTai} />
-            <p className={styles.thaTieuDe}>Kéo &amp; thả tài liệu vào đây</p>
-            <p className={styles.thaPhu}>
-              Hoặc <span className={styles.chonFile}>chọn file</span> từ máy của bạn.
+            <CloudUpload size={34} className={styles.uploadIcon} />
+            <p className={styles.dropTitle}>Kéo &amp; thả tài liệu vào đây</p>
+            <p className={styles.dropHint}>
+              Hoặc <span className={styles.pickFile}>chọn file</span> từ máy của bạn.
             </p>
-            <p className={styles.thaGhiChu}>
-              {daDangNhap
-                ? `PDF, DOC hoặc DOCX · tối đa 5 file, mỗi file ${gioiHanMb}MB`
+            <p className={styles.dropNote}>
+              {loggedIn
+                ? `PDF, DOC hoặc DOCX · tối đa 5 file, mỗi file ${limitMb}MB`
                 : "Cần đăng nhập để chia sẻ. Xem và tải về thì không cần tài khoản."}
             </p>
           </div>
@@ -114,8 +114,8 @@ export default function ShareDocumentHero({
             multiple
             hidden
             onChange={(e) => {
-              const ds = Array.from(e.target.files ?? []);
-              if (ds.length) khiChonFile(ds);
+              const items = Array.from(e.target.files ?? []);
+              if (items.length) onPickFile(items);
               // Xoa gia tri de chon lai CUNG mot file van ban su kien change.
               e.target.value = "";
             }}
@@ -124,34 +124,34 @@ export default function ShareDocumentHero({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              khiTim();
+              onSearch();
             }}
-            className={styles.oTim}
+            className={styles.searchInput}
           >
-            <div className={styles.dongTim}>
-              <Search size={17} className={styles.iconTim} />
+            <div className={styles.searchRow}>
+              <Search size={17} className={styles.searchIcon} />
               <input
-                value={tuKhoa}
-                onChange={(e) => doiTuKhoa(e.target.value)}
+                value={keyword}
+                onChange={(e) => changeKeyword(e.target.value)}
                 placeholder="Tìm đề cương, đề thi, slide bài giảng…"
                 aria-label="Tìm tài liệu"
-                className={styles.nhapTim}
+                className={styles.searchInput}
               />
             </div>
-            <div className={styles.dongDuoi}>
+            <div className={styles.bottomRow}>
               <div className={styles.chips}>
-                {monNoiBat.map((m) => (
+                {featuredSubject.map((m) => (
                   <button
                     key={m.key}
                     type="button"
-                    onClick={() => khiChonMon(m.key)}
+                    onClick={() => onPickSubject(m.key)}
                     className={styles.chip}
                   >
                     {m.ten}
                   </button>
                 ))}
               </div>
-              <button type="submit" className={styles.nutTim} aria-label="Tìm">
+              <button type="submit" className={styles.searchButton} aria-label="Tìm">
                 <ArrowRight size={17} />
               </button>
             </div>

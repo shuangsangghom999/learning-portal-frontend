@@ -6,7 +6,7 @@ import SettingRow, {
   SettingCard,
 } from "@/src/components/features/portal/user/settings/parts/SettingRow";
 import {
-  MAX_ANH_MB,
+  MAX_IMAGE_MB,
   ROLE_LABEL,
   ROLE_LABEL_DEFAULT,
   USER_SETTINGS,
@@ -50,11 +50,13 @@ export default function PersonalTab({
       ? user.provider._id
       : (user.provider ?? ""),
   );
-  const anh = useAvatarPicker(user.avatar ?? "");
+  const image = useAvatarPicker(user.avatar ?? "");
 
   // Chon file thi day file len (multipart), khong thi luu duong dan (JSON).
-  const luuAnh = () =>
-    anh.anhChon ? saveAvatarFile(anh.anhChon) : save({ avatar: anh.avatar });
+  const saveAvatar = () =>
+    image.pickedImage
+      ? saveAvatarFile(image.pickedImage)
+      : save({ avatar: image.avatar });
 
   const providerName =
     typeof user.provider === "object" && user.provider ? user.provider.name : "";
@@ -161,12 +163,12 @@ export default function PersonalTab({
         >
           <FieldForm
             saving={saving}
-            saveLabel={anh.anhChon ? P.avatar.upload : USER_SETTINGS.form.save}
-            onSave={luuAnh}
+            saveLabel={image.pickedImage ? P.avatar.upload : USER_SETTINGS.form.save}
+            onSave={saveAvatar}
             onCancel={() => toggle("avatar")}
-            hint={P.avatar.hint(MAX_ANH_MB)}
+            hint={P.avatar.hint(MAX_IMAGE_MB)}
           >
-            <AvatarField p={anh} />
+            <AvatarField p={image} />
           </FieldForm>
         </SettingRow>
       </SettingCard>

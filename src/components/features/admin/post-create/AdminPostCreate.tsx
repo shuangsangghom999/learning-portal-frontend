@@ -14,7 +14,7 @@ import styles from "./AdminPostCreate.module.scss";
 function AdminPostEditor() {
   const s = usePostEditor();
 
-  if (s.dangNap) {
+  if (s.loadingPost) {
     return (
       <div className={styles.card}>
         <Loader2 className={styles.spinner} size={32} />

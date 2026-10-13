@@ -33,6 +33,7 @@ function InstructorLessonDetailContent() {
           title={l.title}
           content={l.content}
           videoUrl={l.videoUrl}
+          privateVideo={l.privateVideo}
           order={l.order}
           submitting={l.submitting}
           busy={busy}

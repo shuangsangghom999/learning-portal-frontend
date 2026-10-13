@@ -30,7 +30,7 @@ export const SHARE_DOCUMENT = {
   },
 
   browse: {
-    titleFor: (ten?: string) => (ten ? `Tài liệu ${ten}` : "Tất cả tài liệu"),
+    titleFor: (name?: string) => (name ? `Tài liệu ${name}` : "Tất cả tài liệu"),
     description:
       "Tìm đề cương, đề thi, bài giải và slide bài giảng do sinh viên chia sẻ.",
   },
@@ -51,16 +51,16 @@ export const SHARE_DOCUMENT = {
 
   institution: {
     notFoundTitle: "Không tìm thấy trường",
-    title: (ten: string) => `${ten} - tài liệu theo môn học`,
-    description: (ten: string) =>
-      `Đề cương, đề thi, bài giải và slide môn học của ${ten} do sinh viên chia sẻ.`,
+    title: (name: string) => `${name} - tài liệu theo môn học`,
+    description: (name: string) =>
+      `Đề cương, đề thi, bài giải và slide môn học của ${name} do sinh viên chia sẻ.`,
     loadFailed: (status: number) => `Không tải được trường (${status})`,
   },
 
   institutionCategory: {
     notFoundTitle: "Không tìm thấy",
-    title: (nhom: string, truong: string) => `${nhom} - ${truong}`,
-    description: (nhom: string, truong: string) =>
-      `Tài liệu ${nhom} do sinh viên ${truong} chia sẻ.`,
+    title: (group: string, school: string) => `${group} - ${school}`,
+    description: (group: string, school: string) =>
+      `Tài liệu ${group} do sinh viên ${school} chia sẻ.`,
   },
 } as const;

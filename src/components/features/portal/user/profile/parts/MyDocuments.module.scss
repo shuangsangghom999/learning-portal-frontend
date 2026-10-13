@@ -40,7 +40,7 @@
   color: var(--color-slate-600);
 }
 
-.nutDang {
+.uploadButton {
   display: inline-flex;
   align-items: center;
   gap: calc(var(--spacing) * 1.5);
@@ -99,13 +99,13 @@
   }
 }
 
-.dong {
+.rows {
   display: flex;
   align-items: center;
   gap: calc(var(--spacing) * 3);
 }
 
-.duoi {
+.extension {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -118,7 +118,7 @@
   color: var(--color-blue-700);
 }
 
-.thongTin {
+.info {
   flex: 1;
   min-width: 0;
 }
@@ -159,11 +159,11 @@ a.ten {
   color: var(--color-blue-700);
 }
 
-.chuaMon {
+.noSubject {
   color: #b45309;
 }
 
-.nhanAn {
+.hiddenLabel {
   border-radius: 999px;
   background-color: #fef2f2;
   padding: 0 0.45rem;
@@ -171,14 +171,14 @@ a.ten {
   color: #b91c1c;
 }
 
-.thaoTac {
+.actions {
   flex-shrink: 0;
   display: flex;
   gap: calc(var(--spacing) * 1.5);
 }
 
-.nutSua,
-.nutXoa {
+.editButton,
+.deleteButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +190,7 @@ a.ten {
   cursor: pointer;
 }
 
-.nutSua {
+.editButton {
   padding-inline: calc(var(--spacing) * 3);
   background-color: var(--color-slate-100);
   color: var(--color-slate-700);
@@ -208,7 +208,7 @@ a.ten {
   }
 }
 
-.nutXoa {
+.deleteButton {
   width: 32px;
   background-color: #fef2f2;
   color: #dc2626;
@@ -236,7 +236,7 @@ a.ten {
   color: var(--color-slate-600);
 }
 
-.nutTrang {
+.pageButton {
   display: grid;
   place-items: center;
   width: 32px;
@@ -263,12 +263,12 @@ a.ten {
 
 // Man hep: dua nut xuong duoi thong tin thay vi ep tieu de con vai chu.
 @media (max-width: 30rem) {
-  .dong {
+  .rows {
     flex-wrap: wrap;
   }
 
   // Tieu de + thong tin chiem tron hang con lai; nut Sua/Xoa roi xuong dong.
-  .thongTin {
+  .info {
     flex-basis: calc(100% - 44px - var(--spacing) * 3);
   }
 
@@ -276,7 +276,7 @@ a.ten {
     white-space: normal;
   }
 
-  .thaoTac {
+  .actions {
     margin-left: calc(44px + var(--spacing) * 3);
   }
 }

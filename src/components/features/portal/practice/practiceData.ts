@@ -10,7 +10,7 @@
 // Mau vach tung mon theo ban goc, xoay vong theo thu tu mon.
 const MAU = ["#306da6", "#57b056", "#f59e0b", "#8b5cf6", "#ec4899"];
 
-const TEN_MON = [
+const SUBJECT_NAMES = [
   "An toàn và bảo mật hệ thống thông tin",
   "Công nghệ phần mềm",
   "Kinh tế chính trị Mác - Lênin",
@@ -51,28 +51,28 @@ const TEN_MON = [
   "Mạng thông tin quang",
 ];
 
-export interface MonHoc {
+export interface Subject {
   /** Dung chi so lam khoa vi co hai mon trung ten khi bo dau/hoa thuong */
   id: string;
   ten: string;
   mau: string;
 }
 
-export interface DeLuyenTap {
+export interface PracticeQuiz {
   id: string;
-  monId: string;
+  subjectId: string;
   title: string;
   description: string;
   soCau: number;
 }
 
-export const MON_HOC: MonHoc[] = TEN_MON.map((ten, i) => ({
+export const SUBJECTS: Subject[] = SUBJECT_NAMES.map((name, i) => ({
   id: `mon-${i + 1}`,
-  ten,
+  ten: name,
   mau: MAU[i % MAU.length],
 }));
 
-export interface CauHoi {
+export interface Question {
   cau: string;
   dapAn: string[];
   /** Chi so cac dap an dung trong dapAn, dem tu 0 - vai cau co nhieu dap an dung */
@@ -84,4 +84,4 @@ export interface CauHoi {
 // Danh sach de va bo cau hoi sinh tu du lieu trang on thi cu (so luot lam KHONG
 // chep sang - do la luot lam tren trang cu). So cau la so cau con lai sau khi
 // bo cau loi o ban goc (khong dap an / khong danh dau dap an dung).
-export { DE_LUYEN_TAP, NAP_CAU_HOI } from "./de/danhSach";
+export { PRACTICE_QUIZZES, QUESTION_LOADERS } from "./quizzes/quizList";

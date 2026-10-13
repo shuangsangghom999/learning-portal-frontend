@@ -19,8 +19,8 @@ import {
   Strikethrough,
   Underline,
 } from "lucide-react";
-import { phanTichNoiDung } from "@/src/lib/article-outline";
-import { laHtml, lamSachHtml } from "@/src/lib/post-html";
+import { parseContent } from "@/src/lib/article-outline";
+import { laHtml, cleanHtml } from "@/src/lib/post-html";
 
 import styles from "./PostEditor.module.scss";
 // Trinh soan bai viet cho khu quan tri.
@@ -38,7 +38,7 @@ import styles from "./PostEditor.module.scss";
 
 interface Props {
   giaTri: string;
-  doiGiaTri: (v: string) => void;
+  setValue: (v: string) => void;
   toiDa: number;
   id?: string;
 }
@@ -55,31 +55,31 @@ function thoat(s: string): string {
  * chinh bo luat tach khoi cua trang doc - nho vay o xem truoc chi co MOT duong
  * ve, khong phai viet hai cach trinh bay roi de chung lech nhau.
  */
-function dungBanXem(noiDung: string): string {
-  if (laHtml(noiDung)) return lamSachHtml(noiDung);
+function buildPreview(content: string): string {
+  if (laHtml(content)) return cleanHtml(content);
 
-  return phanTichNoiDung(noiDung)
+  return parseContent(content)
     .map((b) => {
       if (b.kind === "heading") {
-        const the = b.level === 1 ? "h2" : b.level === 2 ? "h3" : "h4";
-        return `<${the}>${thoat(b.text)}</${the}>`;
+        const card = b.level === 1 ? "h2" : b.level === 2 ? "h3" : "h4";
+        return `<${card}>${thoat(b.text)}</${card}>`;
       }
       if (b.kind === "list") {
-        const the = b.ordered ? "ol" : "ul";
-        return `<${the}>${b.items.map((i) => `<li>${thoat(i)}</li>`).join("")}</${the}>`;
+        const card = b.ordered ? "ol" : "ul";
+        return `<${card}>${b.items.map((i) => `<li>${thoat(i)}</li>`).join("")}</${card}>`;
       }
       return `<p>${thoat(b.text)}</p>`;
     })
     .join("");
 }
 
-export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
-  const oGo = useRef<HTMLTextAreaElement>(null);
-  const [dangXemTruoc, setDangXemTruoc] = useState(false);
+export default function PostEditor({ giaTri: value, setValue, toiDa: max, id }: Props) {
+  const typingBox = useRef<HTMLTextAreaElement>(null);
+  const [previewing, setPreviewing] = useState(false);
 
-  const banXem = useMemo(
-    () => (dangXemTruoc ? dungBanXem(giaTri) : ""),
-    [dangXemTruoc, giaTri],
+  const previewCopy = useMemo(
+    () => (previewing ? buildPreview(value) : ""),
+    [previewing, value],
   );
 
   /**
@@ -88,44 +88,50 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
    * Boi den chu roi bam thi chu do nam giua hai the. Khong boi gi thi chen chu
    * mau de thay ngay phai go vao dau, va no duoc boi den san.
    */
-  const chen = (truoc: string, sau: string, mau = "") => {
-    const el = oGo.current;
+  const chen = (before: string, after: string, mau = "") => {
+    const el = typingBox.current;
     if (!el) return;
 
-    const dau = el.selectionStart;
-    const cuoi = el.selectionEnd;
-    const chon = giaTri.slice(dau, cuoi) || mau;
+    const head = el.selectionStart;
+    const end = el.selectionEnd;
+    const choice = value.slice(head, end) || mau;
 
     // The khoi phai dung dong rieng, neu khong ca bai thanh mot day the noi
     // duoi nhau, mo ra sua khong doc noi.
-    const laKhoi = /^<(h[1-4]|p|ul|ol|blockquote|figure|hr)/.test(truoc);
-    const truocDo = giaTri.slice(0, dau);
-    const dem =
-      laKhoi && truocDo && !truocDo.endsWith("\n\n")
-        ? truocDo.endsWith("\n")
+    const isBlock = /^<(h[1-4]|p|ul|ol|blockquote|figure|hr)/.test(before);
+    const previous = value.slice(0, head);
+    const tally =
+      isBlock && previous && !previous.endsWith("\n\n")
+        ? previous.endsWith("\n")
           ? "\n"
           : "\n\n"
         : "";
 
-    doiGiaTri(
-      truocDo + dem + truoc + chon + sau + (laKhoi ? "\n" : "") + giaTri.slice(cuoi),
+    setValue(
+      previous +
+        tally +
+        before +
+        choice +
+        after +
+        (isBlock ? "\n" : "") +
+        value.slice(end),
     );
 
     // Tra con tro ve dung phan chu giua hai the. Phai doi sang khung ve ke
     // tiep: luc goi ham nay React chua kip ve gia tri moi vao textarea.
-    const tuDay = truocDo.length + dem.length + truoc.length;
+    const fullWidth = previous.length + tally.length + before.length;
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(tuDay, tuDay + chon.length);
+      el.setSelectionRange(fullWidth, fullWidth + choice.length);
     });
   };
 
-  const don = () => {
-    const sach = lamSachHtml(giaTri);
-    if (sach !== giaTri) doiGiaTri(sach);
+  const order = () => {
+    const clean = cleanHtml(value);
+    if (clean !== value) setValue(clean);
   };
 
-  const nut = styles.button4;
+  const toolButton = styles.button4;
 
   return (
     <div className={styles.box}>
@@ -134,7 +140,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<h2>", "</h2>", "Tiêu đề chương")}
-          className={nut}
+          className={toolButton}
           title="Tiêu đề lớn — vào mục lục cấp 1"
         >
           <Heading2 size={15} />
@@ -143,7 +149,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<h3>", "</h3>", "Tiêu đề mục")}
-          className={nut}
+          className={toolButton}
           title="Tiêu đề nhỏ — vào mục lục cấp 2"
         >
           <Heading3 size={15} />
@@ -152,7 +158,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<p>", "</p>", "Nội dung đoạn văn")}
-          className={nut}
+          className={toolButton}
           title="Một đoạn văn"
         >
           <Pilcrow size={15} />
@@ -164,7 +170,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<strong>", "</strong>", "in đậm")}
-          className={nut}
+          className={toolButton}
           title="In đậm"
         >
           <Bold size={15} />
@@ -172,7 +178,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<em>", "</em>", "in nghiêng")}
-          className={nut}
+          className={toolButton}
           title="In nghiêng"
         >
           <Italic size={15} />
@@ -180,7 +186,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<u>", "</u>", "gạch chân")}
-          className={nut}
+          className={toolButton}
           title="Gạch chân"
         >
           <Underline size={15} />
@@ -188,7 +194,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<s>", "</s>", "gạch ngang")}
-          className={nut}
+          className={toolButton}
           title="Gạch ngang"
         >
           <Strikethrough size={15} />
@@ -199,7 +205,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<ul>\n  <li>", "</li>\n</ul>", "Ý thứ nhất")}
-          className={nut}
+          className={toolButton}
           title="Danh sách gạch đầu dòng"
         >
           <List size={15} />
@@ -207,7 +213,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<ol>\n  <li>", "</li>\n</ol>", "Bước một")}
-          className={nut}
+          className={toolButton}
           title="Danh sách đánh số"
         >
           <ListOrdered size={15} />
@@ -215,7 +221,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<blockquote>", "</blockquote>", "Câu trích dẫn")}
-          className={nut}
+          className={toolButton}
           title="Trích dẫn"
         >
           <Quote size={15} />
@@ -223,7 +229,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen('<a href="https://">', "</a>", "chữ hiện ra")}
-          className={nut}
+          className={toolButton}
           title="Chèn liên kết"
         >
           <Link2 size={15} />
@@ -237,7 +243,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
               "Chú thích ảnh",
             )
           }
-          className={nut}
+          className={toolButton}
           title="Chèn ảnh kèm chú thích"
         >
           <ImageIcon size={15} />
@@ -246,7 +252,7 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
         <button
           type="button"
           onClick={() => chen("<hr>", "")}
-          className={nut}
+          className={toolButton}
           title="Đường kẻ ngang"
         >
           <Minus size={15} />
@@ -256,8 +262,8 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
 
         <button
           type="button"
-          onClick={don}
-          className={nut}
+          onClick={order}
+          className={toolButton}
           title="Bỏ script, khung quảng cáo, class và style của trang nguồn"
         >
           <Eraser size={15} />
@@ -266,25 +272,25 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
 
         <button
           type="button"
-          onClick={() => setDangXemTruoc((v) => !v)}
-          className={[styles.button, dangXemTruoc ? styles.button2 : styles.button3].join(
+          onClick={() => setPreviewing((v) => !v)}
+          className={[styles.button, previewing ? styles.button2 : styles.button3].join(
             " ",
           )}
         >
-          {dangXemTruoc ? <PenLine size={15} /> : <Eye size={15} />}
-          {dangXemTruoc ? "Về ô soạn" : "Xem trước"}
+          {previewing ? <PenLine size={15} /> : <Eye size={15} />}
+          {previewing ? "Về ô soạn" : "Xem trước"}
         </button>
       </div>
 
       {/* O SOAN / BAN XEM TRUOC */}
-      {dangXemTruoc ? (
+      {previewing ? (
         <div className={styles.scroller}>
-          {banXem ? (
-            // Chuoi nay do lamSachHtml o tren dung ra chu khong phai chuoi
+          {previewCopy ? (
+            // Chuoi nay do cleanHtml o tren dung ra chu khong phai chuoi
             // nguoi dung go thang vao the.
             <div
               className={styles.container}
-              dangerouslySetInnerHTML={{ __html: banXem }}
+              dangerouslySetInnerHTML={{ __html: previewCopy }}
             />
           ) : (
             <p className={styles.text}>Chưa có gì để xem.</p>
@@ -293,10 +299,10 @@ export default function TrinhSoanBai({ giaTri, doiGiaTri, toiDa, id }: Props) {
       ) : (
         <textarea
           id={id}
-          ref={oGo}
-          value={giaTri}
-          onChange={(e) => doiGiaTri(e.target.value)}
-          maxLength={toiDa}
+          ref={typingBox}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={max}
           rows={22}
           spellCheck={false}
           placeholder={

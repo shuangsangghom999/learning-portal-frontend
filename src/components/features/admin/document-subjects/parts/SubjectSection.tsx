@@ -17,8 +17,8 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
       </h2>
       <form onSubmit={s.them} className={styles.them}>
         <input
-          value={s.tenMoi}
-          onChange={(e) => s.setTenMoi(e.target.value)}
+          value={s.newName}
+          onChange={(e) => s.setNewName(e.target.value)}
           maxLength={S.maxLength}
           placeholder={S.placeholder}
           aria-label={S.nameAria}
@@ -26,19 +26,15 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
         />
         <button
           type="submit"
-          disabled={s.dangThem || !s.tenMoi.trim()}
-          className={styles.nutChinh}
+          disabled={s.adding || !s.newName.trim()}
+          className={styles.primaryButton}
         >
-          {s.dangThem ? (
-            <Loader2 size={15} className={styles.quay} />
-          ) : (
-            <Plus size={15} />
-          )}
+          {s.adding ? <Loader2 size={15} className={styles.quay} /> : <Plus size={15} />}
           {S.add}
         </button>
       </form>
 
-      {s.dangTai ? (
+      {s.loading ? (
         <div className={styles.trong}>
           <Loader2 size={20} className={styles.quay} />
           {S.loading}
@@ -52,14 +48,14 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
         <ul className={styles.ds}>
           {s.ds.map((m) => (
             <li key={m._id} className={styles.dong1}>
-              {s.dangSua === m._id ? (
+              {s.editing === m._id ? (
                 <div className={styles.sua}>
                   <input
-                    value={s.tenSua}
-                    onChange={(e) => s.setTenSua(e.target.value)}
+                    value={s.editName}
+                    onChange={(e) => s.setEditName(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") s.luuTen(m);
-                      if (e.key === "Escape") s.setDangSua(null);
+                      if (e.key === "Enter") s.saveName(m);
+                      if (e.key === "Escape") s.setEditing(null);
                     }}
                     maxLength={S.maxLength}
                     autoFocus
@@ -68,12 +64,12 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
                   />
                   <button
                     type="button"
-                    onClick={() => s.luuTen(m)}
-                    disabled={s.dangLuu}
-                    className={styles.nutIcon}
+                    onClick={() => s.saveName(m)}
+                    disabled={s.saving}
+                    className={styles.iconButton}
                     aria-label={C.saveNameAria}
                   >
-                    {s.dangLuu ? (
+                    {s.saving ? (
                       <Loader2 size={15} className={styles.quay} />
                     ) : (
                       <Check size={15} />
@@ -81,8 +77,8 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => s.setDangSua(null)}
-                    className={styles.nutIcon}
+                    onClick={() => s.setEditing(null)}
+                    className={styles.iconButton}
                     aria-label={C.cancelAria}
                   >
                     <X size={15} />
@@ -92,16 +88,16 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
                 <>
                   <span className={styles.ten}>{m.ten}</span>
                   <span className={styles.so}>{S.count(m.soTaiLieu)}</span>
-                  <div className={styles.thaoTac}>
+                  <div className={styles.actions}>
                     {/* Xep mon vao linh vuc - luu ngay khi chon. */}
                     <select
                       value={m.nhom ?? ""}
-                      onChange={(e) => s.xepMon(m, e.target.value)}
+                      onChange={(e) => s.sortSubjects(m, e.target.value)}
                       aria-label={S.categoryAria(m.ten)}
-                      className={`${styles.oChonNho} ${m.nhom ? "" : styles.chuaXep}`}
+                      className={`${styles.smallSelect} ${m.nhom ? "" : styles.unsorted}`}
                     >
                       <option value="">{S.noCategory}</option>
-                      {s.dsNhom.map((n) => (
+                      {s.groupList.map((n) => (
                         <option key={n._id} value={n._id}>
                           {n.ten}
                         </option>
@@ -109,8 +105,8 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
                     </select>
                     <button
                       type="button"
-                      onClick={() => s.batDauSuaMon(m)}
-                      className={styles.nutIcon}
+                      onClick={() => s.startEditSubject(m)}
+                      className={styles.iconButton}
                       title={C.renameTitle}
                       aria-label={C.renameAria(m.ten)}
                     >
@@ -121,12 +117,12 @@ export default function SubjectSection({ s }: { s: DocumentCatalogState }) {
                     <button
                       type="button"
                       onClick={() => s.xoa(m)}
-                      disabled={m.soTaiLieu > 0 || s.dangXoa === m._id}
-                      className={styles.nutXoa}
+                      disabled={m.soTaiLieu > 0 || s.deleting === m._id}
+                      className={styles.deleteButton}
                       title={m.soTaiLieu > 0 ? S.inUseTitle : S.deleteTitle}
                       aria-label={C.deleteAria(m.ten)}
                     >
-                      {s.dangXoa === m._id ? (
+                      {s.deleting === m._id ? (
                         <Loader2 size={15} className={styles.quay} />
                       ) : (
                         <Trash2 size={15} />

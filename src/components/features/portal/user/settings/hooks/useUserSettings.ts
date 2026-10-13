@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { USER_SETTINGS as C } from "@/src/constants/portal/user-settings-page";
-import { datNguoiDung } from "@/src/hooks/userStore";
+import { storeUser } from "@/src/hooks/userStore";
 import {
   getMyProfile,
   getProvidersApi,
@@ -51,12 +51,12 @@ export function useUserSettings() {
   // Header doc danh tinh tu kho chung trong RAM, nen phai cap nhat lai thi
   // ten/anh tren thanh dieu huong moi doi theo.
   //
-  // Ban cu gop tay vao localStorage roi tu ban su kien. Gio datNguoiDung() lo
+  // Ban cu gop tay vao localStorage roi tu ban su kien. Gio storeUser() lo
   // ca hai. Cung khong con phai gop voi gia tri cu nua: `u` la ban ghi DAY DU
   // may chu vua tra ve sau khi luu, con ban cu buoc phai gop vi trong
   // localStorage chi co bon truong tu luc dang nhap.
   const syncLocal = useCallback((u: User) => {
-    datNguoiDung(u);
+    storeUser(u);
   }, []);
 
   const save = useCallback(
@@ -115,7 +115,7 @@ export function useUserSettings() {
     setEditing((cur) => (cur === key ? null : key));
   };
 
-  const chonTab = (key: SettingsTabKey) => {
+  const selectTab = (key: SettingsTabKey) => {
     setTab(key);
     setEditing(null);
     setMsg(null);
@@ -123,7 +123,7 @@ export function useUserSettings() {
 
   return {
     tab,
-    chonTab,
+    selectTab,
     user,
     loading,
     loadError,

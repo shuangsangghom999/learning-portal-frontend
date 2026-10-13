@@ -7,6 +7,7 @@ import { ADMIN_ENROLLMENTS as C } from "@/src/constants/admin/enrollments-page";
 
 import { useAdminEnrollments } from "./hooks/useAdminEnrollments";
 import EnrollmentRow from "./parts/EnrollmentRow";
+import GiftCourseCard from "./parts/GiftCourseCard";
 import styles from "./AdminEnrollments.module.scss";
 
 /** Trang /admin/enrollments - luot ghi danh khoa hoc. */
@@ -19,6 +20,8 @@ export default function AdminEnrollments() {
         <h1 className={styles.title}>{C.title}</h1>
         <p className={styles.text}>{s.fetching ? C.loading : C.count(s.total)}</p>
       </div>
+
+      <GiftCourseCard courses={s.courses} onGifted={s.reload} />
 
       <div className={styles.row}>
         <select

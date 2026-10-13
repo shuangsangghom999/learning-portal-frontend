@@ -15,8 +15,8 @@ export const MY_COURSES = {
 
   title: "Khóa học của tôi",
   loading: "Đang tải…",
-  summary: (dangHoc: number, xong: number) =>
-    `${dangHoc} khóa đang học · ${xong} khóa đã hoàn thành`,
+  summary: (inProgress: number, done: number) =>
+    `${inProgress} khóa đang học · ${done} khóa đã hoàn thành`,
 
   empty: {
     none: "Bạn chưa đăng ký khóa học nào.",

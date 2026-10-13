@@ -10,10 +10,10 @@ import {
 } from "@/src/constants/shared/quiz-create-page";
 import { useQuizQuestions } from "@/src/hooks/useQuizQuestions";
 import {
-  cauHinhQuizMacDinh,
-  cauHoiGuiDi,
-  cauHoiTrong,
-  timChoTrong,
+  defaultQuizConfig,
+  questionsPayload,
+  emptyQuestion,
+  findEmptySlot,
 } from "@/src/lib/quiz-draft";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { getCourseById } from "@/src/services/course";
@@ -31,9 +31,9 @@ export function useQuizCreate(role: QuizCreateRole) {
   const [lessons, setLessons] = useState<LessonOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [quizConfig, setQuizConfig] = useState<QuizConfigDraft>(
-    cauHinhQuizMacDinh(defaultLessonId),
+    defaultQuizConfig(defaultLessonId),
   );
-  const editor = useQuizQuestions([cauHoiTrong()], C.messages.atLeastOne);
+  const editor = useQuizQuestions([emptyQuestion()], C.messages.atLeastOne);
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -54,8 +54,8 @@ export function useQuizCreate(role: QuizCreateRole) {
     e.preventDefault();
     if (!quizConfig.title.trim()) return alert(C.messages.needTitle);
 
-    const loi = timChoTrong(editor.questions);
-    if (loi) return alert(loi);
+    const formError = findEmptySlot(editor.questions);
+    if (formError) return alert(formError);
 
     try {
       setSubmitting(true);
@@ -68,7 +68,7 @@ export function useQuizCreate(role: QuizCreateRole) {
         passingScore: Number(quizConfig.passingScore),
         timeLimit: quizConfig.timeLimit ? Number(quizConfig.timeLimit) : null,
         attempts: Number(quizConfig.attempts),
-        questions: cauHoiGuiDi(editor.questions),
+        questions: questionsPayload(editor.questions),
       };
 
       await createQuiz(payload);

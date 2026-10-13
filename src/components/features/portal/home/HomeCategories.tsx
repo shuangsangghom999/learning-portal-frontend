@@ -16,7 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getCategories, Category } from "@/src/services/categoryService";
-import TieuDeMuc from "@/src/components/common/SectionHeading";
+import SectionTitle from "@/src/components/common/SectionHeading";
 import { fillTemplate } from "@/src/lib/format";
 import type { HomeCategoriesData } from "@/src/types/home";
 
@@ -26,7 +26,7 @@ import styles from "./HomeCategories.module.scss";
 // duoc, nen khong the dua vao no de chon dung mot component.
 //
 // Doi ten danh muc thi cung chi roi ve bieu tuong mac dinh, khong vo trang.
-const BIEU_TUONG: [RegExp, LucideIcon][] = [
+const ICONS: [RegExp, LucideIcon][] = [
   [/web|front|html|css/i, Code2],
   [/devops|cloud|docker|kubernet/i, Cloud],
   [/mobile|android|ios|flutter/i, Smartphone],
@@ -37,8 +37,8 @@ const BIEU_TUONG: [RegExp, LucideIcon][] = [
   [/bảo mật|security|an toàn/i, ShieldCheck],
 ];
 
-function chonBieuTuong(ten: string): LucideIcon {
-  for (const [mau, Icon] of BIEU_TUONG) if (mau.test(ten)) return Icon;
+function pickIcon(name: string): LucideIcon {
+  for (const [mau, Icon] of ICONS) if (mau.test(name)) return Icon;
   return LayoutGrid;
 }
 
@@ -80,12 +80,12 @@ interface Props extends HomeCategoriesData {
    * duoc cau hoi that su cua nguoi bam vao - "trong day co gi khong" - thay vi
    * bat ho bam vao roi moi biet muc do rong.
    */
-  soKhoaTheoDanhMuc?: Record<string, number>;
+  courseCountByCategory?: Record<string, number>;
 }
 
 export default function HomeCategories({
   initialData,
-  soKhoaTheoDanhMuc,
+  courseCountByCategory,
   heading,
   description,
   seeAllHref,
@@ -113,19 +113,19 @@ export default function HomeCategories({
   return (
     <section className={styles.section2}>
       <div className={styles.container}>
-        <TieuDeMuc
+        <SectionTitle
           tieuDe={heading}
           moTa={description}
-          xemTatCa={seeAllHref}
-          chuXemTatCa={seeAllLabel}
+          viewAll={seeAllHref}
+          viewAllLabel={seeAllLabel}
         />
 
         <div className={styles.grid}>
           {categories.map((category) => {
             const catSlug =
               category.slug || category.name.toLowerCase().replace(/ /g, "-");
-            const Icon = chonBieuTuong(category.name);
-            const soKhoa = soKhoaTheoDanhMuc?.[category._id];
+            const Icon = pickIcon(category.name);
+            const courseCount = courseCountByCategory?.[category._id];
 
             return (
               <Link
@@ -140,11 +140,11 @@ export default function HomeCategories({
                 <span className={styles.label}>
                   <span className={styles.label2}>{category.name}</span>
                   <span className={styles.label3}>
-                    {soKhoa === undefined
+                    {courseCount === undefined
                       ? countUnknown
-                      : soKhoa === 0
+                      : courseCount === 0
                         ? countZero
-                        : fillTemplate(count, { n: soKhoa })}
+                        : fillTemplate(count, { n: courseCount })}
                   </span>
                 </span>
 

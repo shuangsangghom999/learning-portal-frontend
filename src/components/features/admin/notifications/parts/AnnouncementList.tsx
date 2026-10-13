@@ -1,15 +1,15 @@
 import { Eye, EyeOff, Megaphone, Pencil, Trash2 } from "lucide-react";
 
 import { ADMIN_NOTIFICATIONS as C } from "@/src/constants/admin/notifications-page";
-import type { ThongBaoChung } from "@/src/services/announcement";
+import type { Announcement } from "@/src/services/announcement";
 
 import type { AdminAnnouncementsState } from "../hooks/useAdminAnnouncements";
 import styles from "../AdminNotifications.module.scss";
 
-const dinhDangNgay = (iso: string) =>
+const formatDate = (iso: string) =>
   new Date(iso).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
 
-const conHieuLuc = (tb: ThongBaoChung) =>
+const isActive = (tb: Announcement) =>
   Boolean(tb.dangHien) && (!tb.hetHan || new Date(tb.hetHan).getTime() > Date.now());
 
 /** Danh sach thong bao da gui: nhan trang thai, sua, ghim/bo ghim, thu hoi. */
@@ -30,13 +30,13 @@ export default function AnnouncementList({ s }: { s: AdminAnnouncementsState }) 
       ) : (
         <ul className={styles.list}>
           {s.danhSach.map((tb) => {
-            const dangHienNgoai = conHieuLuc(tb);
-            const dangBan = s.dangXuLy === tb._id;
+            const visibleNow = isActive(tb);
+            const busy = s.processing === tb._id;
             return (
               <li key={tb._id} className={styles.item}>
                 <div className={styles.itemMain}>
                   <div className={styles.badges}>
-                    {dangHienNgoai && (
+                    {visibleNow && (
                       <span
                         className={
                           tb.mucDo === "quan_trong"
@@ -52,19 +52,19 @@ export default function AnnouncementList({ s }: { s: AdminAnnouncementsState }) 
                         {L.bell(tb.soNguoiNhan ?? 0, C.audienceName[tb.vaiTro ?? ""])}
                       </span>
                     )}
-                    {!dangHienNgoai && !tb.guiChuong && (
+                    {!visibleNow && !tb.guiChuong && (
                       <span className={styles.badgeMuted}>{L.hidden}</span>
                     )}
                   </div>
                   <strong className={styles.itemTitle}>{tb.tieuDe}</strong>
                   {tb.noiDung && <p className={styles.itemBody}>{tb.noiDung}</p>}
                   <span className={styles.itemMeta}>
-                    {L.sentAt(dinhDangNgay(tb.createdAt))}
-                    {tb.dangHien && tb.hetHan ? L.autoHide(dinhDangNgay(tb.hetHan)) : ""}
+                    {L.sentAt(formatDate(tb.createdAt))}
+                    {tb.dangHien && tb.hetHan ? L.autoHide(formatDate(tb.hetHan)) : ""}
                   </span>
                 </div>
 
-                {s.hoiXoa === tb._id ? (
+                {s.pendingDelete === tb._id ? (
                   <div className={styles.actions}>
                     <span className={styles.confirmText}>
                       {tb.guiChuong
@@ -73,7 +73,7 @@ export default function AnnouncementList({ s }: { s: AdminAnnouncementsState }) 
                     </span>
                     <button
                       type="button"
-                      onClick={() => s.setHoiXoa(null)}
+                      onClick={() => s.setPendingDelete(null)}
                       className={styles.button}
                     >
                       {L.no}
@@ -81,25 +81,25 @@ export default function AnnouncementList({ s }: { s: AdminAnnouncementsState }) 
                     <button
                       type="button"
                       onClick={() => s.xoa(tb)}
-                      disabled={dangBan}
+                      disabled={busy}
                       className={styles.buttonDanger}
                     >
-                      {dangBan ? L.deleting : L.delete}
+                      {busy ? L.deleting : L.delete}
                     </button>
                   </div>
                 ) : (
                   <div className={styles.actions}>
                     <button
                       type="button"
-                      onClick={() => s.batDauSua(tb)}
+                      onClick={() => s.startEdit(tb)}
                       className={styles.button}
                     >
                       <Pencil size={14} /> {L.edit}
                     </button>
                     <button
                       type="button"
-                      onClick={() => s.batTatDauTrang(tb)}
-                      disabled={dangBan}
+                      onClick={() => s.togglePinned(tb)}
+                      disabled={busy}
                       className={styles.button}
                     >
                       {tb.dangHien ? (
@@ -114,7 +114,7 @@ export default function AnnouncementList({ s }: { s: AdminAnnouncementsState }) 
                     </button>
                     <button
                       type="button"
-                      onClick={() => s.setHoiXoa(tb._id)}
+                      onClick={() => s.setPendingDelete(tb._id)}
                       className={styles.buttonDangerGhost}
                     >
                       <Trash2 size={14} /> {tb.guiChuong ? L.recall : L.delete}

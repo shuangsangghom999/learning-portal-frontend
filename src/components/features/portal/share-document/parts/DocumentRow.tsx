@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { DocumentSummary } from "@/src/services/document";
-import { nhanDinhDang } from "@/src/lib/document/file-info";
+import { formatLabel } from "@/src/lib/document/file-info";
 
 import styles from "./DocumentPanels.module.scss";
-import { duongTaiLieu } from "@/src/lib/document/duong-dan";
+import { documentPath } from "@/src/lib/document/paths";
 
 /**
  * Mot dong tai lieu gon: o duoi file, ten, mon hoc, va mot dong phu.
@@ -18,19 +18,19 @@ import { duongTaiLieu } from "@/src/lib/document/duong-dan";
 export default function DocumentRow({
   doc,
   phu,
-  benPhai,
+  rightSide,
 }: {
   doc: DocumentSummary;
   /** Dong chu nho duoi ten: ly do goi y, hoac "Da tai · 2 gio truoc". */
   phu: ReactNode;
   /** Nhan nho ben phai, vi du "Da tai". */
-  benPhai?: ReactNode;
+  rightSide?: ReactNode;
 }) {
   return (
     <li>
-      <Link href={duongTaiLieu(doc._id)} className={styles.row}>
+      <Link href={documentPath(doc._id)} className={styles.row}>
         <span className={styles.badge} aria-hidden="true">
-          {nhanDinhDang(doc.files)}
+          {formatLabel(doc.files)}
         </span>
         <span className={styles.text}>
           <span className={styles.name}>{doc.title}</span>
@@ -41,7 +41,7 @@ export default function DocumentRow({
             {phu}
           </span>
         </span>
-        {benPhai ? <span className={styles.right}>{benPhai}</span> : null}
+        {rightSide ? <span className={styles.right}>{rightSide}</span> : null}
       </Link>
     </li>
   );

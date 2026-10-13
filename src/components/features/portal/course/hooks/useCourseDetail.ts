@@ -3,17 +3,10 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import {
-  doiDiaChi,
-  duongDanDangNhap,
-} from "@/src/components/features/portal/auth/loginUrl";
+import { updateUrl, loginUrl } from "@/src/components/features/portal/auth/loginUrl";
 import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
-import { useGioHang } from "@/src/hooks/cart";
-import {
-  useDaGanVaoTrinhDuyet,
-  useDangTaiNguoiDung,
-  useNguoiDungLuu,
-} from "@/src/hooks/userStore";
+import { useCartStore } from "@/src/hooks/cart";
+import { useHydrated, useUserLoading, useStoredUser } from "@/src/hooks/userStore";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { getCourseBySlug, type Course } from "@/src/services/course";
 import {
@@ -21,9 +14,9 @@ import {
   getEnrollmentByCourse,
   getProgressStats,
 } from "@/src/services/enrollment.api";
-import { taoDonHang } from "@/src/services/order";
+import { createOrder } from "@/src/services/order";
 
-/** Tai khoa theo ?slug=, kiem ghi danh, ghi danh / tao don / mua bang coin / them vao gio. */
+/** Tai khoa theo ?slug=, kiem ghi danh, ghi danh / tao don / them vao gio. */
 export function useCourseDetail() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -35,36 +28,38 @@ export function useCourseDetail() {
   // moi dung trong effect: de nguyen searchParams thi phai bo ca doi tuong do
   // vao mang phu thuoc, ma no doi tham chieu moi lan dieu huong nen effect se
   // goi lai toan bo API mot cach thua thai.
-  const boQuaNhayVaoHoc = searchParams.get("xem") === "1";
+  const skipJumpToLearn = searchParams.get("xem") === "1";
 
   const [course, setCourse] = useState<Course | null>(null);
   const [isEnrolled, setIsEnrolled] = useState<boolean>(false);
+  // Ngay het han (dd/mm/yyyy) khi khoa co phi da het thoi han hoc: hien nut gia han.
+  const [expiredAt, setExpiredAt] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   // Bat khi trang nay chi la tram trung chuyen sang /learn. Giu khung xam cho
   // toi luc doi trang, neu khong nguoi hoc thay trang gioi thieu nhap nhay mot
   // cai roi bien mat.
-  const [dangNhayVaoHoc, setDangNhayVaoHoc] = useState<boolean>(false);
+  const [jumpingToLearn, setJumpingToLearn] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Ma giam gia dang duoc ap, va so tien giam TUONG UNG.
   //
   // `soTienGiam` chi de HIEN cho nguoi dung xem truoc. May chu luon tinh lai
   // tu dau khi nhan `maGiamGia` - khong bao gio tin con so gui len tu day.
-  const { them: themVaoGio, bo: boKhoiGio, coTrongGio } = useGioHang();
-  const [maGiamGia, setMaGiamGia] = useState<string>("");
-  const [soTienGiam, setSoTienGiam] = useState<number>(0);
+  const { them: addToCart, isInCart } = useCartStore();
+  const [voucher, setVoucher] = useState<string>("");
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [error, setError] = useState<string>("");
   // false khi dung HTML o may chu, true sau khi React gan vao trinh duyet.
-  const isMounted = useDaGanVaoTrinhDuyet();
-  const nguoiDung = useNguoiDungLuu();
-  const dangTaiNguoiDung = useDangTaiNguoiDung();
-  const duongDan = usePathname();
+  const isMounted = useHydrated();
+  const user = useStoredUser();
+  const loadingUser = useUserLoading();
+  const path = usePathname();
 
   // Mo hop dang nhap NGAY TREN trang nay, giu nguyen ?slug dang xem. Truoc day
   // cho nay day nguoi dung ve "/?auth=login" - dang nhap xong ho dung o trang
   // chu va phai tu tim lai khoa hoc.
-  const moDangNhap = (lyDo: "hoc" | "ghidanh") =>
-    doiDiaChi(duongDanDangNhap(duongDan, searchParams, lyDo));
+  const openLogin = (reason: "hoc" | "ghidanh") =>
+    updateUrl(loginUrl(path, searchParams, reason));
 
   const [userProgress, setUserProgress] = useState<number>(0);
 
@@ -105,11 +100,11 @@ export function useCourseDetail() {
     return () => {
       isComponentMounted = false;
     };
-  }, [courseSlug, isMounted, boQuaNhayVaoHoc, router]);
+  }, [courseSlug, isMounted, skipJumpToLearn, router]);
 
   // Ghi danh + tien do: effect RIENG, tach khoi luot tai khoa hoc.
   //
-  // Vi sao phai tach: danh tinh gio den tu may chu (<NapNguoiDung />) chu
+  // Vi sao phai tach: danh tinh gio den tu may chu (<UserBootstrap />) chu
   // khong con doc duoc tuc thi tu localStorage. De chung mot effect thi effect
   // do phai phu thuoc vao danh tinh, va no se chay HAI lan - lan hai goi lai
   // setLoading(true) nen ca trang khoa hoc nhay ve khung xam mot cai sau khi
@@ -119,7 +114,7 @@ export function useCourseDetail() {
   // ai; phan ghi danh tu dien vao sau.
   //
   // Khach vang lai KHONG duoc goi hai duong duoi day. Khong phai de tiet kiem
-  // request: apiHelper gap 401 la goi xoaPhien() roi day ve trang chu, nen
+  // request: apiHelper gap 401 la goi clearSession() roi day ve trang chu, nen
   // khach dang doc trang khoa hoc se bi hat van ra ngoai. Cong chan nay la thu
   // duy nhat giu ho o lai.
   useEffect(() => {
@@ -128,19 +123,19 @@ export function useCourseDetail() {
 
     // Con dang hoi may chu thi CHUA ket luan gi. Ket luan som la nguoi dang
     // dang nhap bi coi nhu khach va mat nut vao hoc.
-    if (dangTaiNguoiDung) return;
+    if (loadingUser) return;
 
     // Khach vang lai: thoat, KHONG goi setIsEnrolled(false).
     //
     // Gia tri khoi tao cua isEnrolled da la false, nen goi lai chi thua - va
     // eslint chan setState dong bo trong than effect (--max-warnings 0). Nguoi
-    // dang xem ma dang xuat thi xoaPhien() chuyen han sang trang chu, component
+    // dang xem ma dang xuat thi clearSession() chuyen han sang trang chu, component
     // nay bi thao, khong con trang thai cu de don.
-    if (!nguoiDung) return;
+    if (!user) return;
 
     let isComponentMounted = true;
 
-    const docGhiDanh = async () => {
+    const readEnrollment = async () => {
       try {
         const [enrollmentData, progressData] = await Promise.all([
           getEnrollmentByCourse(realCourseId),
@@ -148,7 +143,19 @@ export function useCourseDetail() {
         ]);
 
         if (isComponentMounted) {
-          if (enrollmentData && enrollmentData.isEnrolled === true) {
+          if (
+            enrollmentData &&
+            enrollmentData.isEnrolled === true &&
+            enrollmentData.expired
+          ) {
+            // Het thoi han hoc: coi nhu chua mua, hien nut "Gia han".
+            setIsEnrolled(false);
+            setExpiredAt(
+              enrollmentData.expiresAt
+                ? new Date(enrollmentData.expiresAt).toLocaleDateString("vi-VN")
+                : "",
+            );
+          } else if (enrollmentData && enrollmentData.isEnrolled === true) {
             setIsEnrolled(true);
 
             // DA GHI DANH thi vao thang bai giang, khong bat xem lai trang
@@ -166,8 +173,8 @@ export function useCourseDetail() {
             // ?xem=1 la duong lui: nut quay lai o trang hoc mang tham so nay
             // nen van mo duoc trang gioi thieu de doc danh gia, hoi dap. Thieu
             // no thi hai trang day qua day lai thanh vong lap.
-            if (!boQuaNhayVaoHoc) {
-              setDangNhayVaoHoc(true);
+            if (!skipJumpToLearn) {
+              setJumpingToLearn(true);
               router.replace(C.learnHref(courseSlug));
               return;
             }
@@ -192,12 +199,12 @@ export function useCourseDetail() {
       }
     };
 
-    docGhiDanh();
+    readEnrollment();
 
     return () => {
       isComponentMounted = false;
     };
-  }, [course?._id, nguoiDung, dangTaiNguoiDung, boQuaNhayVaoHoc, courseSlug, router]);
+  }, [course?._id, user, loadingUser, skipJumpToLearn, courseSlug, router]);
 
   const handleEnrollCourse = async () => {
     if (!course?._id) {
@@ -212,11 +219,11 @@ export function useCourseDetail() {
     // Nhanh bat 401 ben duoi VAN giu: phien co the het han giua chung, va luc
     // do chi may chu moi biet.
     //
-    // dangTaiNguoiDung: chua hoi xong may chu \"toi la ai\". Khong kiem co nay
+    // loadingUser: chua hoi xong may chu \"toi la ai\". Khong kiem co nay
     // thi nguoi DANG dang nhap bam nut trong mot phan giay dau se bi day vao
     // hop dang nhap oan.
-    if (!dangTaiNguoiDung && !nguoiDung) {
-      moDangNhap((course.price ?? 0) > 0 ? "ghidanh" : "hoc");
+    if (!loadingUser && !user) {
+      openLogin((course.price ?? 0) > 0 ? "ghidanh" : "hoc");
       return;
     }
 
@@ -228,7 +235,7 @@ export function useCourseDetail() {
       // May chu cung chan duong ghi danh cho khoa co phi (402), day chi la de
       // nguoi dung khong phai bam mot nut roi nhan loi.
       if ((course.price ?? 0) > 0) {
-        const { order } = await taoDonHang(course._id, maGiamGia || undefined);
+        const { order } = await createOrder(course._id, voucher || undefined);
         router.push(C.paymentHref(order.code));
         return;
       }
@@ -257,7 +264,7 @@ export function useCourseDetail() {
         // KHONG day ve trang chu: dang nhap xong ho van o dung khoa hoc dang
         // xem va bam tiep duoc.
         setError(C.messages.loginToContinue);
-        moDangNhap("hoc");
+        openLogin("hoc");
       } else if (errorMsg.includes("đã đăng ký") || errorMsg.includes("400")) {
         setIsEnrolled(true);
         router.push(C.learnHref(courseSlug));
@@ -271,11 +278,10 @@ export function useCourseDetail() {
 
   /** Nut to tren banner. */
   const handleHeroClick = () => {
-    // Khoa co phi: dua xuong the mua, KHONG tao don rồi nhay
-    // thang sang man hinh QR nhu truoc. Nut nay la nut to nhat
-    // trang nen hau het nguoi dung bam no - nhay thang sang QR
-    // tuc la ai co san coin trong vi cung bi day sang chuyen
-    // khoan, khong he biet la co duong khac.
+    // Khoa co phi: dua xuong the mua, KHONG tao don roi nhay
+    // thang sang man hinh QR. Nut nay la nut to nhat trang nen
+    // hau het nguoi dung bam no - nhay thang sang QR thi ho bo
+    // lo o nhap ma giam gia va nut them vao gio o the mua.
     if ((course?.price ?? 0) > 0) {
       document
         .getElementById(C.buyAnchorId)
@@ -285,24 +291,14 @@ export function useCourseDetail() {
     void handleEnrollCourse();
   };
 
-  const doiMaGiamGia = (ma: string, giam: number) => {
-    setMaGiamGia(ma);
-    setSoTienGiam(giam);
+  const changeVoucher = (code: string, discount: number) => {
+    setVoucher(code);
+    setDiscountAmount(discount);
   };
 
-  const khiMuaBangCoinXong = () => {
+  const addCourseToCart = () => {
     if (!course) return;
-    setIsEnrolled(true);
-    // Mua thang o day thi khoa nay khong con viec gi trong
-    // gio. De lai thi lan thanh toan gio sau bao "bạn đã
-    // sở hữu khóa này" - mot loi do chinh minh tao ra.
-    boKhoiGio(course._id);
-    router.push(C.learnHref(courseSlug));
-  };
-
-  const themKhoaVaoGio = () => {
-    if (!course) return;
-    themVaoGio({
+    addToCart({
       courseId: course._id,
       title: course.title,
       slug: course.slug,
@@ -316,19 +312,19 @@ export function useCourseDetail() {
     courseSlug,
     course,
     isEnrolled,
+    expiredAt,
     loading,
-    dangNhayVaoHoc,
+    jumpingToLearn,
     submitting,
-    maGiamGia,
-    soTienGiam,
+    maGiamGia: voucher,
+    soTienGiam: discountAmount,
     error,
     userProgress,
-    coTrongGio,
+    isInCart,
     handleEnrollCourse,
     handleHeroClick,
-    doiMaGiamGia,
-    khiMuaBangCoinXong,
-    themKhoaVaoGio,
+    changeVoucher,
+    addCourseToCart,
   };
 }
 

@@ -5,7 +5,7 @@ import { Download, Eye, History, Loader2, Trash2 } from "lucide-react";
 
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { documentService, type HistoryItem } from "@/src/services/document";
-import { thoiGianTuongDoi } from "@/src/lib/post-time";
+import { relativeTime } from "@/src/lib/post-time";
 import DocumentRow from "./DocumentRow";
 
 import styles from "./DocumentPanels.module.scss";
@@ -16,29 +16,29 @@ import styles from "./DocumentPanels.module.scss";
  */
 export default function DocumentHistory() {
   const [items, setItems] = useState<HistoryItem[]>([]);
-  const [dangTai, setDangTai] = useState(true);
-  const [dangXoa, setDangXoa] = useState(false);
-  const [loi, setLoi] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const tai = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const download = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
     try {
       const res = await documentService.getMyHistory();
       setItems(res.items ?? []);
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không tải được lịch sử."));
+      setErrorMessage(getErrorMessage(err, "Không tải được lịch sử."));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     // Xem ghi chu cung cho o DocumentRecommendations.
-    void Promise.resolve().then(tai);
-  }, [tai]);
+    void Promise.resolve().then(download);
+  }, [download]);
 
-  const xoaHet = async () => {
+  const clearAll = async () => {
     // Noi ro ca goi y cung mat theo: nguoi dung co the chi nghi la xoa mot danh
     // sach, khong biet no la du lieu goi y dang dua vao.
     if (
@@ -48,18 +48,18 @@ export default function DocumentHistory() {
       )
     )
       return;
-    setDangXoa(true);
+    setDeleting(true);
     try {
       await documentService.clearMyHistory();
       setItems([]);
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không xóa được lịch sử."));
+      setErrorMessage(getErrorMessage(err, "Không xóa được lịch sử."));
     } finally {
-      setDangXoa(false);
+      setDeleting(false);
     }
   };
 
-  if (dangTai) {
+  if (loading) {
     return (
       <div className={styles.empty}>
         <Loader2 size={18} className={styles.spin} />
@@ -70,9 +70,9 @@ export default function DocumentHistory() {
 
   return (
     <div>
-      {loi && (
+      {errorMessage && (
         <p role="alert" className={styles.error}>
-          {loi}
+          {errorMessage}
         </p>
       )}
 
@@ -90,11 +90,11 @@ export default function DocumentHistory() {
             <span className={styles.count}>{items.length} tài liệu gần đây</span>
             <button
               type="button"
-              onClick={xoaHet}
-              disabled={dangXoa}
+              onClick={clearAll}
+              disabled={deleting}
               className={styles.clear}
             >
-              {dangXoa ? (
+              {deleting ? (
                 <Loader2 size={14} className={styles.spin} />
               ) : (
                 <Trash2 size={14} />
@@ -107,15 +107,15 @@ export default function DocumentHistory() {
               <DocumentRow
                 key={d._id}
                 doc={d}
-                phu={<span>Lần cuối {thoiGianTuongDoi(d.lanCuoi)}</span>}
-                benPhai={
+                phu={<span>Lần cuối {relativeTime(d.lanCuoi)}</span>}
+                rightSide={
                   d.daTai ? (
-                    <span className={styles.tagTai}>
+                    <span className={styles.downloadTag}>
                       <Download size={12} />
                       Đã tải
                     </span>
                   ) : (
-                    <span className={styles.tagXem}>
+                    <span className={styles.viewTag}>
                       <Eye size={12} />
                       Đã xem
                     </span>

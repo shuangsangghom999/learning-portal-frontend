@@ -8,7 +8,7 @@ import styles from "./AdminOrders.module.scss";
 
 /** Trang /admin/orders - doi chieu sao ke va xac nhan don hang. */
 export default function AdminOrders() {
-  const o = useAdminOrders();
+  const item = useAdminOrders();
 
   return (
     <div className={styles.box}>
@@ -17,16 +17,16 @@ export default function AdminOrders() {
           <h1 className={styles.title}>{C.title}</h1>
           <p className={styles.text}>{C.intro}</p>
         </div>
-        {o.dangCho > 0 && (
-          <span className={styles.label}>{C.pendingBadge(o.dangCho)}</span>
+        {item.pending > 0 && (
+          <span className={styles.label}>{C.pendingBadge(item.pending)}</span>
         )}
-        {o.daBao > 0 && (
+        {item.reported > 0 && (
           // Dem rieng so don DA CO NGUOI BAO da chuyen khoan.
           //
           // "Dang cho" gom ca don vua mo ra roi bo do - khong co gi de lam voi
           // chung. Con day la nhung nguoi that su dang ngoi doi, va la viec
           // phai mo sao ke ra doi chieu ngay.
-          <span className={styles.label2}>{C.reportedBadge(o.daBao)}</span>
+          <span className={styles.label2}>{C.reportedBadge(item.reported)}</span>
         )}
       </div>
 
@@ -36,9 +36,9 @@ export default function AdminOrders() {
             <button
               key={b.giaTri || "all"}
               type="button"
-              onClick={() => o.setLoc(b.giaTri)}
+              onClick={() => item.setFilter(b.giaTri)}
               className={`${styles.button5} ${
-                o.loc === b.giaTri ? styles.button : styles.button2
+                item.query === b.giaTri ? styles.button : styles.button2
               }`}
             >
               {b.nhan}
@@ -46,14 +46,14 @@ export default function AdminOrders() {
           ))}
         </div>
         <input
-          value={o.tim}
-          onChange={(e) => o.setTim(e.target.value.toUpperCase())}
+          value={item.tim}
+          onChange={(e) => item.setSearch(e.target.value.toUpperCase())}
           placeholder={C.searchPlaceholder}
           className={styles.input}
         />
       </div>
 
-      {o.loi && <p className={styles.text2}>{o.loi}</p>}
+      {item.loi && <p className={styles.text2}>{item.loi}</p>}
 
       <div className={styles.scroller}>
         <table className={styles.table}>
@@ -69,7 +69,7 @@ export default function AdminOrders() {
             </tr>
           </thead>
           <tbody className={styles.tbody}>
-            {o.dangTai && (
+            {item.loading && (
               <tr>
                 <td colSpan={7} className={styles.cell}>
                   {C.loading}
@@ -77,7 +77,7 @@ export default function AdminOrders() {
               </tr>
             )}
 
-            {!o.dangTai && o.ds.length === 0 && (
+            {!item.loading && item.ds.length === 0 && (
               <tr>
                 <td colSpan={7} className={styles.cell}>
                   {C.empty}
@@ -85,14 +85,14 @@ export default function AdminOrders() {
               </tr>
             )}
 
-            {!o.dangTai &&
-              o.ds.map((don) => (
+            {!item.loading &&
+              item.ds.map((order) => (
                 <OrderRow
-                  key={don._id}
-                  don={don}
-                  busy={o.dangXuLy === don.code}
-                  onConfirm={o.xacNhan}
-                  onCancel={o.tuChoi}
+                  key={order._id}
+                  don={order}
+                  busy={item.processing === order.code}
+                  onConfirm={item.xacNhan}
+                  onCancel={item.reject}
                 />
               ))}
           </tbody>

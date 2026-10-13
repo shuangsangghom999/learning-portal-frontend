@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import { INSTRUCTOR_COURSE_DETAIL as C } from "@/src/constants/instructor/course-detail-page";
 import { getCategories, Category } from "@/src/services/categoryService";
-import { getCourseById, updateCourse, layIdChuDe } from "@/src/services/course";
+import { getCourseById, updateCourse, getCategoryId } from "@/src/services/course";
 import { getProviders, ProviderData } from "@/src/services/provider";
 import type { CourseEditFormData, FieldChangeEvent } from "@/src/types/course-form";
 
@@ -44,9 +44,9 @@ export function useInstructorCourseDetail() {
         setProviders(providersData);
         setIsPublished(courseData.isPublished || false);
 
-        // layIdChuDe nhan ca ba hinh dang cua category (mang id, mang doi tuong
+        // getCategoryId nhan ca ba hinh dang cua category (mang id, mang doi tuong
         // da populate, hoac dang { $oid } cua ban ghi cu).
-        const normalizedCategories: string[] = layIdChuDe(courseData.category);
+        const normalizedCategories: string[] = getCategoryId(courseData.category);
 
         const normalizedProvider = courseData.provider
           ? typeof courseData.provider === "object"

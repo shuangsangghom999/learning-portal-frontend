@@ -27,6 +27,8 @@ export const INSTRUCTOR_LESSON_DETAIL = {
     order: "Thứ tự hiển thị",
     videoUrl: "Đường dẫn Video bài học (URL)",
     videoUrlPlaceholder: "Ví dụ: https://www.youtube.com/watch?v=...",
+    privateVideoNote:
+      "Bài này đang dùng video ở kho kín. Để trống ô trên để giữ nguyên; dán link mới nếu muốn thay.",
     content: "Tóm tắt nội dung bài học",
     contentPlaceholder:
       "Ghi chú nội dung cốt lõi, tài liệu đính kèm hoặc văn bản hướng dẫn bài học...",

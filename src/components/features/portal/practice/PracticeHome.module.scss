@@ -200,7 +200,7 @@
 }
 
 // Tieu de khoi de + nut "Xem tat ca" khi dang loc theo mon
-.tieuDeDong {
+.rowTitle {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -258,7 +258,7 @@
 }
 
 // Vach mau ngan dau nut, nam trong nut nhu ban goc
-.chipVach {
+.chipDivider {
   flex-shrink: 0;
   width: 3px;
   height: 18px;
@@ -272,19 +272,19 @@
   color: var(--mau-mon);
 }
 
-.chipTen {
+.chipLabel {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.chipChon {
+.selectedChip {
   border-color: var(--color-blue-600);
   background-color: var(--color-blue-600);
   color: var(--color-white);
   box-shadow: 0 3px 10px #155dfc59;
 
-  .chipVach {
+  .chipDivider {
     background: #ffffffb3;
   }
 
@@ -299,7 +299,7 @@
   }
 }
 
-.xemThem {
+.viewMore {
   justify-self: start;
   height: 34px;
   padding: 0 16px;
@@ -358,7 +358,7 @@
       box-shadow: 0 6px 18px #0f172b14;
       transform: translateY(-1px);
 
-      .theMui {
+      .cardTip {
         color: var(--color-blue-600);
         transform: translateX(2px);
       }
@@ -380,7 +380,7 @@
 }
 
 // Vach mau ben trai the theo mau cua mon, nhu ban mau
-.theVach {
+.dividerCard {
   flex-shrink: 0;
   width: 5px;
   background: linear-gradient(
@@ -389,7 +389,7 @@
   );
 }
 
-.theThan {
+.cardBody {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -397,7 +397,7 @@
   padding: 12px 14px;
 }
 
-.theDau {
+.firstCard {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -405,7 +405,7 @@
   margin-bottom: 5px;
 }
 
-.theMon {
+.subjectCard {
   max-width: 220px;
   overflow: hidden;
   padding: 2px 8px;
@@ -420,7 +420,7 @@
   color: var(--color-blue-700);
 }
 
-.theMui {
+.cardTip {
   flex-shrink: 0;
   color: var(--color-slate-400);
   transition:
@@ -428,15 +428,15 @@
     transform 0.18s ease;
 }
 
-.theTen,
-.theMoTa {
+.nameCard,
+.cardDescription {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-.theTen {
+.nameCard {
   margin: 0 0 4px;
   font-size: 15px;
   font-weight: var(--font-weight-semibold);
@@ -444,14 +444,14 @@
   color: var(--color-slate-900);
 }
 
-.theMoTa {
+.cardDescription {
   margin: 0 0 10px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--color-slate-600);
 }
 
-.theSo {
+.numberCard {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -462,7 +462,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.theSoCau {
+.questionCountCard {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -470,7 +470,7 @@
   border-radius: 6px;
 }
 
-.theSoCau {
+.questionCountCard {
   background-color: var(--color-blue-50);
   color: var(--color-blue-700);
 }

@@ -1,37 +1,37 @@
 import Link from "next/link";
 import { CircleCheck, Send } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { INSTRUCTOR_QUESTIONS as C } from "@/src/constants/instructor/questions-page";
-import { khoangCach, tenHienThi } from "@/src/lib/time";
-import type { CauHoiChoGiangVien } from "@/src/services/question";
+import { gap, displayName } from "@/src/lib/time";
+import type { InstructorQuestion } from "@/src/services/question";
 
 import styles from "../InstructorQuestions.module.scss";
 
-const tenCua = (n: { name?: string; email?: string } | null): string =>
-  tenHienThi(n, C.item.studentFallback);
+const nameOf = (n: { name?: string; email?: string } | null): string =>
+  displayName(n, C.item.studentFallback);
 
 interface QuestionCardProps {
-  c: CauHoiChoGiangVien;
-  dangMo: boolean;
-  chuTraLoi: string;
-  dangGui: boolean;
-  onBatTat: () => void;
-  onChu: (v: string) => void;
-  onHuy: () => void;
-  onGui: () => void;
+  c: InstructorQuestion;
+  openId: boolean;
+  replyText: string;
+  sending: boolean;
+  onToggle: () => void;
+  onText: (v: string) => void;
+  onCancel: () => void;
+  onSend: () => void;
 }
 
 /** Mot cau hoi: khoa/bai, nguoi hoi, cac tra loi va o tra loi cua giang vien. */
 export default function QuestionCard({
   c,
-  dangMo,
-  chuTraLoi,
-  dangGui,
-  onBatTat,
-  onChu,
-  onHuy,
-  onGui,
+  openId,
+  replyText,
+  sending,
+  onToggle,
+  onText,
+  onCancel,
+  onSend,
 }: QuestionCardProps) {
   return (
     <article className={styles.article}>
@@ -49,17 +49,17 @@ export default function QuestionCard({
       </div>
 
       <div className={styles.row5}>
-        <AnhDaiDien
+        <Avatar
           src={c.student?.avatar}
-          ten={tenCua(c.student)}
+          ten={nameOf(c.student)}
           size={36}
-          nenChuCai={styles.box6}
+          letterBackground={styles.box6}
         />
 
         <div className={styles.box3}>
           <div className={styles.row6}>
-            <span className={styles.label3}>{tenCua(c.student)}</span>
-            <span className={styles.label4}>{khoangCach(c.createdAt)}</span>
+            <span className={styles.label3}>{nameOf(c.student)}</span>
+            <span className={styles.label4}>{gap(c.createdAt)}</span>
           </div>
 
           <p className={styles.text4}>{c.noiDung}</p>
@@ -68,7 +68,7 @@ export default function QuestionCard({
             <div className={styles.col2}>
               {c.traLoi.map((t) => (
                 <div key={t._id}>
-                  <span className={styles.label5}>{tenCua(t.user)}</span>
+                  <span className={styles.label5}>{nameOf(t.user)}</span>
                   <p className={styles.text5}>{t.noiDung}</p>
                 </div>
               ))}
@@ -76,7 +76,7 @@ export default function QuestionCard({
           )}
 
           <div className={styles.row7}>
-            <button type="button" onClick={onBatTat} className={styles.button3}>
+            <button type="button" onClick={onToggle} className={styles.button3}>
               {C.item.reply}
             </button>
 
@@ -87,24 +87,24 @@ export default function QuestionCard({
             )}
           </div>
 
-          {dangMo && (
+          {openId && (
             <div className={styles.box5}>
               <textarea
                 id={C.replyInputId(c._id)}
-                value={chuTraLoi}
-                onChange={(e) => onChu(e.target.value)}
+                value={replyText}
+                onChange={(e) => onText(e.target.value)}
                 rows={3}
                 placeholder={C.item.replyPlaceholder}
                 className={styles.textarea}
               />
               <div className={styles.row8}>
-                <button type="button" onClick={onHuy} className={styles.button4}>
+                <button type="button" onClick={onCancel} className={styles.button4}>
                   {C.item.cancel}
                 </button>
                 <button
                   type="button"
-                  onClick={onGui}
-                  disabled={!chuTraLoi.trim() || dangGui}
+                  onClick={onSend}
+                  disabled={!replyText.trim() || sending}
                   className={styles.button5}
                 >
                   <Send size={14} /> {C.item.send}

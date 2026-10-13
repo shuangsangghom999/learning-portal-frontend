@@ -5,4 +5,4 @@ export { default as HomeCategories } from "./HomeCategories";
 export { default as HomePopularCourses } from "./HomePopularCourses";
 export { default as HomeCourses } from "./HomeCourses";
 export { default as HomeTestimonials } from "./HomeTestimonials";
-export { layDuLieuTrangChu } from "./data";
+export { getHomeData } from "./data";

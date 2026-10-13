@@ -12,11 +12,11 @@ import {
 } from "@/src/services/document";
 import SubjectPicker from "./SubjectPicker";
 import {
-  DUOI_CHO_PHEP,
-  GIOI_HAN_NOI_DUNG,
+  ALLOWED_EXTENSIONS,
+  CONTENT_LIMIT,
   MAX_MB,
-  SO_FILE_TOI_DA,
-  doiKichThuoc,
+  MAX_FILES,
+  setPageSize,
 } from "@/src/lib/document/file-info";
 
 import styles from "./ShareDocumentClient.module.scss";
@@ -25,10 +25,10 @@ import styles from "./ShareDocumentClient.module.scss";
 export interface DocumentUploadFormHandle {
   themFile: (files: File[]) => void;
   /** Cuon toi form. */
-  cuonToi: () => void;
+  scrollTo: () => void;
 }
 
-const duoiCuaFile = (name: string) => name.split(".").pop()?.toLowerCase() ?? "";
+const fileExtensionOf = (name: string) => name.split(".").pop()?.toLowerCase() ?? "";
 
 /**
  * Form dang tai lieu: tieu de, 1-5 mon, noi dung (TipTap), 1-5 file.
@@ -38,138 +38,138 @@ const duoiCuaFile = (name: string) => name.split(".").pop()?.toLowerCase() ?? ""
  * tai lieu"). Chi hien cho nguoi DA dang nhap - trang cha tu kiem.
  */
 export default function DocumentUploadForm({
-  dsMon,
-  khiDong,
-  khiDangXong,
-  truongMacDinh = "",
+  subjectList,
+  onClose,
+  onPosted,
+  defaultSchool = "",
   ref,
 }: {
-  dsMon: DocumentSubject[];
-  khiDong: () => void;
+  subjectList: DocumentSubject[];
+  onClose: () => void;
   /** Dang xong - trang cha tai lai danh sach / so dem neu can. */
-  khiDangXong?: () => void;
+  onPosted?: () => void;
   /** KHOA truong chon san - vd. dang tu trang cua mot truong. */
-  truongMacDinh?: string;
+  defaultSchool?: string;
   ref?: Ref<DocumentUploadFormHandle>;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [tieuDe, setTieuDe] = useState("");
+  const [title, setTitle] = useState("");
   // KHOA cac mon da chon (1-5).
-  const [monHoc, setMonHoc] = useState<string[]>([]);
-  const [noiDung, setNoiDung] = useState("");
+  const [subject, setSubject] = useState<string[]>([]);
+  const [content, setContent] = useState("");
   // 1-5 file, dung thu tu se hien (chuong 1, 2, 3...).
   const [dsFile, setDsFile] = useState<File[]>([]);
   // Truong dai hoc - khong bat buoc. KHOA truong, "" = khong chon.
-  const [dsTruong, setDsTruong] = useState<DocumentUniversity[]>([]);
-  const [truong, setTruong] = useState(truongMacDinh);
+  const [schoolList, setSchoolList] = useState<DocumentUniversity[]>([]);
+  const [school, setSchool] = useState(defaultSchool);
 
   useEffect(() => {
-    let huy = false;
+    let cancel = false;
     documentService
       .getUniversities()
-      .then((ds) => {
-        if (!huy) setDsTruong(ds);
+      .then((items) => {
+        if (!cancel) setSchoolList(items);
       })
       // Khong tai duoc danh sach truong thi o chon an di - truong khong bat buoc.
       .catch(() => {});
     return () => {
-      huy = true;
+      cancel = true;
     };
   }, []);
-  const [dangGui, setDangGui] = useState(false);
-  const [loiForm, setLoiForm] = useState("");
-  const [thanhCong, setThanhCong] = useState("");
+  const [sending, setSending] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [success, setSuccess] = useState("");
 
   /**
    * Them file vao danh sach (khong thay the). File sai dinh dang / qua nang
    * bi bo va noi ro ten; qua 5 file thi chi lay cho du 5 va bao so bi bo.
    */
-  const themFile = (moi: File[]) => {
-    setLoiForm("");
-    setThanhCong("");
-    const loi: string[] = [];
-    const hopLe = moi.filter((f) => {
-      if (!DUOI_CHO_PHEP.includes(duoiCuaFile(f.name))) {
-        loi.push(`"${f.name}" không phải PDF, DOC hoặc DOCX`);
+  const themFile = (recent: File[]) => {
+    setFormError("");
+    setSuccess("");
+    const errorMessage: string[] = [];
+    const isValid = recent.filter((f) => {
+      if (!ALLOWED_EXTENSIONS.includes(fileExtensionOf(f.name))) {
+        errorMessage.push(`"${f.name}" không phải PDF, DOC hoặc DOCX`);
         return false;
       }
       if (f.size > MAX_MB * 1024 * 1024) {
-        loi.push(`"${f.name}" nặng ${doiKichThuoc(f.size)} (tối đa ${MAX_MB}MB)`);
+        errorMessage.push(`"${f.name}" nặng ${setPageSize(f.size)} (tối đa ${MAX_MB}MB)`);
         return false;
       }
       return true;
     });
 
-    setDsFile((cu) => {
+    setDsFile((old) => {
       // Bo file trung (cung ten + cung dung luong) - chon lai lan hai la chuyen hay gap.
-      const chuaCo = hopLe.filter(
-        (f) => !cu.some((c) => c.name === f.name && c.size === f.size),
+      const missing = isValid.filter(
+        (f) => !old.some((c) => c.name === f.name && c.size === f.size),
       );
-      const conCho = SO_FILE_TOI_DA - cu.length;
-      if (chuaCo.length > conCho) {
-        loi.push(
-          `chỉ đính kèm tối đa ${SO_FILE_TOI_DA} file, đã bỏ ${chuaCo.length - conCho} file`,
+      const stillWaiting = MAX_FILES - old.length;
+      if (missing.length > stillWaiting) {
+        errorMessage.push(
+          `chỉ đính kèm tối đa ${MAX_FILES} file, đã bỏ ${missing.length - stillWaiting} file`,
         );
       }
-      return [...cu, ...chuaCo.slice(0, Math.max(0, conCho))];
+      return [...old, ...missing.slice(0, Math.max(0, stillWaiting))];
     });
-    if (loi.length) setLoiForm(`Không thêm được: ${loi.join("; ")}.`);
+    if (errorMessage.length) setFormError(`Không thêm được: ${errorMessage.join("; ")}.`);
   };
 
   useImperativeHandle(ref, () => ({
     themFile,
-    cuonToi: () =>
+    scrollTo: () =>
       // Doi mot khung hinh: form co the vua duoc bat, chua ve xong.
       requestAnimationFrame(() =>
         formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
       ),
   }));
 
-  const boFile = (i: number) => setDsFile((cu) => cu.filter((_, j) => j !== i));
+  const removeFile = (i: number) => setDsFile((old) => old.filter((_, j) => j !== i));
 
-  const guiBai = async (e: React.FormEvent) => {
+  const submitDocument = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoiForm("");
-    setThanhCong("");
+    setFormError("");
+    setSuccess("");
 
     // Kiem CHU chu khong kiem chuoi HTML: o soan TipTap de trong van tra ve
     // "<p></p>", tuc la chuoi khong rong - kiem noiDung.trim() thi o trong van
     // lot qua, toi may chu moi bi chan.
-    const coChu = noiDung
+    const fontSize = content
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
       .trim();
-    if (!tieuDe.trim() || !coChu) {
-      return setLoiForm("Vui lòng nhập đầy đủ tiêu đề và nội dung.");
+    if (!title.trim() || !fontSize) {
+      return setFormError("Vui lòng nhập đầy đủ tiêu đề và nội dung.");
     }
-    if (!monHoc.length) return setLoiForm("Vui lòng chọn ít nhất một môn học.");
+    if (!subject.length) return setFormError("Vui lòng chọn ít nhất một môn học.");
 
-    setDangGui(true);
+    setSending(true);
     try {
       await documentService.createDocument({
-        title: tieuDe.trim(),
-        description: noiDung.trim(),
-        monHoc,
+        title: title.trim(),
+        description: content.trim(),
+        monHoc: subject,
         files: dsFile,
-        truong,
+        truong: school,
       });
-      setTieuDe("");
-      setMonHoc([]);
-      setNoiDung("");
+      setTitle("");
+      setSubject([]);
+      setContent("");
       setDsFile([]);
-      setTruong("");
-      setThanhCong("Đã đăng tài liệu. Cảm ơn bạn đã chia sẻ!");
-      khiDangXong?.();
+      setSchool("");
+      setSuccess("Đã đăng tài liệu. Cảm ơn bạn đã chia sẻ!");
+      onPosted?.();
     } catch (err) {
       // Bai bi bo loc chan cung ve day - thong bao tu may chu noi ro ly do.
-      setLoiForm(getErrorMessage(err, "Không đăng được tài liệu."));
+      setFormError(getErrorMessage(err, "Không đăng được tài liệu."));
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
   return (
-    <form ref={formRef} onSubmit={guiBai} className={styles.form}>
+    <form ref={formRef} onSubmit={submitDocument} className={styles.form}>
       <div className={styles.row3}>
         <div>
           <h2 className={styles.heading}>Đăng tài liệu của bạn</h2>
@@ -179,7 +179,7 @@ export default function DocumentUploadForm({
         </div>
         <button
           type="button"
-          onClick={khiDong}
+          onClick={onClose}
           aria-label="Đóng biểu mẫu"
           className={styles.button2}
         >
@@ -194,45 +194,45 @@ export default function DocumentUploadForm({
           </label>
           <input
             id="tieu-de"
-            value={tieuDe}
-            onChange={(e) => setTieuDe(e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             maxLength={200}
             placeholder="VD: Đề cương ôn tập Cấu trúc dữ liệu và giải thuật"
             className={styles.input}
           />
-          <p className={styles.text5}>{tieuDe.length}/200</p>
+          <p className={styles.text5}>{title.length}/200</p>
         </div>
 
         <div>
           <span id="mon-hoc" className={styles.fieldLabel}>
             Môn học <span className={styles.label}>*</span>
-            <span className={styles.nhanPhu}> — chọn một hoặc nhiều, tối đa 5</span>
+            <span className={styles.subLabel}> — chọn một hoặc nhiều, tối đa 5</span>
           </span>
           {/* CHON trong danh sach admin quan ly, khong go tu do: go tu do thi mot
               mon ra nhieu cach viet va bo loc theo mon thanh vo dung. Gia tri
               gui di la KHOA mon; may chu tra lai ten chuan tu danh sach. */}
           <SubjectPicker
-            dsMon={dsMon}
-            chon={monHoc}
-            doiChon={setMonHoc}
-            idNhan="mon-hoc"
+            subjectList={subjectList}
+            chon={subject}
+            toggleSelect={setSubject}
+            labelId="mon-hoc"
           />
         </div>
 
-        {dsTruong.length > 0 && (
+        {schoolList.length > 0 && (
           <div>
             <label htmlFor="truong-dh" className={styles.fieldLabel}>
               Trường đại học
-              <span className={styles.nhanPhu}> — không bắt buộc</span>
+              <span className={styles.subLabel}> — không bắt buộc</span>
             </label>
             <select
               id="truong-dh"
-              value={truong}
-              onChange={(e) => setTruong(e.target.value)}
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
               className={styles.input}
             >
               <option value="">— Không chọn trường —</option>
-              {dsTruong.map((t) => (
+              {schoolList.map((t) => (
                 <option key={t.key} value={t.key}>
                   {t.ten}
                 </option>
@@ -246,13 +246,13 @@ export default function DocumentUploadForm({
             Nội dung <span className={styles.label}>*</span>
           </label>
           <RichTextEditor
-            giaTri={noiDung}
-            doiGiaTri={setNoiDung}
-            toiDa={GIOI_HAN_NOI_DUNG}
-            taiAnh={documentService.uploadImage}
+            giaTri={content}
+            setValue={setContent}
+            toiDa={CONTENT_LIMIT}
+            uploadImage={documentService.uploadImage}
             placeholder="Mô tả tài liệu, hoặc viết một bài hướng dẫn: Bước 1… (bấm nút ảnh để chèn ảnh chụp màn hình)…"
           />
-          <p className={styles.goiY}>
+          <p className={styles.suggest}>
             Viết bài hướng dẫn như blog: dùng <strong>Tiêu đề nhỏ</strong> cho từng bước
             và nút <strong>chèn ảnh</strong> để thêm ảnh chụp màn hình ngay dưới bước đó.
           </p>
@@ -261,9 +261,9 @@ export default function DocumentUploadForm({
         <div>
           <span className={styles.fieldLabel}>
             File đính kèm
-            <span className={styles.nhanPhu}>
+            <span className={styles.subLabel}>
               {" "}
-              — không bắt buộc, tối đa {SO_FILE_TOI_DA} file, vd. chương 1, 2, 3…
+              — không bắt buộc, tối đa {MAX_FILES} file, vd. chương 1, 2, 3…
             </span>
           </span>
 
@@ -272,15 +272,15 @@ export default function DocumentUploadForm({
             <ol className={styles.dsFile}>
               {dsFile.map((f, i) => (
                 <li key={`${f.name}-${f.size}`} className={styles.card2}>
-                  <span className={styles.soThuTu}>{i + 1}</span>
+                  <span className={styles.index}>{i + 1}</span>
                   <FileText size={20} className={styles.box3} />
                   <div className={styles.box4}>
                     <p className={styles.text8}>{f.name}</p>
-                    <p className={styles.text9}>{doiKichThuoc(f.size)}</p>
+                    <p className={styles.text9}>{setPageSize(f.size)}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => boFile(i)}
+                    onClick={() => removeFile(i)}
                     aria-label={`Bỏ file ${f.name}`}
                     className={styles.button3}
                   >
@@ -291,7 +291,7 @@ export default function DocumentUploadForm({
             </ol>
           )}
 
-          {dsFile.length < SO_FILE_TOI_DA && (
+          {dsFile.length < MAX_FILES && (
             <label htmlFor="file-tai-lieu" className={styles.fieldLabel2}>
               <Upload size={24} className={styles.box5} />
               <span className={styles.label2}>
@@ -299,7 +299,7 @@ export default function DocumentUploadForm({
               </span>
               <span className={styles.label3}>
                 PDF, DOC hoặc DOCX &middot; mỗi file tối đa {MAX_MB}MB &middot; còn{" "}
-                {SO_FILE_TOI_DA - dsFile.length} chỗ
+                {MAX_FILES - dsFile.length} chỗ
               </span>
             </label>
           )}
@@ -318,24 +318,24 @@ export default function DocumentUploadForm({
         </div>
       </div>
 
-      {loiForm && (
+      {formError && (
         <p role="alert" className={styles.text10}>
-          {loiForm}
+          {formError}
         </p>
       )}
-      {thanhCong && (
+      {success && (
         <p role="status" className={styles.text11}>
-          {thanhCong}
+          {success}
         </p>
       )}
 
-      <button type="submit" disabled={dangGui} className={styles.button4}>
-        {dangGui ? (
+      <button type="submit" disabled={sending} className={styles.button4}>
+        {sending ? (
           <Loader2 size={16} className={styles.spinner} />
         ) : (
           <Upload size={16} />
         )}
-        {dangGui ? "Đang đăng..." : "Đăng tài liệu"}
+        {sending ? "Đang đăng..." : "Đăng tài liệu"}
       </button>
     </form>
   );

@@ -25,7 +25,7 @@ export default function InstructorSidebar({ s }: { s: InstructorShellState }) {
       </div>
 
       {/* LIST MENU ITEMS */}
-      <nav className={`${styles.thanhCuonGon} ${styles.nav}`}>
+      <nav className={`${styles.thinScroll} ${styles.nav}`}>
         <div className={styles.box3}>{C.workspace}</div>
 
         {INSTRUCTOR_MENU.map((item) => {
@@ -38,13 +38,13 @@ export default function InstructorSidebar({ s }: { s: InstructorShellState }) {
                   <button
                     onClick={s.toggleCourseMenu}
                     className={`group ${styles.button7} ${
-                      s.oKhuKhoaHoc ? styles.button : styles.button2
+                      s.inCourseArea ? styles.button : styles.button2
                     }`}
                   >
                     <div className={styles.row5}>
                       <Icon
                         size={16}
-                        className={`${styles.box14} ${s.oKhuKhoaHoc ? styles.box4 : styles.box5}`}
+                        className={`${styles.box14} ${s.inCourseArea ? styles.box4 : styles.box5}`}
                       />
                       <span>{item.label}</span>
                     </div>

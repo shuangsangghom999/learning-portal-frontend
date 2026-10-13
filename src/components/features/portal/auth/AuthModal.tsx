@@ -1,6 +1,6 @@
 "use client";
 
-import { datNguoiDung, yeuCauNapLai } from "@/src/hooks/userStore";
+import { storeUser, requireReload } from "@/src/hooks/userStore";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import Image from "next/image";
@@ -9,34 +9,34 @@ import styles from "./AuthModal.module.scss";
 import {
   loginUser,
   registerUser,
-  xinMaDatLai,
-  kiemMaDatLai,
-  datLaiMatKhau,
+  requestResetCode,
+  verifyResetCode,
+  resetPassword,
 } from "@/src/services/api";
 import {
-  DAI_EMAIL_TOI_DA,
-  DAI_MAT_KHAU_TOI_THIEU,
-  DAI_TEN_TOI_DA,
-  emailHopLe,
-  dinhDanhDangNhapHopLe,
-  kiemTen,
-  loiMatKhauMoi,
-  chuanHoaSoDienThoai,
+  MAX_EMAIL_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  MAX_NAME_LENGTH,
+  isValidEmail,
+  isValidLoginId,
+  validateName,
+  newPasswordError,
+  normalizePhone,
 } from "@/src/services/rules";
 
 interface AuthModalProps {
   open: boolean;
   onClose: () => void;
   /** Cau giai thich vi sao hop nay hien ra, vi du khi khach bam vao hoc. */
-  loiNhan?: string;
+  labelError?: string;
 }
 
-// So chu so cua ma dat lai. Khop voi SO_CHU_SO trong
+// So chu so cua ma dat lai. Khop voi DIGIT_COUNT trong
 // backend/src/utils/otpCode.js - lech la nut xac nhan khong bao gio bat len.
-const SO_CHU_SO_MA = 6;
+const CODE_DIGITS = 6;
 
 // Ba buoc cua luong quen mat khau. Chuoi rong = khong o trong luong nay.
-type BuocQuen = "" | "email" | "ma" | "matKhau";
+type ForgotStep = "" | "email" | "ma" | "matKhau";
 
 /**
  * Vao thang khu vuc cua nguoi vua dang nhap.
@@ -48,9 +48,9 @@ type BuocQuen = "" | "email" | "ma" | "matKhau";
  * replace() chu khong phai assign(): khong de lai trang truoc trong lich su,
  * nen bam Back sau khi dang nhap khong quay ve man hinh chua dang nhap.
  */
-const vaoThang = (vaiTro?: string) => {
-  if (vaiTro === "admin") return window.location.replace("/admin/dashboard");
-  if (vaiTro === "instructor") return window.location.replace("/instructor");
+const goDirect = (role?: string) => {
+  if (role === "admin") return window.location.replace("/admin/dashboard");
+  if (role === "instructor") return window.location.replace("/instructor");
 
   // Hoc vien: o lai dung trang dang xem, chi tai lai de lay phien moi.
   //
@@ -65,13 +65,13 @@ const vaoThang = (vaiTro?: string) => {
   //
   // Bo ca `vi` - cau giai thich "Bạn cần đăng nhập để vào học" khong con
   // nghia ly gi khi ho vua dang nhap xong.
-  const diaChi = new URL(window.location.href);
-  diaChi.searchParams.delete("auth");
-  diaChi.searchParams.delete("vi");
-  return window.location.replace(diaChi.toString());
+  const address = new URL(window.location.href);
+  address.searchParams.delete("auth");
+  address.searchParams.delete("vi");
+  return window.location.replace(address.toString());
 };
 
-export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
+export default function AuthModal({ open, onClose, labelError }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -79,10 +79,10 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
   // May chu tra cung mot cau cho moi truong hop that bai (co y - xem
   // backend/src/controllers/userController.js), nen phia giao dien phai tu
   // nhac de nguoi dung Google khong ket o day.
-  const [goiYGoogle, setGoiYGoogle] = useState(false);
+  const [googleHint, setGoogleHint] = useState(false);
   // Cau bao thanh cong nhung KHONG dong hop lai: sau khi dang ky, nguoi dung
   // chua dang nhap ma phai mo hom thu, nen ho can doc duoc cau nay.
-  const [thongBao, setThongBao] = useState("");
+  const [notification, setNotification] = useState("");
 
   // Escape de dong. Truoc day khong co, va do la loi that chu khong phai thieu
   // tien nghi: tren dien thoai xoay ngang nut dong bi troi ra ngoai man hinh
@@ -91,20 +91,20 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
   useEffect(() => {
     if (!open) return;
 
-    const khiNhanPhim = (e: KeyboardEvent) => {
+    const onKeyPress = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
 
     // Khoa cuon cua trang ben duoi. Khong khoa thi tren dien thoai, luot trong
     // bang den cuoi se keo theo ca trang phia sau troi di - dong bang ra thi
     // nguoi dung dung o mot cho hoan toan khac.
-    const cuonCu = document.body.style.overflow;
+    const previousScroll = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", khiNhanPhim);
+    window.addEventListener("keydown", onKeyPress);
 
     return () => {
-      window.removeEventListener("keydown", khiNhanPhim);
-      document.body.style.overflow = cuonCu;
+      window.removeEventListener("keydown", onKeyPress);
+      document.body.style.overflow = previousScroll;
     };
   }, [open, onClose]);
 
@@ -130,58 +130,58 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
   // khong noi con bao lau nua thi mo lai, va nguoi dung duoc bao bang mot la
   // thu gui ve hom thu. Bay ra mot con so o giao dien la pha dung cai dinh
   // giu kin.
-  const [quenBuoc, setQuenBuoc] = useState<BuocQuen>("");
+  const [forgotStep, setForgotStep] = useState<ForgotStep>("");
   const [quenEmail, setQuenEmail] = useState("");
-  const [quenMa, setQuenMa] = useState("");
+  const [forgotCode, setForgotCode] = useState("");
   // Cap ra sau khi nhap dung ma. Chi song trong bo nho cua trang nay: dong
   // tab la mat, va phieu chi co han 5 phut ben may chu.
-  const [phieu, setPhieu] = useState("");
-  const [mkMoi, setMkMoi] = useState("");
-  const [mkXacNhan, setMkXacNhan] = useState("");
+  const [ticket, setTicket] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Dua hop ve mot trang thai sach. Goi khi doi tab hoac ra/vao luong quen
   // mat khau, de cau bao loi cua man hinh truoc khong dinh sang man hinh sau.
-  const donDep = () => {
+  const cleanup = () => {
     setError("");
-    setThongBao("");
-    setGoiYGoogle(false);
+    setNotification("");
+    setGoogleHint(false);
   };
 
-  const thoatLuongQuen = () => {
-    donDep();
-    setQuenBuoc("");
-    setQuenMa("");
-    setPhieu("");
-    setMkMoi("");
-    setMkXacNhan("");
+  const exitForgotFlow = () => {
+    cleanup();
+    setForgotStep("");
+    setForgotCode("");
+    setTicket("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   // Buoc 1: xin ma.
   //
   // Dung chung cho ca lan gui DAU va lan GUI LAI - may chu tu dem so lan gui,
   // giao dien khong can biet dang o lan thu may.
-  const guiMa = async (e?: FormEvent<HTMLFormElement>) => {
+  const sendCode = async (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
-    donDep();
+    cleanup();
 
     // Nhan ca ten tai khoan ngan, giong o dang nhap: bat nguoi da quen mat
     // khau phai nho chinh xac ca dia chi thi vo ly.
     const email = quenEmail.trim().toLowerCase();
-    if (!dinhDanhDangNhapHopLe(email)) {
+    if (!isValidLoginId(email)) {
       setError("Email hoặc tên tài khoản không hợp lệ");
       return;
     }
 
     setLoading(true);
     try {
-      const kq = await xinMaDatLai(email);
+      const outcome = await requestResetCode(email);
       setQuenEmail(email);
-      setQuenBuoc("ma");
+      setForgotStep("ma");
       // Hien NGUYEN cau may chu tra ve. Cau do co y khong khang dinh dia chi
       // nay co tai khoan hay khong - viet lai thanh "Đã gửi mã tới <email>"
       // la bien hop nay thanh cai may tra loi "dia chi nay co tai khoan
       // khong". Xem ghi chu o src/services/api.ts.
-      setThongBao(kq.message);
+      setNotification(outcome.message);
     } catch (err) {
       setError(getErrorMessage(err, "Không gửi được mã. Vui lòng thử lại."));
     } finally {
@@ -190,56 +190,56 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
   };
 
   // Buoc 2: nhap ma, doi lay phieu.
-  const xacNhanMa = async (e: FormEvent<HTMLFormElement>) => {
+  const confirmCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    donDep();
+    cleanup();
 
-    if (quenMa.length !== SO_CHU_SO_MA) {
-      setError(`Mã gồm ${SO_CHU_SO_MA} chữ số`);
+    if (forgotCode.length !== CODE_DIGITS) {
+      setError(`Mã gồm ${CODE_DIGITS} chữ số`);
       return;
     }
 
     setLoading(true);
     try {
-      const kq = await kiemMaDatLai(quenEmail, quenMa);
-      setPhieu(kq.phieu);
-      setQuenBuoc("matKhau");
+      const outcome = await verifyResetCode(quenEmail, forgotCode);
+      setTicket(outcome.phieu);
+      setForgotStep("matKhau");
     } catch (err) {
       // May chu tra CUNG mot cau cho ma sai, ma het han, va ca truong hop dang
       // bi khoa. Hien nguyen cau do - dung doan ho la dang o truong hop nao.
       setError(getErrorMessage(err, "Mã không đúng hoặc đã hết hạn."));
-      setQuenMa("");
+      setForgotCode("");
     } finally {
       setLoading(false);
     }
   };
 
   // Buoc 3: dat mat khau moi.
-  const doiMatKhau = async (e: FormEvent<HTMLFormElement>) => {
+  const changePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    donDep();
+    cleanup();
 
     // Kiem o day de nguoi dung biet ngay, khong phai doi mot luot mang. May
     // chu VAN kiem lai ca hai dieu nay - giao dien khong phai duong duy nhat
     // goi toi do duoc.
-    const loiMk = loiMatKhauMoi(mkMoi);
-    if (loiMk) {
-      setError(loiMk);
+    const passwordError = newPasswordError(newPassword);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
-    if (mkMoi !== mkXacNhan) {
+    if (newPassword !== confirmPassword) {
       setError("Hai lần nhập mật khẩu không giống nhau");
       return;
     }
 
     setLoading(true);
     try {
-      const kq = await datLaiMatKhau(phieu, mkMoi, mkXacNhan);
+      const outcome = await resetPassword(ticket, newPassword, confirmPassword);
       // Ve man hinh dang nhap, dien san email de ho chi phai go mat khau moi.
-      thoatLuongQuen();
+      exitForgotFlow();
       setIsLogin(true);
       setLoginData({ email: quenEmail, password: "" });
-      setThongBao(kq.message);
+      setNotification(outcome.message);
     } catch (err) {
       setError(getErrorMessage(err, "Không đổi được mật khẩu. Vui lòng thử lại."));
     } finally {
@@ -265,8 +265,8 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setThongBao("");
-    setGoiYGoogle(false);
+    setNotification("");
+    setGoogleHint(false);
 
     try {
       // ✅ Validate trước khi gửi
@@ -281,7 +281,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
       // Dang nhap nhan CA dia chi day du lan ten tai khoan ngan ("thesang"
       // thay cho "thesang@gmail.com"). Quy tac tra cuu o may chu - xem
       // backend/src/utils/loginIdentifier.js.
-      if (!dinhDanhDangNhapHopLe(email)) {
+      if (!isValidLoginId(email)) {
         setError("Email hoặc tên tài khoản không hợp lệ");
         setLoading(false);
         return;
@@ -293,11 +293,11 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
       // Token nam trong cookie httpOnly do may chu dat, khong con trong than
       // phan hoi. localStorage chi giu phan thong tin de hien thi.
       // Danh tinh giu trong RAM (xem src/hooks/userStore.ts).
-      // datNguoiDung() da tu ban su kien "userInfoChanged".
-      datNguoiDung(data);
-      yeuCauNapLai();
+      // storeUser() da tu ban su kien "userInfoChanged".
+      storeUser(data);
+      requireReload();
       onClose();
-      vaoThang(data?.role);
+      goDirect(data?.role);
     } catch (error) {
       setError(getErrorMessage(error, "Đăng nhập thất bại"));
       // May chu CO Y tra cung mot cau cho ca ba truong hop: email khong ton
@@ -305,7 +305,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
       // nhau la bien duong dang nhap thanh cai may tra loi "email nay co trong
       // he thong khong". Nhac nut Google o day de nguoi dung Google khong bi
       // ket - cau nhac nay hien cho MOI nguoi nen no khong to them gi.
-      setGoiYGoogle(true);
+      setGoogleHint(true);
     } finally {
       setLoading(false);
     }
@@ -315,15 +315,15 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setThongBao("");
-    setGoiYGoogle(false);
+    setNotification("");
+    setGoogleHint(false);
 
     try {
       // ✅ Validate trước khi gửi
       const name = registerData.name.trim();
 
       // Số điện thoại là thứ bắt buộc duy nhất để định danh; email tùy chọn.
-      const phone = chuanHoaSoDienThoai(registerData.phone);
+      const phone = normalizePhone(registerData.phone);
 
       // Email để trống thì gửi chuỗi rỗng — máy chủ hiểu là "không nhập" và
       // bỏ hẳn trường đó khỏi bản ghi. Xem registerUser bên backend: lưu null
@@ -344,15 +344,15 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
         return;
       }
 
-      if (email && !emailHopLe(email)) {
+      if (email && !isValidEmail(email)) {
         setError("Email không hợp lệ");
         setLoading(false);
         return;
       }
 
-      const loiTen = kiemTen(name);
-      if (loiTen) {
-        setError(loiTen);
+      const nameError = validateName(name);
+      if (nameError) {
+        setError(nameError);
         setLoading(false);
         return;
       }
@@ -361,9 +361,9 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
       // nay chi kiem do dai TOI THIEU, khong kiem toi da - ma bcrypt bo lang
       // moi byte tu 73 tro di, nen nguoi dung dat mat khau that dai roi tin
       // rang ca chuoi deu duoc tinh.
-      const loiMk = loiMatKhauMoi(registerData.password);
-      if (loiMk) {
-        setError(loiMk);
+      const passwordError = newPasswordError(registerData.password);
+      if (passwordError) {
+        setError(passwordError);
         setLoading(false);
         return;
       }
@@ -381,11 +381,11 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
       // va de quan tri gui thong bao.
 
       // Danh tinh giu trong RAM (xem src/hooks/userStore.ts).
-      // datNguoiDung() da tu ban su kien "userInfoChanged".
-      datNguoiDung(data);
-      yeuCauNapLai();
+      // storeUser() da tu ban su kien "userInfoChanged".
+      storeUser(data);
+      requireReload();
       onClose();
-      vaoThang(data?.role);
+      goDirect(data?.role);
     } catch (error) {
       setError(getErrorMessage(error, "Đăng ký thất bại"));
     } finally {
@@ -430,11 +430,11 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
           // voi may chu roi, va cookie httpOnly duoc dat cho ca mien nay nen
           // tab chinh dung duoc ngay.
           // Danh tinh giu trong RAM (xem src/hooks/userStore.ts).
-          datNguoiDung(user);
-          yeuCauNapLai();
+          storeUser(user);
+          requireReload();
           window.removeEventListener("message", messageHandler);
           onClose();
-          vaoThang(user?.role);
+          goDirect(user?.role);
         }
 
         if (type === "google-auth-failed") {
@@ -495,23 +495,23 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
         </button>
 
         <h2 className={styles.heading}>
-          {quenBuoc ? "Quên mật khẩu" : isLogin ? "Đăng nhập" : "Đăng ký"}
+          {forgotStep ? "Quên mật khẩu" : isLogin ? "Đăng nhập" : "Đăng ký"}
         </h2>
 
         {/* Vi sao hop nay hien ra. Khach bam "Vào học" roi thay mot o dang
             nhap khong loi giai thich se tuong minh bam nham. */}
-        {loiNhan && !quenBuoc && <p className={styles.text}>{loiNhan}</p>}
+        {labelError && !forgotStep && <p className={styles.text}>{labelError}</p>}
 
         {/* Trong luong quen mat khau thi KHONG hien hai tab: dang o giua mot
             viec co ba buoc, bam sang "Đăng ký" la mat het cong da lam ma
             khong ai bao truoc. */}
-        {!quenBuoc && (
+        {!forgotStep && (
           <div className={styles.row}>
             <button
               type="button"
               onClick={() => {
                 setIsLogin(true);
-                donDep();
+                cleanup();
               }}
               className={`${styles.button10} ${
                 isLogin ? styles.button2 : styles.button3
@@ -524,7 +524,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               type="button"
               onClick={() => {
                 setIsLogin(false);
-                donDep();
+                cleanup();
               }}
               className={`${styles.button10} ${
                 !isLogin ? styles.button2 : styles.button3
@@ -538,7 +538,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
         {error && (
           <div className={styles.card2}>
             {error}
-            {goiYGoogle && (
+            {googleHint && (
               <p className={styles.text2}>
                 Nếu bạn đã đăng ký bằng Google, hãy dùng nút “Tiếp tục với Google” ở trên.
               </p>
@@ -546,9 +546,9 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
           </div>
         )}
 
-        {thongBao && <div className={styles.card3}>{thongBao}</div>}
+        {notification && <div className={styles.card3}>{notification}</div>}
 
-        {!quenBuoc && (
+        {!forgotStep && (
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -566,8 +566,8 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
           </button>
         )}
 
-        {quenBuoc === "email" ? (
-          <form onSubmit={guiMa} className={styles.form}>
+        {forgotStep === "email" ? (
+          <form onSubmit={sendCode} className={styles.form}>
             {/* Nói rõ là phải có EMAIL, không nhận số điện thoại.
                 Đăng ký chỉ bắt buộc số điện thoại, nên có tài khoản không có
                 email — và chưa gắn nhà cung cấp SMS nào thì không có chỗ nào
@@ -578,7 +578,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
                 khoản không có email — nói riêng ra là biến đường này thành
                 máy trả lời câu hỏi ai có email ai không. */}
             <p className={styles.text3}>
-              Nhập email của tài khoản. Chúng tôi sẽ gửi một mã gồm {SO_CHU_SO_MA} chữ số
+              Nhập email của tài khoản. Chúng tôi sẽ gửi một mã gồm {CODE_DIGITS} chữ số
               tới hộp thư đó.
             </p>
             <p className={styles.text4}>
@@ -594,18 +594,18 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               required
               autoFocus
               autoComplete="username"
-              maxLength={DAI_EMAIL_TOI_DA}
+              maxLength={MAX_EMAIL_LENGTH}
               className={styles.input}
             />
             <button type="submit" disabled={loading} className={styles.button5}>
               {loading ? "Đang gửi..." : "Gửi mã"}
             </button>
-            <button type="button" onClick={thoatLuongQuen} className={styles.button6}>
+            <button type="button" onClick={exitForgotFlow} className={styles.button6}>
               Quay lại đăng nhập
             </button>
           </form>
-        ) : quenBuoc === "ma" ? (
-          <form onSubmit={xacNhanMa} className={styles.form}>
+        ) : forgotStep === "ma" ? (
+          <form onSubmit={confirmCode} className={styles.form}>
             <p className={styles.text3}>
               Mở hộp thư <span className={styles.label}>{quenEmail}</span> và nhập mã vào
               ô dưới. Nhớ xem cả mục Spam.
@@ -615,20 +615,20 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000000"
-              value={quenMa}
+              value={forgotCode}
               // Loc bo moi thu khong phai chu so ngay luc go: nguoi dung hay
               // dan ca cum "Mã: 482913" tu email vao.
               onChange={(e) =>
-                setQuenMa(e.target.value.replace(/\D/g, "").slice(0, SO_CHU_SO_MA))
+                setForgotCode(e.target.value.replace(/\D/g, "").slice(0, CODE_DIGITS))
               }
               required
               autoFocus
-              maxLength={SO_CHU_SO_MA}
+              maxLength={CODE_DIGITS}
               className={styles.input2}
             />
             <button
               type="submit"
-              disabled={loading || quenMa.length !== SO_CHU_SO_MA}
+              disabled={loading || forgotCode.length !== CODE_DIGITS}
               className={styles.button5}
             >
               {loading ? "Đang kiểm tra..." : "Xác nhận"}
@@ -639,42 +639,42 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
                   la noi cho nguoi ta biet con bao nhieu lan va bao lau. */}
               <button
                 type="button"
-                onClick={() => guiMa()}
+                onClick={() => sendCode()}
                 disabled={loading}
                 className={styles.button7}
               >
                 Gửi lại mã
               </button>
-              <button type="button" onClick={thoatLuongQuen} className={styles.button8}>
+              <button type="button" onClick={exitForgotFlow} className={styles.button8}>
                 Quay lại đăng nhập
               </button>
             </div>
           </form>
-        ) : quenBuoc === "matKhau" ? (
-          <form onSubmit={doiMatKhau} className={styles.form}>
+        ) : forgotStep === "matKhau" ? (
+          <form onSubmit={changePassword} className={styles.form}>
             <p className={styles.text3}>
               Mã hợp lệ. Đặt mật khẩu mới cho tài khoản{" "}
               <span className={styles.label}>{quenEmail}</span>.
             </p>
             <input
               type="password"
-              placeholder={`Mật khẩu mới (tối thiểu ${DAI_MAT_KHAU_TOI_THIEU} ký tự)`}
-              value={mkMoi}
-              onChange={(e) => setMkMoi(e.target.value)}
+              placeholder={`Mật khẩu mới (tối thiểu ${MIN_PASSWORD_LENGTH} ký tự)`}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
               autoFocus
               autoComplete="new-password"
-              minLength={DAI_MAT_KHAU_TOI_THIEU}
+              minLength={MIN_PASSWORD_LENGTH}
               className={styles.input}
             />
             <input
               type="password"
               placeholder="Nhập lại mật khẩu mới"
-              value={mkXacNhan}
-              onChange={(e) => setMkXacNhan(e.target.value)}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               autoComplete="new-password"
-              minLength={DAI_MAT_KHAU_TOI_THIEU}
+              minLength={MIN_PASSWORD_LENGTH}
               className={styles.input}
             />
             <button type="submit" disabled={loading} className={styles.button5}>
@@ -698,7 +698,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               onChange={handleLoginChange}
               required
               autoComplete="username"
-              maxLength={DAI_EMAIL_TOI_DA}
+              maxLength={MAX_EMAIL_LENGTH}
               className={styles.input}
             />
             <input
@@ -717,11 +717,11 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
             <button
               type="button"
               onClick={() => {
-                donDep();
+                cleanup();
                 // Mang san email ho vua go sang buoc 1 - gan nhu luon la dia
                 // chi ho dinh dat lai, bat go lai la vo ich.
                 setQuenEmail(loginData.email.trim().toLowerCase());
-                setQuenBuoc("email");
+                setForgotStep("email");
               }}
               className={styles.button9}
             >
@@ -742,7 +742,7 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               onChange={handleRegisterChange}
               required
               autoComplete="name"
-              maxLength={DAI_TEN_TOI_DA}
+              maxLength={MAX_NAME_LENGTH}
               className={styles.input}
             />
             {/* inputMode="tel" mở bàn phím số trên điện thoại. type vẫn là
@@ -768,19 +768,19 @@ export default function AuthModal({ open, onClose, loiNhan }: AuthModalProps) {
               value={registerData.email}
               onChange={handleRegisterChange}
               autoComplete="email"
-              maxLength={DAI_EMAIL_TOI_DA}
+              maxLength={MAX_EMAIL_LENGTH}
               className={styles.input}
             />
 
             <input
               type="password"
               name="password"
-              placeholder={`Mật khẩu (tối thiểu ${DAI_MAT_KHAU_TOI_THIEU} ký tự)`}
+              placeholder={`Mật khẩu (tối thiểu ${MIN_PASSWORD_LENGTH} ký tự)`}
               value={registerData.password}
               onChange={handleRegisterChange}
               required
               autoComplete="new-password"
-              minLength={DAI_MAT_KHAU_TOI_THIEU}
+              minLength={MIN_PASSWORD_LENGTH}
               className={styles.input}
             />
             <button type="submit" disabled={loading} className={styles.button5}>

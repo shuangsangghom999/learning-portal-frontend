@@ -10,8 +10,8 @@ import {
   X,
 } from "lucide-react";
 
-import { duongTaiLieu } from "@/src/lib/document/duong-dan";
-import { doiKichThuoc, nhanDinhDang, tongDungLuong } from "@/src/lib/document/file-info";
+import { documentPath } from "@/src/lib/document/paths";
+import { setPageSize, formatLabel, totalSize } from "@/src/lib/document/file-info";
 import SubjectPicker from "@/src/components/features/portal/share-document/parts/SubjectPicker";
 import { ADMIN_DOCUMENTS as C } from "@/src/constants/admin/documents-page";
 import type { SharedDocument } from "@/src/services/document";
@@ -28,42 +28,50 @@ export default function DocumentRow({
   s: AdminDocumentsState;
 }) {
   const R = C.row;
-  const dangSuaMon = s.dangSuaMon === d._id;
-  const dangDoiAn = s.dangDoiAn === d._id;
-  const dangXoa = s.dangXoa === d._id;
+  const editingSubject = s.editingSubject === d._id;
+  const togglingHidden = s.togglingHidden === d._id;
+  const deleting = s.deleting === d._id;
 
   return (
-    <tr className={d.daAn ? styles.dongAn : undefined}>
+    <tr className={d.daAn ? styles.hiddenRow : undefined}>
       <td>
         {/* Tai lieu da an: trang chi tiet tra 404 voi moi nguoi, ke
             ca admin (trang do dung san o may chu, khong mang cookie
             admin) - nen khong de duong dan toi mot trang loi. Admin
             van mo duoc FILE bang nut ben phai. */}
         {d.daAn ? (
-          <span className={styles.tenTaiLieu}>{d.title}</span>
+          <span className={styles.documentTitle}>{d.title}</span>
         ) : (
-          <Link href={duongTaiLieu(d._id)} target="_blank" className={styles.tenTaiLieu}>
+          <Link
+            href={documentPath(d._id)}
+            target="_blank"
+            className={styles.documentTitle}
+          >
             {d.title}
           </Link>
         )}
         <span className={styles.meta}>
-          {d.daAn && <span className={styles.nhanAn}>{R.hidden}</span>}
-          {nhanDinhDang(d.files)} &middot; {doiKichThuoc(tongDungLuong(d.files))}
+          {d.daAn && <span className={styles.hiddenLabel}>{R.hidden}</span>}
+          {formatLabel(d.files)} &middot; {setPageSize(totalSize(d.files))}
         </span>
       </td>
       <td>
-        {dangSuaMon ? (
-          <div className={styles.suaMonNhieu}>
-            <SubjectPicker dsMon={s.dsMon} chon={s.giaTriMon} doiChon={s.setGiaTriMon} />
-            <div className={styles.suaMon}>
+        {editingSubject ? (
+          <div className={styles.bulkEditSubject}>
+            <SubjectPicker
+              subjectList={s.subjectList}
+              chon={s.subjectValue}
+              toggleSelect={s.setSubjectValue}
+            />
+            <div className={styles.editSubject}>
               <button
                 type="button"
-                onClick={() => s.luuMon(d)}
-                disabled={s.dangLuuMon}
-                className={styles.nutLuu}
+                onClick={() => s.saveSubject(d)}
+                disabled={s.savingSubject}
+                className={styles.saveButton}
                 aria-label={R.saveSubjectsAria}
               >
-                {s.dangLuuMon ? (
+                {s.savingSubject ? (
                   <Loader2 size={14} className={styles.quay} />
                 ) : (
                   <Check size={14} />
@@ -71,8 +79,8 @@ export default function DocumentRow({
               </button>
               <button
                 type="button"
-                onClick={s.huySuaMon}
-                className={styles.nutPhu}
+                onClick={s.cancelEditSubject}
+                className={styles.secondaryButton}
                 aria-label={R.cancelSubjectsAria}
               >
                 <X size={14} />
@@ -82,8 +90,8 @@ export default function DocumentRow({
         ) : (
           <button
             type="button"
-            onClick={() => s.batDauSuaMon(d)}
-            className={d.monHoc?.length ? styles.mon : styles.monTrong}
+            onClick={() => s.startEditSubject(d)}
+            className={d.monHoc?.length ? styles.mon : styles.subjectInside}
             title={R.editSubjectsTitle}
           >
             {d.monHoc?.length ? d.monHoc.join(", ") : R.noSubject}
@@ -95,14 +103,14 @@ export default function DocumentRow({
       <td>{new Date(d.createdAt).toLocaleDateString("vi-VN")}</td>
       <td className={styles.phai}>{d.downloadCount}</td>
       <td className={styles.phai}>
-        <div className={styles.thaoTac}>
+        <div className={styles.actions}>
           {/* Mo file that, khong phai trang chi tiet: admin can xem
               NOI DUNG de quyet dinh go hay giu. */}
           <a
             href={C.fileHref(d._id)}
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.nutPhu}
+            className={styles.secondaryButton}
             title={R.openFileTitle}
             aria-label={R.openFileAria(d.title)}
           >
@@ -112,13 +120,13 @@ export default function DocumentRow({
               van lay lai duoc, xoa thi mat han ca file. */}
           <button
             type="button"
-            onClick={() => s.doiAn(d)}
-            disabled={dangDoiAn}
-            className={styles.nutPhu}
+            onClick={() => s.toggleHidden(d)}
+            disabled={togglingHidden}
+            className={styles.secondaryButton}
             title={d.daAn ? R.showTitle : R.hideTitle}
             aria-label={R.toggleAria(Boolean(d.daAn), d.title)}
           >
-            {dangDoiAn ? (
+            {togglingHidden ? (
               <Loader2 size={15} className={styles.quay} />
             ) : d.daAn ? (
               <Eye size={15} />
@@ -128,13 +136,13 @@ export default function DocumentRow({
           </button>
           <button
             type="button"
-            onClick={() => s.setHoiXoa(d)}
-            disabled={dangXoa}
-            className={styles.nutXoa}
+            onClick={() => s.setPendingDelete(d)}
+            disabled={deleting}
+            className={styles.deleteButton}
             title={R.deleteTitle}
             aria-label={R.deleteAria(d.title)}
           >
-            {dangXoa ? (
+            {deleting ? (
               <Loader2 size={15} className={styles.quay} />
             ) : (
               <Trash2 size={15} />

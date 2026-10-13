@@ -1,4 +1,4 @@
-import type { VaiTroNhan } from "@/src/services/announcement";
+import type { RecipientRole } from "@/src/services/announcement";
 
 /** Chu va cau hinh cua trang /admin/notifications (thong bao he thong). */
 export const ADMIN_NOTIFICATIONS = {
@@ -31,7 +31,7 @@ export const ADMIN_NOTIFICATIONS = {
       { value: "", label: "Tất cả học viên và giảng viên" },
       { value: "student", label: "Chỉ học viên" },
       { value: "instructor", label: "Chỉ giảng viên" },
-    ] satisfies { value: VaiTroNhan; label: string }[],
+    ] satisfies { value: RecipientRole; label: string }[],
     public: "Thông báo chung cho mọi người",
     publicHint:
       "Ghim ở đầu ô chuông của mọi người đã đăng nhập, kể cả người mới đăng ký sau này. Bỏ ghim hoặc xóa được bất cứ lúc nào.",
@@ -77,7 +77,7 @@ export const ADMIN_NOTIFICATIONS = {
     "": "học viên và giảng viên",
     student: "học viên",
     instructor: "giảng viên",
-  } satisfies Record<VaiTroNhan, string>,
+  } satisfies Record<RecipientRole, string>,
 
   messages: {
     savedWithBell: (n: number) => `Đã lưu. Cập nhật luôn trong chuông của ${n} người.`,

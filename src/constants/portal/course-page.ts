@@ -28,7 +28,6 @@ export const COURSE_PAGE = {
     processing: "Đang xử lý...",
     buy: (price: string) => `Mua khóa học - ${price}`,
     freeEnroll: "Đăng ký học miễn phí",
-    coinOrTransfer: "Coin hoặc chuyển khoản",
     transferQr: "Chuyển khoản qua mã QR",
     startNow: "Bắt đầu ngay",
     joined: "học viên đã tham gia khóa học này.",
@@ -94,10 +93,16 @@ export const COURSE_PAGE = {
     linking: "Đang liên kết...",
     transfer: "Chuyển khoản ngân hàng",
     enroll: "Ghi danh học viên",
-    perks: [
-      "Quyền sở hữu chương trình vô thời hạn",
-      "Tự động nhận bài tập & giáo trình mới nhất",
-    ],
+    // Thoi han hoc (10/10/2026): khoa mien phi hoc mai mai, khoa co phi hoc
+    // trong accessDays ngay tinh tu luc thanh toan.
+    sessions: (n: number) => `${n} buổi học`,
+    accessPaid: (days: number) => `Học trong ${days} ngày kể từ khi thanh toán`,
+    accessFree: "Học miễn phí, không giới hạn thời gian",
+    renewNote: "Mua lại để gia hạn, ngày còn dư được cộng dồn",
+    reviewKept: "Lịch sử bài làm và chứng nhận được giữ lại",
+    expired: (date: string) => `Khóa học đã hết hạn ngày ${date}. Mua lại để học tiếp.`,
+    renew: "Gia hạn khóa học",
+    daysLeft: (n: number) => `Còn ${n} ngày học`,
   },
 
   messages: {

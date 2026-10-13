@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Search } from "lucide-react";
 import type { DocumentSubject } from "@/src/services/document";
-import { SO_MON_TOI_DA } from "@/src/lib/document/file-info";
+import { MAX_SUBJECTS } from "@/src/lib/document/file-info";
 
 import styles from "./SubjectPicker.module.scss";
 
@@ -16,35 +16,41 @@ import styles from "./SubjectPicker.module.scss";
  * khong de nguoi dung bam ma khong thay gi xay ra.
  */
 export default function SubjectPicker({
-  dsMon,
-  chon,
-  doiChon,
-  toiDa = SO_MON_TOI_DA,
-  idNhan,
+  subjectList,
+  chon: choice,
+  toggleSelect,
+  toiDa: max = MAX_SUBJECTS,
+  labelId,
 }: {
-  dsMon: DocumentSubject[];
+  subjectList: DocumentSubject[];
   chon: string[];
-  doiChon: (keys: string[]) => void;
+  toggleSelect: (keys: string[]) => void;
   toiDa?: number;
   /** id cua <label> dat ten cho nhom - cho trinh doc man hinh. */
-  idNhan?: string;
+  labelId?: string;
 }) {
-  const [loc, setLoc] = useState("");
-  const du = chon.length >= toiDa;
+  const [query, setFilter] = useState("");
+  const enough = choice.length >= max;
 
   const bat = (key: string) =>
-    doiChon(
-      chon.includes(key) ? chon.filter((k) => k !== key) : du ? chon : [...chon, key],
+    toggleSelect(
+      choice.includes(key)
+        ? choice.filter((k) => k !== key)
+        : enough
+          ? choice
+          : [...choice, key],
     );
 
   // O loc chi hien khi danh sach dai - vai mon thi nhin la thay.
-  const coLoc = dsMon.length > 12;
-  const tuLoc = loc.trim().toLowerCase();
-  const hien = tuLoc
-    ? dsMon.filter((m) => m.ten.toLowerCase().includes(tuLoc) || chon.includes(m.key))
-    : dsMon;
+  const hasFilter = subjectList.length > 12;
+  const filterText = query.trim().toLowerCase();
+  const visible = filterText
+    ? subjectList.filter(
+        (m) => m.ten.toLowerCase().includes(filterText) || choice.includes(m.key),
+      )
+    : subjectList;
 
-  if (!dsMon.length) {
+  if (!subjectList.length) {
     return (
       <p className={styles.trong}>
         Chưa có môn học nào. Quản trị viên cần thêm môn trước khi đăng tài liệu.
@@ -54,39 +60,39 @@ export default function SubjectPicker({
 
   return (
     <div className={styles.khung}>
-      {coLoc && (
-        <div className={styles.oLoc}>
+      {hasFilter && (
+        <div className={styles.filterInput}>
           <Search size={14} />
           <input
-            value={loc}
-            onChange={(e) => setLoc(e.target.value)}
+            value={query}
+            onChange={(e) => setFilter(e.target.value)}
             placeholder="Lọc môn học…"
             aria-label="Lọc môn học"
           />
         </div>
       )}
-      <div className={styles.chips} role="group" aria-labelledby={idNhan}>
-        {hien.map((m) => {
-          const dangChon = chon.includes(m.key);
+      <div className={styles.chips} role="group" aria-labelledby={labelId}>
+        {visible.map((m) => {
+          const selected = choice.includes(m.key);
           return (
             <button
               key={m.key}
               type="button"
               onClick={() => bat(m.key)}
-              aria-pressed={dangChon}
-              disabled={!dangChon && du}
-              className={`${styles.chip} ${dangChon ? styles.chipOn : ""}`}
+              aria-pressed={selected}
+              disabled={!selected && enough}
+              className={`${styles.chip} ${selected ? styles.chipActive : ""}`}
             >
-              {dangChon && <Check size={13} />}
+              {selected && <Check size={13} />}
               {m.ten}
             </button>
           );
         })}
       </div>
       <p className={styles.ghiChu}>
-        {du
-          ? `Đã chọn đủ ${toiDa} môn. Bỏ một môn để chọn môn khác.`
-          : `Đã chọn ${chon.length}/${toiDa} môn.`}
+        {enough
+          ? `Đã chọn đủ ${max} môn. Bỏ một môn để chọn môn khác.`
+          : `Đã chọn ${choice.length}/${max} môn.`}
       </p>
     </div>
   );

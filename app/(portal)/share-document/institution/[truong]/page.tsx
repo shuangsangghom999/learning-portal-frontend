@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 
-import { doiKhoa } from "@/src/components/features/portal/share-document/taiLieuMayChu";
+import { swapKey } from "@/src/components/features/portal/share-document/serverDocuments";
 import {
   InstitutionDetail,
-  layTruong,
+  getSchools,
 } from "@/src/components/features/portal/share-document";
 import { SHARE_DOCUMENT } from "@/src/constants/portal/share-document-page";
 
@@ -14,19 +14,19 @@ export const revalidate = 60;
 type Params = Promise<{ truong: string }>;
 
 export async function generateMetadata({ params }: { params: Params }) {
-  const { truong } = await params;
-  const kq = await layTruong(doiKhoa(truong)).catch(() => null);
-  if (!kq) return { title: SHARE_DOCUMENT.institution.notFoundTitle };
+  const { truong: school } = await params;
+  const outcome = await getSchools(swapKey(school)).catch(() => null);
+  if (!outcome) return { title: SHARE_DOCUMENT.institution.notFoundTitle };
   return {
-    title: SHARE_DOCUMENT.institution.title(kq.truong.ten),
-    description: SHARE_DOCUMENT.institution.description(kq.truong.ten),
+    title: SHARE_DOCUMENT.institution.title(outcome.truong.ten),
+    description: SHARE_DOCUMENT.institution.description(outcome.truong.ten),
   };
 }
 
 /** Trang mot truong: /share-document/institution/<khoa>. */
 export default async function InstitutionDetailPage({ params }: { params: Params }) {
-  const khoa = doiKhoa((await params).truong);
-  const kq = await layTruong(khoa);
-  if (!kq) notFound();
-  return <InstitutionDetail {...kq} />;
+  const course = swapKey((await params).truong);
+  const outcome = await getSchools(course);
+  if (!outcome) notFound();
+  return <InstitutionDetail {...outcome} />;
 }

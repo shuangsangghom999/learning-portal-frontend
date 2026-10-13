@@ -6,12 +6,10 @@ import {
   BookOpen,
   Building2,
   ClipboardList,
-  Coins,
   FileText,
   Flame,
   FolderOpen,
   HelpCircle,
-  Image as ImageIcon,
   LayoutDashboard,
   LayoutGrid,
   Library,
@@ -19,14 +17,11 @@ import {
   Newspaper,
   PlusCircle,
   Receipt,
-  SlidersHorizontal,
   Sparkles,
   Users,
   Video,
   type LucideIcon,
 } from "lucide-react";
-
-import { HIEN_COIN } from "@/src/services/tinhNang";
 
 export interface AdminSubMenuItem {
   label: string;
@@ -74,36 +69,35 @@ export const HOME_SECTION_ROUTES = [
   "/admin/home-most-popular",
   "/admin/home-trending-now",
   "/admin/home-new-releases",
-  "/admin/home-banners",
 ];
 
 export const ADMIN_MENU: AdminMenuItem[] = [
   {
-    label: "Dashboard",
+    label: "Tổng quan",
     href: "/admin/dashboard",
     icon: LayoutDashboard,
   },
   {
-    label: "Courses Management",
+    label: "Quản lý khóa học",
     href: "/admin/courses",
     icon: BookOpen,
     submenu: [
       {
-        label: "All Courses",
+        label: "Tất cả khóa học",
         href: "/admin/courses",
         icon: BookOpen,
         activeRoutes: ["/admin/courses", "/admin/course-detail", "/admin/course-faqs"],
       },
-      { label: "Create Course", href: "/admin/course-create", icon: PlusCircle },
+      { label: "Tạo khóa học", href: "/admin/course-create", icon: PlusCircle },
       {
-        label: "Categories",
+        label: "Danh mục",
         href: "/admin/categories",
         icon: FolderOpen,
         activeRoutes: ["/admin/categories", "/admin/category-create"],
       },
-      { label: "Providers", href: "/admin/providers", icon: Building2 },
+      { label: "Đơn vị đào tạo", href: "/admin/providers", icon: Building2 },
       {
-        label: "Lesson Content",
+        label: "Nội dung bài học",
         href: "",
         icon: Video,
         isIndicatorOnly: true,
@@ -111,42 +105,28 @@ export const ADMIN_MENU: AdminMenuItem[] = [
       },
     ],
   },
-  { label: "Banners Management", href: "/admin/banners", icon: ImageIcon },
-  { label: "Orders", href: "/admin/orders", icon: Receipt },
+  { label: "Đơn hàng", href: "/admin/orders", icon: Receipt },
   {
-    label: "Home Sections",
+    label: "Mục trang chủ",
     href: "/admin/home-most-popular",
     icon: LayoutGrid,
     isHomeSectionGroup: true,
     submenu: [
-      { label: "Most Popular", href: "/admin/home-most-popular", icon: Award },
-      { label: "Trending Now", href: "/admin/home-trending-now", icon: Flame },
-      { label: "New Releases", href: "/admin/home-new-releases", icon: Sparkles },
-      {
-        label: "Homepage Banners",
-        href: "/admin/home-banners",
-        icon: SlidersHorizontal,
-      },
+      { label: "Phổ biến nhất", href: "/admin/home-most-popular", icon: Award },
+      { label: "Đang thịnh hành", href: "/admin/home-trending-now", icon: Flame },
+      { label: "Mới phát hành", href: "/admin/home-new-releases", icon: Sparkles },
     ],
   },
-  // Dat canh Orders va Coin vi ba cai cung mot mach viec: tien vao he thong
-  // bang duong nao, va duoc giam bao nhieu.
+  // Dat canh Orders vi cung mot mach viec: tien vao he thong va duoc giam bao
+  // nhieu.
   { label: "Mã giảm giá", href: "/admin/vouchers", icon: BadgePercent },
   { label: "Thông báo hệ thống", href: "/admin/notifications", icon: Bell },
-  // Coin dang tam an (services/tinhNang.ts). Hai trang van con nguyen, go thang
-  // dia chi van vao duoc - chi bo khoi menu.
-  ...(HIEN_COIN
-    ? [
-        { label: "Coin & Quà tặng", href: "/admin/coin", icon: Coins },
-        { label: "Yêu cầu nạp coin", href: "/admin/coin-topups", icon: Coins },
-      ]
-    : []),
-  { label: "Enrollments", href: "/admin/enrollments", icon: ClipboardList },
-  { label: "Certificates", href: "/admin/certificates", icon: AwardIcon },
-  { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Reviews Management", href: "/admin/reviews", icon: MessageSquare },
+  { label: "Ghi danh", href: "/admin/enrollments", icon: ClipboardList },
+  { label: "Chứng nhận", href: "/admin/certificates", icon: AwardIcon },
+  { label: "Người dùng", href: "/admin/users", icon: Users },
+  { label: "Đánh giá", href: "/admin/reviews", icon: MessageSquare },
   {
-    label: "Blog Posts",
+    label: "Bài viết",
     href: "/admin/posts",
     icon: Newspaper,
     matchRoutes: POST_ROUTES,
@@ -154,19 +134,19 @@ export const ADMIN_MENU: AdminMenuItem[] = [
   { label: "Tài liệu chia sẻ", href: "/admin/documents", icon: FileText },
   // Rieng cho kho tai lieu - khong phai "Categories" cua khoa hoc o tren.
   { label: "Môn học tài liệu", href: "/admin/document-subjects", icon: Library },
-  { label: "Homepage FAQs", href: "/admin/faqs", icon: HelpCircle },
+  { label: "Câu hỏi thường gặp", href: "/admin/faqs", icon: HelpCircle },
 ];
 
 /** Chu tren khung quan tri. */
 export const ADMIN_SHELL = {
   dashboardHref: "/admin/dashboard",
-  loading: "Loading Admin Panel...",
-  brand: "ADMIN PAGE",
-  groupFeatures: "Theme Features",
-  groupComponents: "Components List",
-  editingSuffix: "(Editing)",
-  adminFallback: "Administrator",
-  adminRole: "Super Admin",
-  logoutTitle: "Sign out of system",
-  home: "Home",
+  loading: "Đang tải trang quản trị...",
+  brand: "TRANG QUẢN TRỊ",
+  groupFeatures: "Tổng quan",
+  groupComponents: "Chức năng",
+  editingSuffix: "(Đang sửa)",
+  adminFallback: "Quản trị viên",
+  adminRole: "Quản trị cấp cao",
+  logoutTitle: "Đăng xuất",
+  home: "Trang chủ",
 } as const;

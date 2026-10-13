@@ -39,19 +39,19 @@
 }
 
 /* ---------- Cong tac hien dap an ---------- */
-.congTacDong {
+.toggleRow {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 16px;
 }
 
-.congTacNhan {
+.toggleLabel {
   font-size: 16px;
   font-weight: var(--font-weight-medium);
 }
 
-.congTac {
+.toggle {
   position: relative;
   flex-shrink: 0;
   width: 74px;
@@ -69,7 +69,7 @@
   }
 }
 
-.nutTron {
+.roundButton {
   position: absolute;
   top: 4px;
   left: 4px;
@@ -87,10 +87,10 @@
     background-color 0.3s ease;
 }
 
-.congTacBat {
+.toggleOn {
   background-color: var(--color-blue-50);
 
-  .nutTron {
+  .roundButton {
     left: 42px;
     background-color: var(--color-blue-600);
   }
@@ -139,7 +139,7 @@
   color: var(--color-slate-700);
 }
 
-.moiDung {
+.newCorrect {
   font-weight: var(--font-weight-semibold);
   color: var(--color-emerald-700);
 }
@@ -150,12 +150,12 @@
 }
 
 // Dau tich dap an dung: xanh la - mau "dung" chung, khong phai mau thuong hieu
-.iconDung {
+.correctIcon {
   flex-shrink: 0;
   color: var(--color-emerald-600);
 }
 
-.chuaCo {
+.missing {
   margin: 16px 0 0;
   padding: 10px 12px;
   border-radius: 8px;
@@ -172,7 +172,7 @@
   border-top: 1px solid var(--color-blue-600);
 }
 
-.nutDong {
+.closeButton {
   padding: 10px 14px;
   border: 0;
   border-radius: 8px;
@@ -218,8 +218,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .congTac,
-  .nutTron {
+  .toggle,
+  .roundButton {
     transition: none;
   }
 }

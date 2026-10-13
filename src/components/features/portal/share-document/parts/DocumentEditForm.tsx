@@ -5,7 +5,7 @@ import { Loader2, Save } from "lucide-react";
 
 import RichTextEditor from "@/src/components/common/RichTextEditor";
 import SubjectPicker from "./SubjectPicker";
-import { GIOI_HAN_NOI_DUNG, khoaTuTenMon } from "@/src/lib/document/file-info";
+import { CONTENT_LIMIT, keyFromSubjectName } from "@/src/lib/document/file-info";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import {
   documentService,
@@ -26,84 +26,84 @@ import styles from "./DocumentEditForm.module.scss";
  */
 export default function DocumentEditForm({
   doc,
-  khiLuu,
-  khiHuy,
+  onSave,
+  onCancel,
 }: {
   doc: SharedDocument;
-  khiLuu: (moi: SharedDocument) => void;
-  khiHuy: () => void;
+  onSave: (recent: SharedDocument) => void;
+  onCancel: () => void;
 }) {
-  const [tieuDe, setTieuDe] = useState(doc.title);
-  const [noiDung, setNoiDung] = useState(doc.description);
-  const [dsMon, setDsMon] = useState<DocumentSubject[]>([]);
+  const [title, setTitle] = useState(doc.title);
+  const [content, setContent] = useState(doc.description);
+  const [subjectList, setSubjectList] = useState<DocumentSubject[]>([]);
   // KHOA cac mon. Rong luc dau cho toi khi tai xong danh sach va doi ten -> khoa.
-  const [monHoc, setMonHoc] = useState<string[]>([]);
+  const [subject, setSubject] = useState<string[]>([]);
   // KHOA truong - doi tu ten sau khi tai xong danh sach. "" = khong gan truong.
-  const [dsTruong, setDsTruong] = useState<DocumentUniversity[]>([]);
-  const [truong, setTruong] = useState("");
-  const [dangLuu, setDangLuu] = useState(false);
-  const [loi, setLoi] = useState("");
+  const [schoolList, setSchoolList] = useState<DocumentUniversity[]>([]);
+  const [school, setSchool] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    let huy = false;
+    let cancel = false;
     documentService
       .getSubjects()
-      .then((ds) => {
-        if (huy) return;
-        setDsMon(ds);
+      .then((items) => {
+        if (cancel) return;
+        setSubjectList(items);
         // Tai lieu luu TEN mon (ten chuan lay tu danh sach luc dang), nen so
         // khop dung ten la ra khoa. Tai lieu cu chua co mon thi de trong.
-        setMonHoc(khoaTuTenMon(ds, doc.monHoc));
+        setSubject(keyFromSubjectName(items, doc.monHoc));
         // Truong: tai rieng, hong thi o chon an di (truong khong bat buoc).
         documentService
           .getUniversities()
           .then((dsT) => {
-            if (huy) return;
-            setDsTruong(dsT);
-            setTruong(dsT.find((t) => t.ten === doc.truong)?.key ?? "");
+            if (cancel) return;
+            setSchoolList(dsT);
+            setSchool(dsT.find((t) => t.ten === doc.truong)?.key ?? "");
           })
           .catch(() => {});
       })
       .catch(() => {
-        if (!huy) setLoi("Không tải được danh sách môn học.");
+        if (!cancel) setErrorMessage("Không tải được danh sách môn học.");
       });
     return () => {
-      huy = true;
+      cancel = true;
     };
   }, [doc.monHoc, doc.truong]);
 
-  const luu = async (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoi("");
+    setErrorMessage("");
 
     // Kiem CHU chu khong kiem chuoi HTML: o soan trong van tra ve "<p></p>".
-    const coChu = noiDung
+    const fontSize = content
       .replace(/<[^>]*>/g, "")
       .replace(/&nbsp;/g, " ")
       .trim();
-    if (!tieuDe.trim() || !coChu)
-      return setLoi("Tiêu đề và nội dung không được để trống.");
-    if (!monHoc.length) return setLoi("Vui lòng chọn ít nhất một môn học.");
+    if (!title.trim() || !fontSize)
+      return setErrorMessage("Tiêu đề và nội dung không được để trống.");
+    if (!subject.length) return setErrorMessage("Vui lòng chọn ít nhất một môn học.");
 
-    setDangLuu(true);
+    setSaving(true);
     try {
-      const moi = await documentService.updateDocument(doc._id, {
-        title: tieuDe.trim(),
-        description: noiDung,
-        monHoc,
-        truong,
+      const recent = await documentService.updateDocument(doc._id, {
+        title: title.trim(),
+        description: content,
+        monHoc: subject,
+        truong: school,
       });
-      khiLuu(moi);
+      onSave(recent);
     } catch (err) {
       // Bo loc tu ngu, mon khong con trong danh sach... may chu noi ro.
-      setLoi(getErrorMessage(err, "Không lưu được thay đổi."));
+      setErrorMessage(getErrorMessage(err, "Không lưu được thay đổi."));
     } finally {
-      setDangLuu(false);
+      setSaving(false);
     }
   };
 
   return (
-    <form onSubmit={luu} className={styles.form}>
+    <form onSubmit={save} className={styles.form}>
       <h2 className={styles.tieuDe}>Sửa tài liệu</h2>
 
       <label htmlFor="sua-tieu-de" className={styles.nhan}>
@@ -111,8 +111,8 @@ export default function DocumentEditForm({
       </label>
       <input
         id="sua-tieu-de"
-        value={tieuDe}
-        onChange={(e) => setTieuDe(e.target.value)}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         maxLength={200}
         className={styles.o}
       />
@@ -120,21 +120,26 @@ export default function DocumentEditForm({
       <span id="sua-mon" className={styles.nhan}>
         Môn học (chọn một hoặc nhiều)
       </span>
-      <SubjectPicker dsMon={dsMon} chon={monHoc} doiChon={setMonHoc} idNhan="sua-mon" />
+      <SubjectPicker
+        subjectList={subjectList}
+        chon={subject}
+        toggleSelect={setSubject}
+        labelId="sua-mon"
+      />
 
-      {dsTruong.length > 0 && (
+      {schoolList.length > 0 && (
         <>
           <label htmlFor="sua-truong" className={styles.nhan}>
             Trường đại học (không bắt buộc)
           </label>
           <select
             id="sua-truong"
-            value={truong}
-            onChange={(e) => setTruong(e.target.value)}
+            value={school}
+            onChange={(e) => setSchool(e.target.value)}
             className={styles.o}
           >
             <option value="">— Không chọn trường —</option>
-            {dsTruong.map((t) => (
+            {schoolList.map((t) => (
               <option key={t.key} value={t.key}>
                 {t.ten}
               </option>
@@ -145,28 +150,28 @@ export default function DocumentEditForm({
 
       <span className={styles.nhan}>Nội dung</span>
       <RichTextEditor
-        giaTri={noiDung}
-        doiGiaTri={setNoiDung}
-        toiDa={GIOI_HAN_NOI_DUNG}
-        taiAnh={documentService.uploadImage}
+        giaTri={content}
+        setValue={setContent}
+        toiDa={CONTENT_LIMIT}
+        uploadImage={documentService.uploadImage}
       />
 
       <p className={styles.ghiChu}>
         File đính kèm không đổi được ở đây. Muốn thay file, hãy xóa bài và đăng lại.
       </p>
 
-      {loi && (
+      {errorMessage && (
         <p role="alert" className={styles.loi}>
-          {loi}
+          {errorMessage}
         </p>
       )}
 
-      <div className={styles.nut}>
-        <button type="button" onClick={khiHuy} className={styles.nutHuy}>
+      <div className={styles.button}>
+        <button type="button" onClick={onCancel} className={styles.cancelButton}>
           Hủy
         </button>
-        <button type="submit" disabled={dangLuu} className={styles.nutLuu}>
-          {dangLuu ? <Loader2 size={15} className={styles.quay} /> : <Save size={15} />}
+        <button type="submit" disabled={saving} className={styles.saveButton}>
+          {saving ? <Loader2 size={15} className={styles.quay} /> : <Save size={15} />}
           Lưu thay đổi
         </button>
       </div>

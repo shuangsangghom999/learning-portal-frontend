@@ -10,8 +10,8 @@ import styles from "../MyCourses.module.scss";
 /** The mot khoa da ghi danh: anh, tieu de, thanh tien do, nut hoc tiep. */
 export default function EnrolledCourseCard({ g }: { g: EnrolledCourseItem }) {
   const k = g.course!;
-  const xong = g.status === "completed" || g.totalProgress >= 100;
-  const phanTram = Math.min(100, Math.max(0, Math.round(g.totalProgress)));
+  const done = g.status === "completed" || g.totalProgress >= 100;
+  const percent = Math.min(100, Math.max(0, Math.round(g.totalProgress)));
 
   return (
     <article className={styles.article}>
@@ -30,7 +30,7 @@ export default function EnrolledCourseCard({ g }: { g: EnrolledCourseItem }) {
           </div>
         )}
 
-        {xong && (
+        {done && (
           <span className={styles.floating}>
             <CircleCheck size={12} /> {C.card.done}
           </span>
@@ -43,14 +43,14 @@ export default function EnrolledCourseCard({ g }: { g: EnrolledCourseItem }) {
         <div className={styles.box7}>
           <div className={styles.row4}>
             <span className={styles.label}>{C.card.progress}</span>
-            <span className={styles.label2}>{phanTram}%</span>
+            <span className={styles.label2}>{percent}%</span>
           </div>
           {/* Thanh tien do la thong tin, khong phai trang tri: no la
               ly do chinh nguoi ta mo trang nay. */}
           <div className={styles.box8}>
             <div
-              className={`${styles.box11} ${xong ? styles.box9 : styles.box10}`}
-              style={{ width: `${phanTram}%` }}
+              className={`${styles.box11} ${done ? styles.box9 : styles.box10}`}
+              style={{ width: `${percent}%` }}
             />
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function EnrolledCourseCard({ g }: { g: EnrolledCourseItem }) {
             nut nam cung mot duong, du tieu de dai ngan khac nhau. */}
         <Link href={k.slug ? C.learnHref(k.slug) : C.coursesHref} className={styles.row5}>
           <Play size={15} />
-          {xong ? C.card.review : phanTram > 0 ? C.card.resume : C.card.start}
+          {done ? C.card.review : percent > 0 ? C.card.resume : C.card.start}
         </Link>
       </div>
     </article>

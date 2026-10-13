@@ -1,25 +1,25 @@
 import { Suspense, type ReactNode } from "react";
 
-import TroLyToanTrang from "@/src/components/features/portal/assistant/AssistantWidget";
-import NapNguoiDung from "@/src/components/common/UserBootstrap";
+import GlobalAssistant from "@/src/components/features/portal/assistant/AssistantWidget";
+import UserBootstrap from "@/src/components/common/UserBootstrap";
 import AuthModalGate from "@/src/components/features/portal/auth/AuthModalGate";
 import Footer from "@/src/components/layout/Footer";
 import Header from "@/src/components/layout/Header";
 
-import { layDuLieuFooter } from "./data";
+import { getFooterData } from "./data";
 import ProfilePrefetchScript from "./parts/ProfilePrefetchScript";
 import styles from "./PortalShell.module.scss";
 
 /** Noi dung ben trong <body> cua moi trang portal: header, main, footer, tro ly. */
 export default async function PortalShell({ children }: { children: ReactNode }) {
-  const footer = await layDuLieuFooter();
+  const footer = await getFooterData();
 
   return (
     <>
       <ProfilePrefetchScript />
       {/* Hoi may chu "toi la ai" mot lan. Danh tinh nam trong RAM, khong
           con ghi xuong localStorage - xem src/hooks/userStore.ts. */}
-      <NapNguoiDung />
+      <UserBootstrap />
       {/* Hop dang nhap, mo bang ?auth tren dia chi. Dat o layout chu khong
           phai rieng trang chu: moi trang trong khu hoc vien deu co the can
           dang nhap, va khach dang xem mot khoa hoc thi phai dang nhap NGAY
@@ -37,7 +37,7 @@ export default async function PortalShell({ children }: { children: ReactNode })
       <Footer {...footer} />
       {/* Hop chat noi o goc phai. Dat o layout de hien tren moi trang portal;
           no tu an di o /learn vi trang do da co ban co ngu canh bai hoc. */}
-      <TroLyToanTrang />
+      <GlobalAssistant />
     </>
   );
 }

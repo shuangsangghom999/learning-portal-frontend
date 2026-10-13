@@ -1,4 +1,4 @@
-import TrinhSoanBai from "@/src/components/features/admin/post-create/parts/PostEditor";
+import PostEditor from "@/src/components/features/admin/post-create/parts/PostEditor";
 import { ADMIN_POST_CREATE as C } from "@/src/constants/admin/post-create-page";
 
 import type { PostEditorState } from "../hooks/usePostEditor";
@@ -17,7 +17,7 @@ export default function PostMainFields({ s }: { s: PostEditorState }) {
         <input
           id="tieu-de"
           value={s.tieuDe}
-          onChange={(e) => s.setTieuDe(e.target.value)}
+          onChange={(e) => s.setTitle(e.target.value)}
           maxLength={C.maxTitle}
           placeholder={F.titlePlaceholder}
           className={`${styles.input2} ${styles.input}`}
@@ -32,7 +32,7 @@ export default function PostMainFields({ s }: { s: PostEditorState }) {
         <textarea
           id="mo-ta"
           value={s.moTa}
-          onChange={(e) => s.setMoTa(e.target.value)}
+          onChange={(e) => s.setDescription(e.target.value)}
           maxLength={C.maxExcerpt}
           rows={3}
           placeholder={F.excerptPlaceholder}
@@ -45,10 +45,10 @@ export default function PostMainFields({ s }: { s: PostEditorState }) {
         <label htmlFor="noi-dung" className={styles.fieldLabel}>
           {F.content} <span className={styles.label}>{F.required}</span>
         </label>
-        <TrinhSoanBai
+        <PostEditor
           id="noi-dung"
           giaTri={s.noiDung}
-          doiGiaTri={s.setNoiDung}
+          setValue={s.setContent}
           toiDa={C.maxContent}
         />
         <p className={styles.text4}>

@@ -3,13 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import {
-  doiDiaChi,
-  duongDanDangNhap,
-} from "@/src/components/features/portal/auth/loginUrl";
+import { updateUrl, loginUrl } from "@/src/components/features/portal/auth/loginUrl";
 import { LEARN } from "@/src/constants/portal/learn-page";
-import { useDangTaiNguoiDung, useNguoiDungLuu } from "@/src/hooks/userStore";
-import { daDangKy, layIdBaiHoc, layTienDo } from "@/src/lib/enrollment";
+import { useUserLoading, useStoredUser } from "@/src/hooks/userStore";
+import { registered, getLessonId, getProgress } from "@/src/lib/enrollment";
 import { getCourseBySlug, type Course } from "@/src/services/course";
 import {
   completeCourse,
@@ -23,22 +20,22 @@ import {
 } from "@/src/services/enrollment.api";
 import type { Lesson } from "@/src/services/lesson.api";
 import { getCourseQuizzes, type Quiz } from "@/src/services/quizService";
-import { layDuongDanNhung } from "@/src/services/videoEmbed";
+import { getEmbedUrl } from "@/src/services/videoEmbed";
 
 import { useLessonVideo } from "./useLessonVideo";
 
 // Xep danh sach quiz tho thanh bang tra theo id bai hoc. Quiz khong gan bai
 // nao (lesson rong) la bai kiem tra cuoi khoa - khong thuoc bai nao nen bo
 // qua o day, dung voi cach cu la loc theo dung lessonId.
-const xepQuizTheoBai = (ds: Quiz[]): Record<string, Quiz> => {
-  const bang: Record<string, Quiz> = {};
-  for (const q of ds) {
-    const idBai = typeof q.lesson === "string" ? q.lesson : q.lesson?._id;
+const groupQuizzesByLesson = (items: Quiz[]): Record<string, Quiz> => {
+  const table: Record<string, Quiz> = {};
+  for (const q of items) {
+    const lessonIdParam = typeof q.lesson === "string" ? q.lesson : q.lesson?._id;
     // Giu cai DAU tien: may chu sap xep createdAt giam dan, ma cach cu lay
     // res[0] - tuc la ban moi nhat. Phai giu dung thu tu do.
-    if (idBai && !bang[idBai]) bang[idBai] = q;
+    if (lessonIdParam && !table[lessonIdParam]) table[lessonIdParam] = q;
   }
-  return bang;
+  return table;
 };
 
 /** Phong hoc: tai khoa + ghi danh + quiz, chon bai, ghi tien do, hoan thanh bai / khoa. */
@@ -48,10 +45,10 @@ export function useCourseLearn() {
 
   // Lay slug tu query string: ?slug=ten-khoa-hoc
   const courseSlug = searchParams.get("slug") || "";
-  const duongDan = usePathname();
-  const nguoiDung = useNguoiDungLuu();
-  const dangTaiNguoiDung = useDangTaiNguoiDung();
-  const laKhach = !dangTaiNguoiDung && !nguoiDung;
+  const path = usePathname();
+  const user = useStoredUser();
+  const loadingUser = useUserLoading();
+  const isGuest = !loadingUser && !user;
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -66,18 +63,16 @@ export function useCourseLearn() {
   // tu dau, khong he nho. Ca khoa hoc thuong chi co vai bai kiem tra, nen nap
   // mot lan cung voi trang roi tra cuu tai cho thi re hon han, va doi bai
   // khong con phai cho mang nua.
-  const [quizTheoBai, setQuizTheoBai] = useState<Record<string, Quiz>>({});
+  const [quizByLesson, setQuizByLesson] = useState<Record<string, Quiz>>({});
   const [isDoingQuiz, setIsDoingQuiz] = useState<boolean>(false);
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
   const { videoError, setVideoError } = useLessonVideo(activeLesson?.videoUrl, videoRef);
 
-  const currentQuiz = activeLesson ? (quizTheoBai[activeLesson._id] ?? null) : null;
+  const currentQuiz = activeLesson ? (quizByLesson[activeLesson._id] ?? null) : null;
 
   // Khac null nghia la bai nay dung video cua YouTube/Vimeo: phai nhung bang
   // iframe, the <video> khong doc duoc trang xem cua ho.
-  const nhungVideo = activeLesson?.videoUrl
-    ? layDuongDanNhung(activeLesson.videoUrl)
-    : null;
+  const embedVideo = activeLesson?.videoUrl ? getEmbedUrl(activeLesson.videoUrl) : null;
 
   // Khach vang lai mo thang /learn: hien hop dang nhap ngay.
   //
@@ -94,13 +89,13 @@ export function useCourseLearn() {
   // dong tro thanh vo dung.
   //
   // useRef chu khong phai useState: doi gia tri nay khong duoc ve lai gi ca.
-  const daMoiDangNhap = useRef(false);
+  const promptedLogin = useRef(false);
 
   useEffect(() => {
-    if (!laKhach || daMoiDangNhap.current) return;
-    daMoiDangNhap.current = true;
-    doiDiaChi(duongDanDangNhap(duongDan, searchParams, "hoc"), true);
-  }, [laKhach, searchParams, duongDan]);
+    if (!isGuest || promptedLogin.current) return;
+    promptedLogin.current = true;
+    updateUrl(loginUrl(path, searchParams, "hoc"), true);
+  }, [isGuest, searchParams, path]);
 
   useEffect(() => {
     if (!courseSlug) return;
@@ -110,13 +105,13 @@ export function useCourseLearn() {
         setLoading(true);
         // getCourseBySlug tra ve Course HOAC { error }, nen phai loai truong
         // hop loi ra truoc thi phan con lai moi chac chan la Course.
-        const ketQua = await getCourseBySlug(courseSlug);
-        if (!ketQua || "error" in ketQua) {
+        const result = await getCourseBySlug(courseSlug);
+        if (!result || "error" in result) {
           setCourse(null);
           setLoading(false);
           return;
         }
-        const courseData = ketQua;
+        const courseData = result;
         setCourse(courseData);
 
         const realCourseId = courseData._id;
@@ -136,7 +131,7 @@ export function useCourseLearn() {
         ]);
         setEnrollment(enrollData);
         setProgress(stats);
-        setQuizTheoBai(xepQuizTheoBai(dsQuiz));
+        setQuizByLesson(groupQuizzesByLesson(dsQuiz));
 
         if (courseData?.lessons && courseData.lessons.length > 0) {
           // /courses/slug/:slug populate day du bai hoc, khac voi /courses chi
@@ -147,13 +142,13 @@ export function useCourseLearn() {
 
           let defaultLesson: Lesson | undefined;
 
-          if (daDangKy(enrollData) && enrollData.lessonProgress.length > 0) {
+          if (registered(enrollData) && enrollData.lessonProgress.length > 0) {
             const nextIncompleteProgress = enrollData.lessonProgress.find(
               (lp) => lp.status !== "completed",
             );
 
             if (nextIncompleteProgress) {
-              const targetLessonId = layIdBaiHoc(nextIncompleteProgress.lesson);
+              const targetLessonId = getLessonId(nextIncompleteProgress.lesson);
               defaultLesson = sortedLessons.find((l) => l._id === targetLessonId);
             }
           }
@@ -240,8 +235,8 @@ export function useCourseLearn() {
   // biet thoi luong - gan currentTime truoc thoi diem nay thi bi load() xoa.
   const handleLoadedMetadata = () => {
     if (!activeLesson || !videoRef.current) return;
-    const history = layTienDo(enrollment).find(
-      (lp) => layIdBaiHoc(lp.lesson) === activeLesson._id,
+    const history = getProgress(enrollment).find(
+      (lp) => getLessonId(lp.lesson) === activeLesson._id,
     );
     if (history?.watchedDuration) {
       videoRef.current.currentTime = history.watchedDuration;
@@ -303,19 +298,21 @@ export function useCourseLearn() {
   };
 
   const checkLessonCompleted = (lessonId: string) => {
-    const found = layTienDo(enrollment).find((lp) => layIdBaiHoc(lp.lesson) === lessonId);
+    const found = getProgress(enrollment).find(
+      (lp) => getLessonId(lp.lesson) === lessonId,
+    );
     return found?.status === "completed";
   };
 
   // Truyen HAM chu khong truyen con so cho ghi chu: con so chup mot thoi
   // diem, ma thoi diem can biet la luc bam nut Luu, khong phai luc ve lai
   // component.
-  const layViTriVideo = () =>
+  const getVideoPosition = () =>
     videoRef.current ? Math.floor(videoRef.current.currentTime) : null;
 
-  const nhayToi = (giay: number) => {
+  const jumpTo = (seconds: number) => {
     if (!videoRef.current) return;
-    videoRef.current.currentTime = giay;
+    videoRef.current.currentTime = seconds;
     // Cuon video vao tam nhin: ghi chu nam duoi man hinh nen bam
     // xong ma khong cuon thi nguoi dung khong thay gi xay ra.
     videoRef.current.scrollIntoView({
@@ -325,6 +322,7 @@ export function useCourseLearn() {
   };
 
   return {
+    user,
     router,
     courseSlug,
     videoRef,
@@ -340,14 +338,14 @@ export function useCourseLearn() {
     setShowCertificate,
     videoError,
     setVideoError,
-    nhungVideo,
+    embedVideo,
     handleSelectLesson,
     handleLoadedMetadata,
     handleVideoEnded,
     handleQuizSuccess,
     checkLessonCompleted,
-    layViTriVideo,
-    nhayToi,
+    getVideoPosition,
+    jumpTo,
   };
 }
 

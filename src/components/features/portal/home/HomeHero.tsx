@@ -41,20 +41,20 @@ import styles from "./HomeHero.module.scss";
 // Mau cua tung mang noi dung. Du lieu (constants/portal/home-page.ts) chi ghi `tone`,
 // con class CSS nam o day vi no thuoc ve file SCSS cua component nay.
 const TONE: Record<HomeTone, { grad: string; glow: string }> = {
-  certificate: { grad: styles.gradChungNhan, glow: styles.bongChungNhan },
-  course: { grad: styles.gradKhoaHoc, glow: styles.bongKhoaHoc },
-  document: { grad: styles.gradTaiLieu, glow: styles.bongTaiLieu },
-  post: { grad: styles.gradBaiViet, glow: styles.bongBaiViet },
+  certificate: { grad: styles.certificateGradient, glow: styles.certificateBubble },
+  course: { grad: styles.courseGradient, glow: styles.courseBubble },
+  document: { grad: styles.documentGradient, glow: styles.documentBubble },
+  post: { grad: styles.postGradient, glow: styles.postBubble },
 };
 
 interface HomeHeroProps extends HomeHeroData {
-  soKhoa: number;
-  soMienPhi: number;
+  courseCount: number;
+  freeCourseCount: number;
 }
 
 export default function HomeHero({
-  soKhoa,
-  soMienPhi,
+  courseCount,
+  freeCourseCount,
   newBadge,
   freeCount,
   titleLine1,
@@ -94,10 +94,10 @@ export default function HomeHero({
         <div className={styles.grid}>
           {/* ------------------------------ Chu ------------------------------ */}
           <div>
-            {soMienPhi ? (
+            {freeCourseCount ? (
               <span className={styles.card}>
                 <b className={styles.box2}>{newBadge}</b>
-                {freeCount(soMienPhi)}
+                {freeCount(freeCourseCount)}
               </span>
             ) : null}
 
@@ -146,7 +146,9 @@ export default function HomeHero({
                 <span className={styles.grid2}>→</span>
               </Link>
               <Link href={secondaryCta.href} className={styles.card3}>
-                {soKhoa ? secondaryCta.withCount(soKhoa) : secondaryCta.fallback}
+                {courseCount
+                  ? secondaryCta.withCount(courseCount)
+                  : secondaryCta.fallback}
               </Link>
             </div>
           </div>
@@ -169,7 +171,7 @@ export default function HomeHero({
               tu tuot khoi danh sach buoc tre. Da dinh dung loi do mot lan. */}
           <div className={styles.box3}>
             {scenes.map(
-              ({ tone, icon: Icon, label, lead, title, image: anh, badge: the }) => (
+              ({ tone, icon: Icon, label, lead, title, image: image, badge: card }) => (
                 <div key={label} className={styles.col}>
                   {/* Dau canh: huy hieu + hai dong chu. Ca cum nay DOI theo canh.
                     CAN GIUA o CA BON canh. Da thu chi can giua rieng canh quy
@@ -193,7 +195,7 @@ export default function HomeHero({
 
                   {/* Phan hinh - chiem het cho con lai va tu can giua */}
                   <div className={styles.grid3}>
-                    {anh ? (
+                    {image ? (
                       /* Anh tran, KHONG long trong khung may tinh nao.
                        Ban truoc ve mot cai vien may mau muc kem de may ben duoi;
                        chu du an khong thich, bo.
@@ -212,8 +214,8 @@ export default function HomeHero({
                       >
                         {/* Ty le 31/16 = dung 1240x640 cua anh goc */}
                         <Image
-                          src={anh.src}
-                          alt={anh.alt}
+                          src={image.src}
+                          alt={image.alt}
                           fill
                           // KHONG dat priority cho tam nao.
                           // Truoc day tam dau duoc priority vi no la thu nguoi
@@ -374,13 +376,13 @@ export default function HomeHero({
                   {/* The noi - ban mau cung dat vai the nho chong len hinh, va noi
                     dung the DOI theo canh. An o man hinh hep: cho do vua du cho
                     cai may tinh, them the nua la che mat thu can nhin. */}
-                  {the ? (
+                  {card ? (
                     <div className={styles.floating3}>
                       <div className={styles.row3}>
                         <span className={styles.grid5}>✓</span>
                         <span className={styles.label6}>
-                          <b className={styles.box9}>{the.title}</b>
-                          <span className={styles.label7}>{the.subtitle}</span>
+                          <b className={styles.box9}>{card.title}</b>
+                          <span className={styles.label7}>{card.subtitle}</span>
                         </span>
                       </div>
                     </div>
@@ -403,10 +405,10 @@ export default function HomeHero({
             tang giam theo. Thay mot con so bang chu la lan sau no thanh loi
             noi sai. */}
         <p className={styles.text2}>
-          <b className={styles.box10}>{soKhoa}</b>
+          <b className={styles.box10}>{courseCount}</b>
           {stats.courses}
           <span className={styles.label8}>·</span>
-          <b className={styles.box10}>{soMienPhi}</b>
+          <b className={styles.box10}>{freeCourseCount}</b>
           {stats.free}
           <span className={styles.label8}>·</span>
           {stats.certificate}

@@ -13,14 +13,14 @@ interface LessonCreateActionsProps {
   courseId: string;
   submitting: boolean;
   /** % tai video; null = khong dang tai. */
-  tienDo: number | null;
+  progress: number | null;
 }
 
 export default function LessonCreateActions({
   role,
   courseId,
   submitting,
-  tienDo,
+  progress,
 }: LessonCreateActionsProps) {
   return (
     <div className={styles.row2}>
@@ -28,8 +28,8 @@ export default function LessonCreateActions({
         {C.actions.cancel}
       </Link>
       <button type="submit" disabled={submitting} className={styles.button2}>
-        {tienDo !== null
-          ? C.actions.uploading(tienDo)
+        {progress !== null
+          ? C.actions.uploading(progress)
           : submitting
             ? C.actions.submitting
             : C.actions.submit}

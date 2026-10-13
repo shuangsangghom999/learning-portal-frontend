@@ -6,77 +6,77 @@ import { Eye, EyeOff, Loader2, MessageCircle, Reply, Send, Trash2 } from "lucide
 
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { documentService, type DocumentComment } from "@/src/services/document";
-import { thoiGianTuongDoi } from "@/src/lib/post-time";
-import { useNguoiDungLuu } from "@/src/hooks/userStore";
+import { relativeTime } from "@/src/lib/post-time";
+import { useStoredUser } from "@/src/hooks/userStore";
 
 import styles from "./DocumentComments.module.scss";
 
-const DAI_TOI_DA = 2000; // khop DAI_TOI_DA trong backend utils/documentComments.js
+const MAX_LENGTH = 2000; // khop MAX_LENGTH trong backend utils/documentComments.js
 
 /** O viet binh luan / tra loi. */
-function OViet({
-  goiY,
-  nutGui,
-  khiGui,
-  khiHuy,
-  tuDong = false,
+function CommentBox({
+  suggest,
+  sendButton,
+  onSubmit,
+  onCancel,
+  auto = false,
 }: {
-  goiY: string;
-  nutGui: string;
-  khiGui: (noiDung: string) => Promise<void>;
-  khiHuy?: () => void;
-  tuDong?: boolean;
+  suggest: string;
+  sendButton: string;
+  onSubmit: (content: string) => Promise<void>;
+  onCancel?: () => void;
+  auto?: boolean;
 }) {
-  const [noiDung, setNoiDung] = useState("");
-  const [dangGui, setDangGui] = useState(false);
-  const [loi, setLoi] = useState("");
+  const [content, setContent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const gui = async (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (noiDung.trim().length < 2) return setLoi("Bình luận quá ngắn.");
-    setDangGui(true);
-    setLoi("");
+    if (content.trim().length < 2) return setErrorMessage("Bình luận quá ngắn.");
+    setSending(true);
+    setErrorMessage("");
     try {
-      await khiGui(noiDung);
-      setNoiDung("");
+      await onSubmit(content);
+      setContent("");
     } catch (err) {
       // Bo loc tu ngu, gioi han toc do (429)... may chu noi ro ly do.
-      setLoi(getErrorMessage(err, "Không gửi được bình luận."));
+      setErrorMessage(getErrorMessage(err, "Không gửi được bình luận."));
     } finally {
-      setDangGui(false);
+      setSending(false);
     }
   };
 
   return (
-    <form onSubmit={gui} className={styles.form}>
+    <form onSubmit={send} className={styles.form}>
       <textarea
-        value={noiDung}
-        onChange={(e) => setNoiDung(e.target.value)}
-        maxLength={DAI_TOI_DA}
-        rows={tuDong ? 2 : 3}
-        placeholder={goiY}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        maxLength={MAX_LENGTH}
+        rows={auto ? 2 : 3}
+        placeholder={suggest}
         // Mo o tra loi la de go ngay - khong bat bam them mot lan vao o.
-        autoFocus={tuDong}
+        autoFocus={auto}
         className={styles.textarea}
       />
-      {loi && (
+      {errorMessage && (
         <p role="alert" className={styles.loi}>
-          {loi}
+          {errorMessage}
         </p>
       )}
-      <div className={styles.formChan}>
+      <div className={styles.blockedForm}>
         <span className={styles.dem}>
-          {noiDung.length}/{DAI_TOI_DA}
+          {content.length}/{MAX_LENGTH}
         </span>
-        <div className={styles.formNut}>
-          {khiHuy && (
-            <button type="button" onClick={khiHuy} className={styles.nutHuy}>
+        <div className={styles.formButton}>
+          {onCancel && (
+            <button type="button" onClick={onCancel} className={styles.cancelButton}>
               Hủy
             </button>
           )}
-          <button type="submit" disabled={dangGui} className={styles.nutGui}>
-            {dangGui ? <Loader2 size={14} className={styles.quay} /> : <Send size={14} />}
-            {nutGui}
+          <button type="submit" disabled={sending} className={styles.sendButton}>
+            {sending ? <Loader2 size={14} className={styles.quay} /> : <Send size={14} />}
+            {sendButton}
           </button>
         </div>
       </div>
@@ -84,66 +84,73 @@ function OViet({
   );
 }
 
-export default function DocumentComments({ docId }: { docId: string }) {
-  const user = useNguoiDungLuu();
+export default function DocumentComments({ documentId }: { documentId: string }) {
+  const user = useStoredUser();
   const laAdmin = user?.role === "admin";
 
-  const [ds, setDs] = useState<DocumentComment[]>([]);
-  const [tong, setTong] = useState(0);
-  const [chuBai, setChuBai] = useState("");
-  const [dangTai, setDangTai] = useState(true);
-  const [loi, setLoi] = useState("");
+  const [items, setDs] = useState<DocumentComment[]>([]);
+  const [total, setTotal] = useState(0);
+  const [postOwner, setPostOwner] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   // Id binh luan GOC dang mo o tra loi. Chi mot o mo mot luc.
-  const [dangTraLoi, setDangTraLoi] = useState<string | null>(null);
+  const [replying, setReplying] = useState<string | null>(null);
 
-  const tai = useCallback(async () => {
-    setDangTai(true);
-    setLoi("");
+  const download = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
     try {
-      const res = await documentService.getComments(docId);
+      const res = await documentService.getComments(documentId);
       setDs(res.binhLuan ?? []);
-      setTong(res.tong ?? 0);
-      setChuBai(res.chuBai ?? "");
+      setTotal(res.tong ?? 0);
+      setPostOwner(res.chuBai ?? "");
     } catch (err) {
-      setLoi(getErrorMessage(err, "Không tải được bình luận."));
+      setErrorMessage(getErrorMessage(err, "Không tải được bình luận."));
     } finally {
-      setDangTai(false);
+      setLoading(false);
     }
-  }, [docId]);
+  }, [documentId]);
 
   // Tai lai khi doi nguoi dang nhap: admin thay them binh luan da an, dang xuat
   // thi phai mat di. Hoan mot vong microtask - cung cach faqs/page.tsx, tranh
   // setState dong bo trong than effect (react-hooks/set-state-in-effect).
-  const idNguoiDung = user?._id;
+  const currentUserId = user?._id;
   useEffect(() => {
-    void Promise.resolve().then(tai);
-  }, [tai, idNguoiDung]);
+    void Promise.resolve().then(download);
+  }, [download, currentUserId]);
 
-  const vietBinhLuan = async (noiDung: string) => {
-    const { binhLuan } = await documentService.createComment(docId, noiDung);
-    setDs((cu) => [...cu, binhLuan]);
-    setTong((t) => t + 1);
+  const writeComment = async (content: string) => {
+    const { binhLuan: comment } = await documentService.createComment(
+      documentId,
+      content,
+    );
+    setDs((old) => [...old, comment]);
+    setTotal((t) => t + 1);
   };
 
-  const traLoi = async (idGoc: string, noiDung: string) => {
-    const { binhLuan } = await documentService.createComment(docId, noiDung, idGoc);
+  const reply = async (idGoc: string, content: string) => {
+    const { binhLuan: comment } = await documentService.createComment(
+      documentId,
+      content,
+      idGoc,
+    );
     // May chu co the gan tra loi vao mot goc KHAC voi idGoc (tra loi vao mot tra
     // loi thi gan vao goc cua no) - dung traLoi ma may chu tra ve.
-    const goc = binhLuan.traLoi ?? idGoc;
-    setDs((cu) =>
-      cu.map((g) =>
-        g._id === goc ? { ...g, cacTraLoi: [...g.cacTraLoi, binhLuan] } : g,
+    const origin = comment.traLoi ?? idGoc;
+    setDs((old) =>
+      old.map((g) =>
+        g._id === origin ? { ...g, cacTraLoi: [...g.cacTraLoi, comment] } : g,
       ),
     );
-    setTong((t) => t + 1);
-    setDangTraLoi(null);
+    setTotal((t) => t + 1);
+    setReplying(null);
   };
 
-  const xoa = async (b: DocumentComment) => {
-    const coTraLoi = !b.traLoi && b.cacTraLoi.length > 0;
+  const remove = async (b: DocumentComment) => {
+    const hasReplies = !b.traLoi && b.cacTraLoi.length > 0;
     if (
       !confirm(
-        coTraLoi
+        hasReplies
           ? `Xóa bình luận này và ${b.cacTraLoi.length} trả lời bên dưới?`
           : "Xóa bình luận này?",
       )
@@ -152,70 +159,80 @@ export default function DocumentComments({ docId }: { docId: string }) {
     try {
       await documentService.deleteComment(b._id);
       if (b.traLoi) {
-        setDs((cu) =>
-          cu.map((g) =>
+        setDs((old) =>
+          old.map((g) =>
             g._id === b.traLoi
               ? { ...g, cacTraLoi: g.cacTraLoi.filter((t) => t._id !== b._id) }
               : g,
           ),
         );
-        setTong((t) => t - 1);
+        setTotal((t) => t - 1);
       } else {
-        setDs((cu) => cu.filter((g) => g._id !== b._id));
-        setTong((t) => t - 1 - b.cacTraLoi.length);
+        setDs((old) => old.filter((g) => g._id !== b._id));
+        setTotal((t) => t - 1 - b.cacTraLoi.length);
       }
     } catch (err) {
       alert(getErrorMessage(err, "Không xóa được bình luận."));
     }
   };
 
-  const doiAn = async (b: DocumentComment) => {
+  const toggleHidden = async (b: DocumentComment) => {
     try {
-      const { daAn } = await documentService.setCommentHidden(b._id, !b.daAn);
-      const sua = (x: DocumentComment) => (x._id === b._id ? { ...x, daAn } : x);
-      setDs((cu) => cu.map((g) => ({ ...sua(g), cacTraLoi: g.cacTraLoi.map(sua) })));
+      const { daAn: hidden } = await documentService.setCommentHidden(b._id, !b.daAn);
+      const edit = (x: DocumentComment) => (x._id === b._id ? { ...x, daAn: hidden } : x);
+      setDs((old) => old.map((g) => ({ ...edit(g), cacTraLoi: g.cacTraLoi.map(edit) })));
     } catch (err) {
       alert(getErrorMessage(err, "Không đổi được trạng thái bình luận."));
     }
   };
 
-  const mot = (b: DocumentComment, idGoc: string) => {
-    const laCuaMinh = Boolean(user && b.user && b.user._id === user._id);
+  const one = (b: DocumentComment, idGoc: string) => {
+    const isMine = Boolean(user && b.user && b.user._id === user._id);
     return (
       <div className={`${styles.mot} ${b.daAn ? styles.daAn : ""}`}>
         <div className={styles.dau}>
           <span className={styles.ten}>{b.user?.name || "Người dùng đã xóa"}</span>
-          {b.user && b.user._id === chuBai && (
-            <span className={styles.nhanTacGia}>Tác giả</span>
+          {b.user && b.user._id === postOwner && (
+            <span className={styles.authorLabel}>Tác giả</span>
           )}
-          {b.user?.role === "admin" && <span className={styles.nhanAdmin}>Quản trị</span>}
-          {b.daAn && <span className={styles.nhanAn}>Đã ẩn</span>}
-          <span className={styles.gio}>{thoiGianTuongDoi(b.createdAt)}</span>
+          {b.user?.role === "admin" && (
+            <span className={styles.adminLabel}>Quản trị</span>
+          )}
+          {b.daAn && <span className={styles.hiddenLabel}>Đã ẩn</span>}
+          <span className={styles.gio}>{relativeTime(b.createdAt)}</span>
         </div>
 
         {/* {noiDung} - React tu thoat ky tu, binh luan la chu thuong khong phai
             HTML. white-space: pre-wrap o CSS giu xuong dong nguoi viet go. */}
         <p className={styles.noiDung}>{b.noiDung}</p>
 
-        <div className={styles.thaoTac}>
+        <div className={styles.actions}>
           {user && !b.daAn && (
             <button
               type="button"
-              onClick={() => setDangTraLoi(dangTraLoi === idGoc ? null : idGoc)}
-              className={styles.nutNho}
+              onClick={() => setReplying(replying === idGoc ? null : idGoc)}
+              className={styles.smallButton}
             >
               <Reply size={13} />
               Trả lời
             </button>
           )}
-          {(laCuaMinh || laAdmin) && (
-            <button type="button" onClick={() => xoa(b)} className={styles.nutNho}>
+          {(isMine || laAdmin) && (
+            <button
+              type="button"
+              onClick={() => remove(b)}
+              className={styles.smallButton}
+            >
               <Trash2 size={13} />
               Xóa
             </button>
           )}
           {laAdmin && (
-            <button type="button" onClick={() => doiAn(b)} className={styles.nutNho}>
+            <button
+              type="button"
+              onClick={() => toggleHidden(b)}
+              className={styles.smallButton}
+            >
               {b.daAn ? <Eye size={13} /> : <EyeOff size={13} />}
               {b.daAn ? "Hiện lại" : "Ẩn"}
             </button>
@@ -229,54 +246,54 @@ export default function DocumentComments({ docId }: { docId: string }) {
     <section className={styles.khung} aria-labelledby="tieu-de-binh-luan">
       <h2 id="tieu-de-binh-luan" className={styles.tieuDe}>
         <MessageCircle size={18} />
-        Bình luận {tong > 0 && <span className={styles.so}>({tong})</span>}
+        Bình luận {total > 0 && <span className={styles.so}>({total})</span>}
       </h2>
 
       {user ? (
-        <OViet
-          goiY="Chia sẻ cảm nhận, hỏi thêm về tài liệu, hoặc góp ý cho người đăng…"
-          nutGui="Gửi bình luận"
-          khiGui={vietBinhLuan}
+        <CommentBox
+          suggest="Chia sẻ cảm nhận, hỏi thêm về tài liệu, hoặc góp ý cho người đăng…"
+          sendButton="Gửi bình luận"
+          onSubmit={writeComment}
         />
       ) : (
-        <p className={styles.moiDangNhap}>
-          <Link href="/?auth=login" className={styles.linkDangNhap}>
+        <p className={styles.promptLogin}>
+          <Link href="/?auth=login" className={styles.loginLink}>
             Đăng nhập
           </Link>{" "}
           để bình luận. Ai cũng đọc được bình luận, kể cả khi chưa có tài khoản.
         </p>
       )}
 
-      {loi && (
+      {errorMessage && (
         <p role="alert" className={styles.loi}>
-          {loi}
+          {errorMessage}
         </p>
       )}
 
-      {dangTai ? (
+      {loading ? (
         <p className={styles.trong}>
           <Loader2 size={16} className={styles.quay} /> Đang tải bình luận…
         </p>
-      ) : ds.length === 0 ? (
+      ) : items.length === 0 ? (
         <p className={styles.trong}>Chưa có bình luận nào. Hãy là người đầu tiên.</p>
       ) : (
         <ul className={styles.danhSach}>
-          {ds.map((g) => (
+          {items.map((g) => (
             <li key={g._id} className={styles.cum}>
-              {mot(g, g._id)}
+              {one(g, g._id)}
 
-              {(g.cacTraLoi.length > 0 || dangTraLoi === g._id) && (
+              {(g.cacTraLoi.length > 0 || replying === g._id) && (
                 <div className={styles.traLoi}>
                   {g.cacTraLoi.map((t) => (
-                    <div key={t._id}>{mot(t, g._id)}</div>
+                    <div key={t._id}>{one(t, g._id)}</div>
                   ))}
-                  {dangTraLoi === g._id && (
-                    <OViet
-                      goiY={`Trả lời ${g.user?.name || "bình luận"}…`}
-                      nutGui="Trả lời"
-                      khiGui={(nd) => traLoi(g._id, nd)}
-                      khiHuy={() => setDangTraLoi(null)}
-                      tuDong
+                  {replying === g._id && (
+                    <CommentBox
+                      suggest={`Trả lời ${g.user?.name || "bình luận"}…`}
+                      sendButton="Trả lời"
+                      onSubmit={(contentText) => reply(g._id, contentText)}
+                      onCancel={() => setReplying(null)}
+                      auto
                     />
                   )}
                 </div>

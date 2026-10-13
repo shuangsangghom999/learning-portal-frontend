@@ -2,26 +2,22 @@ import Image from "next/image";
 
 import CopyButton from "@/src/components/ui/CopyButton";
 import { PAYMENT as P } from "@/src/constants/portal/payment-page";
-import {
-  dinhDangTien,
-  type DonHang,
-  type ThongTinChuyenKhoan,
-} from "@/src/services/order";
+import { formatMoney, type Order, type TransferInfo } from "@/src/services/order";
 
 import styles from "../Payment.module.scss";
 
 interface BankTransferProps {
-  don: DonHang;
-  ck: ThongTinChuyenKhoan;
-  daChepHet: boolean;
+  don: Order;
+  ck: TransferInfo;
+  copiedAll: boolean;
   onCopyAll: () => void;
 }
 
 /** Cot QR va cot thong tin chuyen khoan. */
 export default function BankTransfer({
-  don,
+  don: order,
   ck,
-  daChepHet,
+  copiedAll,
   onCopyAll,
 }: BankTransferProps) {
   const B = P.bank;
@@ -33,7 +29,7 @@ export default function BankTransfer({
         {ck.anhQR && (
           <Image
             src={ck.anhQR}
-            alt={B.qrAlt(dinhDangTien(don.amount), don.code)}
+            alt={B.qrAlt(formatMoney(order.amount), order.code)}
             width={280}
             height={380}
             unoptimized
@@ -44,7 +40,7 @@ export default function BankTransfer({
         {ck.anhQR && (
           <a
             href={ck.anhQR}
-            download={B.qrFile(don.code)}
+            download={B.qrFile(order.code)}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.link}
@@ -86,7 +82,7 @@ export default function BankTransfer({
           <div className={styles.row4}>
             <dt className={styles.text3}>{B.amount}</dt>
             <dd className={styles.box10}>
-              <span className={styles.strong}>{dinhDangTien(ck.soTien)}</span>
+              <span className={styles.strong}>{formatMoney(ck.soTien)}</span>
               <CopyButton
                 value={String(ck.soTien)}
                 what={B.copyAmount}
@@ -108,7 +104,7 @@ export default function BankTransfer({
         </dl>
 
         <button type="button" onClick={onCopyAll} className={styles.button3}>
-          {daChepHet ? B.copiedAll : B.copyAll}
+          {copiedAll ? B.copiedAll : B.copyAll}
         </button>
       </div>
     </section>

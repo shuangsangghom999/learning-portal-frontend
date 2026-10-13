@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { USER_SETTINGS } from "@/src/constants/portal/user-settings-page";
-import { xoaPhien } from "@/src/services/apiHelper";
-import { loiMatKhauMoi } from "@/src/services/rules";
+import { clearSession } from "@/src/services/apiHelper";
+import { newPasswordError } from "@/src/services/rules";
 import { deactivateMyAccount, type User } from "@/src/services/userApi";
 import type { SettingsMessage, SettingsTabProps } from "@/src/types/settings";
 
@@ -37,9 +37,9 @@ export function useSecuritySettings(
     // Dung chung ham voi backend (services/rules.ts). Truoc day cho nay chi
     // kiem do dai toi thieu; bcrypt thi bo lang moi byte tu 73 tro di, nen mot
     // mat khau dai hon the bi cat am tham ma khong ai duoc bao.
-    const loiMk = loiMatKhauMoi(next);
-    if (loiMk) {
-      setMsg({ ok: false, text: M.fromRule(loiMk) });
+    const passwordError = newPasswordError(next);
+    if (passwordError) {
+      setMsg({ ok: false, text: M.fromRule(passwordError) });
       return false;
     }
     if (next !== confirm) {
@@ -60,7 +60,7 @@ export function useSecuritySettings(
     setMsg(null);
     try {
       await deactivateMyAccount(delPassword);
-      await xoaPhien();
+      await clearSession();
       window.location.href = USER_SETTINGS.homeHref;
     } catch (e) {
       setMsg({

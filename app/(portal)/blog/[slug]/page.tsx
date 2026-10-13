@@ -4,7 +4,7 @@ import ArticleWithOutline from "@/src/components/common/ArticleWithOutline";
 import {
   BlogDetailHeader,
   BlogDetailShell,
-  layBai,
+  getPost,
 } from "@/src/components/features/portal/blog";
 import { BLOG } from "@/src/constants/portal/blog-page";
 
@@ -16,9 +16,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const bai = await layBai(slug);
-  if (!bai) return { title: BLOG.notFoundTitle };
-  return { title: bai.title, description: bai.excerpt };
+  const lesson = await getPost(slug);
+  if (!lesson) return { title: BLOG.notFoundTitle };
+  return { title: lesson.title, description: lesson.excerpt };
 }
 
 export default async function BlogDetailPage({
@@ -27,15 +27,15 @@ export default async function BlogDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const bai = await layBai(slug);
-  if (!bai) notFound();
+  const lesson = await getPost(slug);
+  if (!lesson) notFound();
 
   return (
     <BlogDetailShell>
-      <BlogDetailHeader bai={bai} />
+      <BlogDetailHeader bai={lesson} />
       <ArticleWithOutline
-        content={bai.content ?? ""}
-        goiYKhiTrong={BLOG.detail.noOutline}
+        content={lesson.content ?? ""}
+        emptyHint={BLOG.detail.noOutline}
       />
     </BlogDetailShell>
   );

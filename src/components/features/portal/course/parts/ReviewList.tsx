@@ -1,6 +1,6 @@
 import { Star, ThumbsUp } from "lucide-react";
 
-import AnhDaiDien from "@/src/components/ui/Avatar";
+import Avatar from "@/src/components/ui/Avatar";
 import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
 import type { Review } from "@/src/services/review";
 
@@ -25,11 +25,11 @@ export default function ReviewList({ reviews, loading, onMarkHelpful }: ReviewLi
           <div key={review._id} className={styles.card10}>
             <div className={styles.row17}>
               <div className={styles.row18}>
-                <AnhDaiDien
+                <Avatar
                   src={review.student?.avatar}
                   ten={review.student?.name}
                   size={36}
-                  nenChuCai={styles.box46}
+                  letterBackground={styles.box46}
                 />
                 <div>
                   <p className={styles.text4}>{review.student?.name}</p>

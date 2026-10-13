@@ -10,47 +10,46 @@ import {
 
 import styles from "./AdminHomeSection.module.scss";
 
-/** Co ghim tren khoa hoc ung voi tung muc trang chu. */
-export type HomeTag = "isPopular" | "isTrending" | "isNewRelease";
-
 interface SectionConfig {
   fetch: () => Promise<Course[]>;
-  tag: HomeTag;
   icon: LucideIcon;
-  /** Lop scss bo sung (de mau) cho o bieu tuong / nut bat / cot so lieu. */
+  /** Lop scss bo sung (de mau) cho o bieu tuong / cot so lieu. */
   boxClass: string;
-  buttonClass: string;
   cellClass: string;
-  /** Cot so lieu: so hoc vien hay ngay tao. */
-  metric: "students" | "createdAt";
+  /** Cot so lieu: tong luot xem, luot xem thang nay hay ngay tao. */
+  metric: "luotXem" | "luotXemThang" | "createdAt";
 }
 
 export const SECTION_CONFIG: Record<AdminHomeSectionKind, SectionConfig> = {
   popular: {
     fetch: getAdminPopularCourses,
-    tag: "isPopular",
     icon: Award,
     boxClass: "",
-    buttonClass: "",
     cellClass: "",
-    metric: "students",
+    metric: "luotXem",
   },
   trending: {
     fetch: getAdminTrendingCourses,
-    tag: "isTrending",
     icon: Flame,
     boxClass: styles.boxTrending,
-    buttonClass: styles.buttonTrending,
     cellClass: "",
-    metric: "students",
+    metric: "luotXemThang",
   },
   newReleases: {
     fetch: getAdminNewReleasesCourses,
-    tag: "isNewRelease",
     icon: CalendarDays,
     boxClass: styles.boxNewReleases,
-    buttonClass: styles.buttonNewReleases,
     cellClass: styles.cellMuted,
     metric: "createdAt",
   },
 };
+
+// Thang theo gio Viet Nam, cung cach backend/src/utils/viewCount.js monthKey().
+function currentMonth(): string {
+  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 7);
+}
+
+/** Luot xem thang nay: so luu tren khoa cua thang cu thi tinh la 0. */
+export function viewsThisMonth(course: Course): number {
+  return course.thangLuotXem === currentMonth() ? course.luotXemThang || 0 : 0;
+}

@@ -22,6 +22,9 @@ export function useInstructorLessonDetail() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  // Video dang o kho kin: o nhap link de trong (link phat chi song 2 gio, khong
+  // phai link de sua), de trong khi luu thi giu nguyen video kin.
+  const [privateVideo, setPrivateVideo] = useState(false);
   const [order, setOrder] = useState(1);
 
   useEffect(() => {
@@ -32,7 +35,8 @@ export function useInstructorLessonDetail() {
 
         setTitle(lesson.title || "");
         setContent(lesson.content || "");
-        setVideoUrl(lesson.videoUrl || "");
+        setPrivateVideo(Boolean(lesson.videoKin));
+        setVideoUrl(lesson.videoKin ? "" : lesson.videoUrl || "");
         setOrder(lesson.order || 1);
       } catch (error) {
         console.error(error);
@@ -60,7 +64,10 @@ export function useInstructorLessonDetail() {
       formData.append("courseId", courseId);
       formData.append("title", title.trim());
       formData.append("content", content.trim());
-      formData.append("videoUrl", videoUrl.trim());
+      // Video kin ma o link de trong: khong gui gi, giu nguyen video kin.
+      if (!(privateVideo && !videoUrl.trim())) {
+        formData.append("videoUrl", videoUrl.trim());
+      }
       formData.append("order", String(order));
 
       await updateLesson(lessonId, formData);
@@ -100,6 +107,7 @@ export function useInstructorLessonDetail() {
     title,
     content,
     videoUrl,
+    privateVideo,
     order,
     setTitle,
     setContent,

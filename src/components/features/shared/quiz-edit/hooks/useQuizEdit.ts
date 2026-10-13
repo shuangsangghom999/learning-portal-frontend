@@ -9,7 +9,7 @@ import {
   type QuizEditRole,
 } from "@/src/constants/shared/quiz-edit-page";
 import { useQuizQuestions } from "@/src/hooks/useQuizQuestions";
-import { cauHinhQuizMacDinh, cauHoiGuiDi, veDangSoan } from "@/src/lib/quiz-draft";
+import { defaultQuizConfig, questionsPayload, toDraft } from "@/src/lib/quiz-draft";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { getCourseQuizzes, updateQuiz } from "@/src/services/quizService";
 import type { QuizConfigDraft } from "@/src/types/quiz-draft";
@@ -25,7 +25,7 @@ export function useQuizEdit(role: QuizEditRole) {
   const [targetQuizId, setTargetQuizId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [quizConfig, setQuizConfig] = useState<QuizConfigDraft>(cauHinhQuizMacDinh());
+  const [quizConfig, setQuizConfig] = useState<QuizConfigDraft>(defaultQuizConfig());
   const editor = useQuizQuestions([], C.messages.atLeastOne);
   const { setQuestions } = editor;
 
@@ -52,7 +52,7 @@ export function useQuizEdit(role: QuizEditRole) {
             timeLimit: currentQuiz.timeLimit || 15,
             attempts: currentQuiz.attempts || 1,
           });
-          setQuestions(veDangSoan(currentQuiz.questions || []));
+          setQuestions(toDraft(currentQuiz.questions || []));
         } else {
           alert(C.messages.notFound);
           router.push(QUIZ_EDIT_ROLE[role].lessonsHref(courseId));
@@ -83,7 +83,7 @@ export function useQuizEdit(role: QuizEditRole) {
         passingScore: Number(quizConfig.passingScore),
         timeLimit: quizConfig.timeLimit ? Number(quizConfig.timeLimit) : null,
         attempts: Number(quizConfig.attempts),
-        questions: cauHoiGuiDi(editor.questions),
+        questions: questionsPayload(editor.questions),
       };
 
       await updateQuiz(targetQuizId, payload);

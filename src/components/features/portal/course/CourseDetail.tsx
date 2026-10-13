@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 
-import GoiYKhoaHoc from "@/src/components/common/CourseSuggestions";
+import CourseSuggestions from "@/src/components/common/CourseSuggestions";
 import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
 
 import { useCourseDetail } from "./hooks/useCourseDetail";
@@ -26,7 +26,7 @@ function CourseDetailContent() {
   const r = useCourseReviews(course?._id);
   const f = useCourseFaqs(course?._id);
 
-  if (s.loading || s.dangNhayVaoHoc) {
+  if (s.loading || s.jumpingToLearn) {
     return <CourseDetailSkeleton />;
   }
 
@@ -75,7 +75,9 @@ function CourseDetailContent() {
           trong khi chua quyet dinh gi ve khoa dang xem.
 
           Component tu an di khi khong co goi y nao. */}
-      {course?._id && <GoiYKhoaHoc soLuong={C.suggestionsCount} courseId={course._id} />}
+      {course?._id && (
+        <CourseSuggestions soLuong={C.suggestionsCount} courseId={course._id} />
+      )}
     </div>
   );
 }
