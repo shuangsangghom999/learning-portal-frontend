@@ -2,7 +2,17 @@ import { apiRequest } from "./apiHelper";
 import type { Lesson } from "./lesson.api";
 import type { Enrollment } from "./enrollment.api";
 
-export type CategoryRef = string | { _id?: string; $oid?: string; name?: string };
+export type CategoryRef =
+  string | { _id?: string; $oid?: string; name?: string; slug?: string };
+
+/** So lieu the "Giang vien" / "Don vi cung cap" (backend utils/teachingStats.js). */
+export interface TeachingStats {
+  courses: number;
+  learners: number;
+  ratings: number;
+  /** null = chua khoa nao co danh gia. */
+  rating: number | null;
+}
 
 export interface Course {
   _id: string;
@@ -36,6 +46,12 @@ export interface Course {
   // day du bai hoc. Noi goi phai tu phan biet.
   lessons: string[] | Lesson[];
   studentsCount: number;
+  // Ban sao diem / so danh gia luu trong khoa (cap nhat khi co danh gia moi).
+  rating?: number;
+  reviewsCount?: number;
+  // Chi /courses/slug/:slug tra ve (tinh tren cac khoa da xuat ban).
+  instructorStats?: TeachingStats | null;
+  providerStats?: TeachingStats | null;
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
@@ -63,6 +79,15 @@ export const topicName = (tho: Course["category"]): string[] =>
   normalizeCategories(tho)
     .map((m) => m.name ?? "")
     .filter(Boolean);
+
+// Danh muc co du ten + slug (breadcrumb, chip chu de o trang khoa hoc). Chi
+// /courses/slug/:slug populate slug; endpoint khac tra ve mang rong.
+export const topicRefs = (tho: Course["category"]): { name: string; slug: string }[] =>
+  normalizeCategories(tho).flatMap((m) =>
+    m.name && m.slug ? [{ name: m.name, slug: m.slug }] : [],
+  );
+
+export const firstTopic = (tho: Course["category"]) => topicRefs(tho)[0] ?? null;
 
 // instructor khi la ObjectId dang chuoi, khi la doi tuong da populate - chi lay
 // duoc ten o truong hop thu hai.
@@ -131,6 +156,10 @@ export const getCourseList = async (tham: {
 export interface SuggestedCourse extends Course {
   diemGoiY: number;
   viSaoGoiY: string;
+  /** true = ly do rieng cua nguoi nay (cung linh vuc, hoc vien giong ban);
+   *  false = cau chung ("Đang được nhiều người học"). May chu cu chua co truong
+   *  nay thi coi nhu false. */
+  goiYCuThe?: boolean;
 }
 
 export interface SuggestionResult {

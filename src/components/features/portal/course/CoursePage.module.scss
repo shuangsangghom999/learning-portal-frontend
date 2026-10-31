@@ -1,0 +1,1400 @@
+// Trang gioi thieu khoa hoc /course?slug=... - bo cuc theo trang khoa hoc cua
+// Coursera: hero nen xanh nhat, the 4 thong so de len mep duoi hero, thanh tab
+// dinh khi cuon, noi dung mot cot + the mua ben phai.
+
+$ink: #0f1114;
+$text: #3d4656;
+$muted: #5b6780;
+$line: #dae1ed;
+$line-soft: #e8edf5;
+$brand: #0056d2;
+$brand-hover: #0b408b;
+$tint: #f0f6ff;
+$tint-strong: #e3eeff;
+
+// Header chinh co dinh o top 0; Header.tsx ghi chieu cao that vao bien nay.
+$site-header: var(--site-header-h, 106px);
+$tabs-h: 61px;
+
+.page {
+  background-color: #fff;
+  color: $ink;
+}
+
+.container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1400px;
+  padding-inline: calc(var(--spacing) * 6);
+
+  @media (min-width: 48rem) {
+    padding-inline: calc(var(--spacing) * 12);
+  }
+}
+
+// ---------------------------------------------------------------- hero
+
+// Nen xanh dung lai o giua the thong so - the "de" len ranh gioi hai mau.
+.heroWrap {
+  position: relative;
+  background: linear-gradient(to bottom, $tint calc(100% - 72px), #fff calc(100% - 72px));
+}
+
+// Cat hoa tiet trong phan nen xanh - khong cat bong cua the thong so ben duoi.
+.artClip {
+  position: absolute;
+  inset: 0 0 72px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.art {
+  position: absolute;
+  top: 40px;
+  right: max(-120px, calc((100vw - 1400px) / 2 - 80px));
+  width: 620px;
+  height: 520px;
+  pointer-events: none;
+  display: none;
+
+  @media (min-width: 64rem) {
+    display: block;
+  }
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  gap: calc(var(--spacing) * 10);
+  padding-block: calc(var(--spacing) * 10) calc(var(--spacing) * 10);
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    padding-block: calc(var(--spacing) * 14) calc(var(--spacing) * 12);
+  }
+}
+
+.heroMain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: calc(var(--spacing) * 6);
+  color: $text;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.providerLogo {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 0 0 1px $line;
+
+  img {
+    object-fit: contain;
+    padding: 4px;
+  }
+}
+
+.title {
+  max-width: 46rem;
+  font-size: clamp(2rem, 1.2rem + 2.6vw, 3.25rem);
+  line-height: 1.15;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.instructor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: calc(var(--spacing) * 5);
+  font-size: 16px;
+  color: $text;
+
+  strong {
+    color: $ink;
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.ctaBlock {
+  scroll-margin-top: calc(#{$site-header} + #{$tabs-h} + 72px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: calc(var(--spacing) * 9);
+  width: 100%;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  min-width: min(100%, 22rem);
+  padding: 14px 28px;
+  border-radius: 8px;
+  background-color: $brand;
+  color: #fff;
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  transition: background-color 0.15s;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: $brand-hover;
+    }
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 3px;
+  }
+}
+
+// Nut trong thanh dinh - gon hon nut hero.
+.ctaSmall {
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 22px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+// Nut phu (gio hang): vien, nen trong - canh nut chinh.
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 14px 24px;
+  border: 1px solid $brand;
+  border-radius: 8px;
+  background-color: #fff;
+  color: $brand;
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  transition: background-color 0.15s;
+
+  // Man hep: hai nut xep doc, cung rong bang nut chinh.
+  @media (max-width: 39.99rem) {
+    width: 100%;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: $tint;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 3px;
+  }
+}
+
+.notice {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background-color: #fff2f4;
+  color: #b21836;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.discount {
+  font-size: 16px;
+  color: $muted;
+
+  strong {
+    margin-left: 8px;
+    color: #197d12;
+    font-size: 18px;
+  }
+}
+
+.enrolled {
+  font-size: 16px;
+  color: $text;
+
+  strong {
+    color: $ink;
+  }
+}
+
+.access {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: $text;
+
+  a {
+    color: $ink;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    @media (hover: hover) {
+      &:hover {
+        color: $brand;
+      }
+    }
+  }
+}
+
+// Anh bia nam giua hoa tiet vong cung (chi man hinh rong).
+.cover {
+  position: relative;
+  display: none;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: 460px;
+  justify-self: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background-color: #fff;
+  box-shadow:
+    0 0 4px rgb(15 17 20 / 0.08),
+    0 18px 40px -12px rgb(15 17 20 / 0.25);
+
+  @media (min-width: 64rem) {
+    display: block;
+  }
+
+  img {
+    object-fit: cover;
+  }
+}
+
+.coverEmpty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: $brand;
+  background-color: $tint-strong;
+}
+
+// ---------------------------------------------------------- the thong so
+
+.keyInfo {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow:
+    0 0 4px rgb(15 17 20 / 0.1),
+    0 2px 12px 2px rgb(15 17 20 / 0.1);
+
+  @media (min-width: 64rem) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-block: 24px;
+  }
+}
+
+.keyItem {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 20px;
+
+  // Duong ke: 2x2 tren man hep, 1 hang ngang tren man rong.
+  &:nth-child(odd) {
+    border-right: 1px solid $line-soft;
+  }
+
+  &:nth-child(-n + 2) {
+    border-bottom: 1px solid $line-soft;
+  }
+
+  @media (min-width: 64rem) {
+    padding: 8px 32px;
+
+    &:nth-child(-n + 2) {
+      border-bottom: 0;
+    }
+
+    &:not(:last-child) {
+      border-right: 1px solid $line;
+    }
+  }
+}
+
+.keyTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+
+  @media (min-width: 64rem) {
+    font-size: 22px;
+  }
+}
+
+.keyLink {
+  color: $ink;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+
+  @media (hover: hover) {
+    &:hover {
+      color: $brand;
+    }
+  }
+}
+
+.keyStar {
+  color: $ink;
+}
+
+.keySub {
+  font-size: 14px;
+  line-height: 1.45;
+  color: $muted;
+}
+
+.keyCount {
+  font-size: 15px;
+  font-weight: 400;
+  color: $muted;
+}
+
+// -------------------------------------------------------- thanh tab dinh
+
+// Thanh giu chieu cao co dinh bang hang tab; phan ruot (.tabsInner) nam de
+// len noi dung, nen khi hang ten khoa hien ra noi dung ben duoi khong bi day.
+.tabsBar {
+  position: sticky;
+  top: $site-header;
+  z-index: 30;
+  height: $tabs-h;
+  margin-top: calc(var(--spacing) * 8);
+}
+
+.tabsInner {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  background-color: #fff;
+  transition: box-shadow 0.2s;
+}
+
+.tabsBarStuck {
+  box-shadow: 0 6px 12px -6px rgb(15 17 20 / 0.18);
+}
+
+// Hang ten khoa + nut - chi hien khi nut o hero da cuon khuat.
+.compact {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  padding-block: 10px;
+  border-bottom: 1px solid $line-soft;
+  animation: slideDown 0.2s ease-out;
+
+  @media (min-width: 48rem) {
+    display: flex;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.compactLogo {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px $line;
+
+  img {
+    object-fit: contain;
+    padding: 2px;
+  }
+}
+
+.compactTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: $tabs-h;
+  overflow-x: auto;
+  border-bottom: 1px solid $line;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: $ink;
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: #f5f7fa;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: -2px;
+  }
+}
+
+.tabActive {
+  background-color: $tint;
+  color: $brand;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: $tint;
+    }
+  }
+}
+
+// ------------------------------------------------------------- noi dung
+
+// Mot cot noi dung trai het chieu ngang khung trang (khong con cot the mua).
+.main {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--spacing) * 16);
+}
+
+// Cuon toi muc thi chua cho header + thanh tab (va hang ten khoa).
+.section {
+  scroll-margin-top: calc(#{$site-header} + #{$tabs-h} + 72px);
+  padding-top: calc(var(--spacing) * 10);
+}
+
+.block + .block {
+  margin-top: calc(var(--spacing) * 10);
+}
+
+.h2 {
+  margin-bottom: calc(var(--spacing) * 5);
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+// "Ban se hoc nhung gi" - hai cot dau tich.
+.learnList {
+  display: grid;
+  gap: 16px 40px;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  li {
+    display: flex;
+    gap: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+}
+
+.learnMore {
+  margin-top: 16px;
+  font-size: 15px;
+
+  a {
+    color: $brand;
+    font-weight: var(--font-weight-semibold);
+
+    @media (hover: hover) {
+      &:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+    }
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+// inline-flex: link inline thi padding doc tran ra ngoai, hai hang chip dinh nhau.
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background-color: #eef2f8;
+  color: $ink;
+  font-size: 15px;
+  transition: background-color 0.15s;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: $line;
+    }
+  }
+}
+
+.description {
+  font-size: 16px;
+  line-height: 1.7;
+  color: $text;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  display: grid;
+  gap: 28px 40px;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.detail {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+
+  > svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: $ink;
+  }
+}
+
+.detailTitle {
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.detailSub {
+  margin-top: 2px;
+  font-size: 14px;
+  color: $muted;
+}
+
+// ------------------------------------------------- banner don vi dao tao
+
+.partners {
+  display: grid;
+  gap: 28px;
+  margin-top: calc(var(--spacing) * 12);
+  padding: 28px 24px;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background-color: #fff;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+  }
+}
+
+.partnersText {
+  min-width: 0;
+}
+
+.partnersHeading {
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.85rem);
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.partnersSub {
+  margin-top: 10px;
+  font-size: 15px;
+  color: $muted;
+}
+
+.partnersLink {
+  display: inline-block;
+  margin-top: 20px;
+  color: $brand;
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// Luoi logo 3 cot (2 cot tren man hep), moi o cung khung de logo dai/vuong
+// deu canh hang.
+.partnersLogos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 28px;
+
+  @media (max-width: 29.99rem) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  li {
+    position: relative;
+    width: 120px;
+    height: 48px;
+    max-width: 100%;
+  }
+
+  img {
+    object-fit: contain;
+  }
+}
+
+// ------------------------------------------------------ ket qua dat duoc
+
+.outcomes {
+  display: grid;
+  gap: 32px;
+  padding: 32px 24px;
+  border-radius: 12px;
+  background-color: $tint;
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    align-items: center;
+    gap: 56px;
+    padding: 48px;
+  }
+}
+
+.outcomesText {
+  min-width: 0;
+}
+
+.outcomesHeading {
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.85rem);
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.outcomesList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+
+  li {
+    display: flex;
+    gap: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: $text;
+  }
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: $brand;
+  }
+}
+
+// Mau chung nhan: the trang nghieng nhe, vien kep nhu giay chung nhan.
+.cert {
+  justify-self: center;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.certCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow:
+    0 0 0 1px $line,
+    0 18px 40px -16px rgb(15 17 20 / 0.25);
+  transform: rotate(-1.5deg);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid $tint-strong;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+}
+
+.certTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.certLogo {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px $line;
+
+  img {
+    object-fit: contain;
+    padding: 2px;
+  }
+}
+
+.certIcon {
+  color: $brand;
+}
+
+.certKind {
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  color: $brand;
+}
+
+.certName {
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.certCourse {
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.certFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed $line;
+  font-size: 13px;
+  color: $text;
+}
+
+.certCode {
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.certCaption {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: $muted;
+}
+
+// ------------------------------------------------------ chi tiet khoa hoc
+
+// Gioi thieu trai ngang, chu gioi han do rong de de doc.
+.about {
+  max-width: 72rem;
+}
+
+.detailsGrid {
+  display: grid;
+  gap: 24px;
+  margin-top: calc(var(--spacing) * 10);
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+  }
+}
+
+.detailsCard,
+.sideCard {
+  min-width: 0;
+  padding: 28px 24px;
+  border: 1px solid $line;
+  border-radius: 8px;
+  background-color: #fff;
+
+  @media (min-width: 48rem) {
+    padding: 40px;
+  }
+}
+
+.h3 {
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.h3Intro {
+  margin-block: 16px 12px;
+  font-size: 16px;
+  color: $text;
+}
+
+// "1 • Ten bai" nhu Coursera: so xanh, cham ngan, ten bai.
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  // Luoi 3 cot (so, cham, ten): ten dai xuong dong trong cot cua no, khong
+  // roi xuong duoi so thu tu. Nhan video / tai lieu nam dong rieng ben duoi.
+  li {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 4px 10px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .lessonMeta {
+    grid-column: 3;
+  }
+}
+
+.stepNo {
+  min-width: 1.2em;
+  color: $brand;
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepDot {
+  color: $brand;
+}
+
+.stepTitle {
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.h4 {
+  margin-block: 36px 10px;
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+// Gioi thieu thu gon 4 dong (nut "Xem them" o duoi).
+.clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.moreButton {
+  margin-top: 12px;
+  color: $brand;
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.sideTitle {
+  font-size: 22px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.sideRating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: $text;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 16px;
+    color: $ink;
+  }
+}
+
+.sideMuted {
+  font-size: 14px;
+  font-weight: 400;
+  color: $muted;
+}
+
+.sideDivider {
+  margin-block: 28px;
+  border: 0;
+  border-top: 1px solid $line;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  min-width: 0;
+}
+
+.personName {
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.unitLogo {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px $line;
+
+  img {
+    object-fit: contain;
+    padding: 4px;
+  }
+}
+
+// ---------------------------------------------------------- chuong trinh
+
+.lessonMeta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: $muted;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.empty {
+  padding: 20px;
+  border: 1px dashed $line;
+  border-radius: 8px;
+  color: $muted;
+  font-size: 15px;
+}
+
+// --------------------------------------------------------------- danh gia
+
+// Trai: diem + phan bo sao. Phai: form + the danh gia (kieu Coursera).
+.reviews {
+  display: grid;
+  gap: 32px;
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: start;
+    gap: 56px;
+  }
+}
+
+.reviewsSummary {
+  min-width: 0;
+}
+
+.reviewsScore {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.reviewsCount {
+  margin-top: 4px;
+  font-size: 14px;
+  color: $text;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+  max-width: 22rem;
+
+  li {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) 4rem;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.barLabel {
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+}
+
+.barTrack {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: $line-soft;
+}
+
+// Thanh rong co do rong 0 van hien mot cham nho (nhu Coursera) - nhin la biet
+// day la thanh, khong phai cho trong.
+.barFill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background-color: $brand;
+  transition: width 0.4s ease;
+}
+
+.barValue {
+  font-size: 13px;
+  color: $text;
+  font-variant-numeric: tabular-nums;
+}
+
+.reviewsMain {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.showing {
+  font-size: 15px;
+  color: $muted;
+}
+
+.reviewCards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewCard {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid $line-soft;
+  border-radius: 8px;
+  background-color: #fff;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: 24px;
+    padding: 28px 32px;
+  }
+}
+
+.reviewer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  align-self: start;
+}
+
+.reviewerName {
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+  overflow-wrap: anywhere;
+}
+
+.reviewBody {
+  min-width: 0;
+}
+
+.reviewMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+  color: $text;
+}
+
+.reviewStars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: $ink;
+
+  strong {
+    margin-left: 6px;
+    font-size: 13px;
+  }
+}
+
+.reviewDot {
+  color: $muted;
+}
+
+.reviewText {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: $ink;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 14px;
+}
+
+.helpful {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: $muted;
+
+  @media (hover: hover) {
+    &:hover {
+      color: $brand;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.verified {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background-color: #f1fbef;
+  color: #197d12;
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.moreReviews {
+  align-self: flex-start;
+  color: $ink;
+  font-size: 16px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  @media (hover: hover) {
+    &:hover {
+      color: $brand;
+    }
+  }
+
+  &:disabled {
+    cursor: wait;
+    color: $muted;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// ------------------------------------------------------------------ FAQ
+
+.faqs {
+  border-top: 1px solid $line;
+}
+
+.faq {
+  border-bottom: 1px solid $line;
+}
+
+.faqButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 4px;
+  text-align: left;
+  font-size: 17px;
+  font-weight: var(--font-weight-semibold);
+  color: $ink;
+
+  svg {
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  &[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      color: $brand;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $brand;
+    outline-offset: 2px;
+  }
+}
+
+// Mo/dong bang grid-template-rows: chieu cao tu nhien, khong can do bang JS.
+.faqPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+
+  > div {
+    overflow: hidden;
+  }
+
+  p {
+    padding: 0 4px 20px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: $text;
+    white-space: pre-line;
+  }
+}
+
+.faqOpen {
+  grid-template-rows: 1fr;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $muted;
+  font-size: 15px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
