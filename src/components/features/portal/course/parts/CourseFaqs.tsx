@@ -6,9 +6,9 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
 import type { FaqItem } from "@/src/services/faq";
 
-import styles from "../CourseDetail.module.scss";
+import styles from "../CoursePage.module.scss";
 
-/* Tab 3: FAQs */
+/* Muc "Cau hoi thuong gap" - CourseDetail an ca muc (va tab) khi khong co cau nao. */
 export default function CourseFaqs({
   faqs,
   loadingFaqs,
@@ -16,48 +16,45 @@ export default function CourseFaqs({
   faqs: FaqItem[];
   loadingFaqs: boolean;
 }) {
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faqs" className={styles.section2}>
-      {(loadingFaqs || faqs.length > 0) && (
-        <div className={styles.stack5}>
-          <h2 className={styles.heading2}>{C.faqs.heading}</h2>
+    <section id="faqs" className={styles.section}>
+      <h2 className={styles.h2}>{C.faqs.heading}</h2>
 
-          {loadingFaqs ? (
-            <div className={styles.row12}>
-              <Loader2 className={styles.spinner} size={16} />
-              <span>{C.faqs.loading}</span>
-            </div>
-          ) : (
-            <div className={styles.card6}>
-              {faqs.map((faq, index) => {
-                const isOpen = openFaqIndex === index;
-                return (
-                  <div key={faq._id || index} className={styles.box34}>
-                    <button
-                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      className={`group ${styles.button6}`}
-                    >
-                      <span className={styles.label7}>{faq.question}</span>
-                      <ChevronDown
-                        size={18}
-                        className={`${styles.box45} ${isOpen ? styles.box35 : ""}`}
-                      />
-                    </button>
-
-                    <div
-                      className={`${styles.grid2} ${isOpen ? styles.box36 : styles.box37}`}
-                    >
-                      <div className={styles.box38}>
-                        <p className={styles.text7}>{faq.answer}</p>
-                      </div>
-                    </div>
+      {loadingFaqs ? (
+        <p className={styles.loading}>
+          <Loader2 size={16} className={styles.spin} aria-hidden />
+          {C.faqs.loading}
+        </p>
+      ) : (
+        <div className={styles.faqs}>
+          {faqs.map((faq, i) => {
+            const isOpen = open === i;
+            const panelId = `faq-${i}`;
+            return (
+              <div key={faq._id || i} className={styles.faq}>
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className={styles.faqButton}
+                >
+                  {faq.question}
+                  <ChevronDown size={20} aria-hidden />
+                </button>
+                <div
+                  id={panelId}
+                  className={`${styles.faqPanel} ${isOpen ? styles.faqOpen : ""}`}
+                >
+                  <div>
+                    <p>{faq.answer}</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

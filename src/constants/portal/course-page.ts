@@ -4,9 +4,10 @@ export const COURSE_PAGE = {
   cartHref: "/cart",
   learnHref: (slug: string) => `/learn?slug=${slug}`,
   paymentHref: (code: string) => `/payment?code=${code}`,
-  /** id cua the mua ben phai - nut to tren banner cuon xuong day. */
+  /** id cua khu mua o hero - nut o thanh tab dinh cuon ve day. */
   buyAnchorId: "mua-khoa-hoc",
-  reviewsQuery: { limit: 10, sortBy: "newest" as const },
+  /** Moi lan tai (va moi lan bam "Xem them danh gia") lay ngan nay danh gia. */
+  reviewsQuery: { limit: 3, sortBy: "newest" as const },
   /** Tien do toi thieu (%) moi duoc viet danh gia. */
   reviewMinProgress: 25,
   suggestionsCount: 4,
@@ -17,56 +18,156 @@ export const COURSE_PAGE = {
     home: "Quay về trang chủ",
   },
 
-  instructorFallback: "Expert Instructor",
+  instructorFallback: "Giảng viên",
+
+  breadcrumb: {
+    label: "Đường dẫn trang",
+    home: "Trang chủ",
+    courses: "Khóa học",
+    coursesHref: "/courses",
+  },
 
   hero: {
-    back: "QUAY LẠI DANH MỤC",
-    taglineSuffix: ". Học cách thiết kế hệ thống thực chiến, tăng tư duy logic cốt lõi.",
-    reviewsCount: (n: number) => `(${n} đánh giá)`,
-    instructor: "Giảng viên: ",
-    enter: "Vào lớp học ngay",
-    processing: "Đang xử lý...",
-    buy: (price: string) => `Mua khóa học - ${price}`,
+    instructor: "Giảng viên:",
+    enter: "Vào học tiếp",
+    processing: "Đang xử lý…",
+    buy: (price: string) => `Mua khóa học · ${price}`,
     freeEnroll: "Đăng ký học miễn phí",
-    transferQr: "Chuyển khoản qua mã QR",
-    startNow: "Bắt đầu ngay",
-    joined: "học viên đã tham gia khóa học này.",
+    /** {n} in dam, phan con lai la chu thuong. */
+    enrolled: "học viên đã đăng ký",
+    accessFree: "Miễn phí, học không giới hạn thời gian",
+    accessPaid: (days: number) => `Học trong ${days} ngày kể từ khi thanh toán`,
+    renew: "Gia hạn khóa học",
+    addToCart: "Thêm vào giỏ",
+    inCart: "Đã có trong giỏ",
+    expired: (date: string) => `Khóa học đã hết hạn ngày ${date}. Mua lại để học tiếp.`,
+  },
+
+  /** The 4 thong so de len mep duoi hero (kieu Coursera). */
+  keyInfo: {
+    lessons: (n: number) => `${n} bài học`,
+    lessonsLink: "Xem chương trình học",
+    noLessons: "Đang soạn bài",
+    noLessonsSub: "Chương trình sẽ sớm được cập nhật",
+    reviews: (n: number) => `(${n} đánh giá)`,
+    noReviews: "Chưa có đánh giá",
+    noReviewsSub: (p: number) => `Học được ${p}% là viết đánh giá được`,
+    level: (label: string) => `Cấp độ ${label}`,
+    levelFallback: "Mọi trình độ",
+    levelSub: {
+      beginner: "Phù hợp người mới bắt đầu",
+      intermediate: "Cần nắm kiến thức nền tảng",
+      advanced: "Dành cho người đã có kinh nghiệm",
+    } as Record<string, string>,
+    levelSubFallback: "Ai cũng học được",
+    accessFree: "Học trọn đời",
+    accessFreeSub: "Theo tốc độ của bạn",
+    accessPaid: (days: number) => `${days} ngày học`,
+    accessPaidSub: "Tính từ khi thanh toán",
   },
 
   tabs: [
     { id: "about", label: "Tổng quan" },
-    { id: "curriculum", label: "Chương trình học" },
+    { id: "outcomes", label: "Kết quả đạt được" },
+    { id: "curriculum", label: "Chi tiết khóa học" },
     { id: "faqs", label: "Câu hỏi thường gặp" },
     { id: "reviews", label: "Đánh giá" },
   ],
-
-  highlights: {
-    progress: { label: "Tiến độ học", value: "Cấp chứng chỉ hoàn thành" },
-    duration: { label: "Thời gian học", value: "Khoảng 4 tháng (Tự điều chỉnh)" },
-    level: { label: "Cấp độ chuyên môn", fallback: "Beginner level" },
-    schedule: { label: "Lịch trình học", value: "100% Linh hoạt theo ý bạn" },
-  },
+  tabsLabel: "Mục của trang khóa học",
 
   about: {
-    heading: "Giới thiệu về khóa học này",
-    empty: "Chưa có bài viết mô tả chi tiết cho chương trình đào tạo này.",
+    learnHeading: "Bạn sẽ học những gì",
+    /** So bai hien o "Ban se hoc nhung gi" - day du nam o Chuong trinh hoc. */
+    learnCount: 6,
+    learnMore: (n: number) => `Và ${n} bài học khác`,
+    topicsHeading: "Chủ đề của khóa học",
+    detailsHeading: "Thông tin cần biết",
+    details: {
+      certificate: "Chứng nhận hoàn thành",
+      certificateSub: "Kèm mã tra cứu để xác thực",
+      providerSub: {
+        university: "Trường học cung cấp nội dung",
+        company: "Doanh nghiệp cung cấp nội dung",
+      } as Record<string, string>,
+      online: "Học trực tuyến",
+      onlineSub: "Không cần cài đặt, mở trình duyệt là học",
+      /** {d} = thang/nam. */
+      updated: (d: string) => `Cập nhật ${d}`,
+      updatedSub: "Nội dung được giảng viên duy trì",
+    },
   },
 
-  curriculum: {
-    heading: "Nội dung chương trình đào tạo",
-    count: (n: number) => `${n} Học phần bài giảng`,
-    video: "Bài học Video",
-    empty: "Nội dung bài học hiện tại đang được xây dựng.",
+  /** Dai banner don vi dao tao (kieu "thin banner" cua Coursera). */
+  partners: {
+    heading: "Học cùng các trường và doanh nghiệp đối tác",
+    /** {n} = so don vi co logo. */
+    sub: "{n} đơn vị đào tạo đang cung cấp khóa học trên hệ thống.",
+    link: "Khám phá tất cả khóa học",
+    href: "/courses",
+    maxLogos: 6,
+  },
+
+  /** Muc "Ket qua dat duoc" (kieu Outcomes cua Coursera). */
+  outcomes: {
+    heading: (n: number) => `Học, luyện tập và nhận chứng nhận qua ${n} bài học`,
+    headingNoLessons: "Học, luyện tập và nhận chứng nhận hoàn thành",
+    by: (teacher: string) => `Học theo lộ trình cùng giảng viên ${teacher}`,
+    byProvider: (teacher: string, unit: string) =>
+      `Học theo lộ trình cùng giảng viên ${teacher} của ${unit}`,
+    progress: "Hệ thống lưu tiến độ từng bài, quay lại là học tiếp đúng chỗ đã dừng",
+    certificate: "Học xong nhận chứng nhận hoàn thành, kèm mã tra cứu để xác thực",
+    certKind: "Learning Platform",
+    certName: "Chứng nhận hoàn thành",
+    certCode: "Mã tra cứu: ••••••••",
+    certCaption: "Mẫu chứng nhận bạn nhận được khi hoàn thành khóa học",
+  },
+
+  /** Muc "Chi tiet khoa hoc" (kieu Project details cua Coursera). */
+  details: {
+    aboutHeading: "Giới thiệu khóa học",
+    aboutEmpty: "Giảng viên chưa viết phần giới thiệu cho khóa học này.",
+    more: "Xem thêm",
+    less: "Thu gọn",
+    stepsHeading: "Học từng bước",
+    stepsIntro: (n: number) =>
+      `Khóa học gồm ${n} bài, học lần lượt theo thứ tự dưới đây:`,
+    stepsEmpty: "Nội dung bài học đang được xây dựng.",
+    video: "Video",
+    document: "Tài liệu",
+    levelHeading: "Trình độ khuyến nghị",
+    instructorHeading: "Giảng viên",
+    /** Diem trung binh cac khoa cua giang vien (co trong so). */
+    instructorRating: "Điểm các khóa",
+    ratings: (n: number) => `(${n.toLocaleString("vi-VN")} đánh giá)`,
+    courses: (n: number) => `${n.toLocaleString("vi-VN")} khóa học`,
+    learners: (n: number) => `${n.toLocaleString("vi-VN")} học viên`,
+    providerHeading: "Đơn vị cung cấp",
+    providerType: {
+      university: "Trường học",
+      company: "Doanh nghiệp",
+    } as Record<string, string>,
   },
 
   faqs: {
-    heading: "Các câu hỏi thường gặp hệ thống",
-    loading: "Đang kết nối hệ thống giải đáp...",
+    heading: "Câu hỏi thường gặp",
+    loading: "Đang tải câu hỏi…",
   },
 
   reviews: {
-    heading: "Ý kiến từ cộng đồng học viên",
-    ratings: (n: number) => `${n} xếp hạng thực tế`,
+    heading: "Đánh giá của học viên",
+    count: (n: number) => `${n.toLocaleString("vi-VN")} đánh giá`,
+    stars: (n: number) => `${n} sao`,
+    /** Nhan cho trinh doc man hinh. */
+    ratedAria: (r: number, n: number) => `${r} trên 5 sao, ${n} đánh giá`,
+    reviewAria: (r: number) => `Chấm ${r} trên 5 sao`,
+    showing: (a: number, b: number) => `Đang hiển thị ${a} / ${b} đánh giá`,
+    reviewedOn: (d: string) => `Đánh giá ngày ${d}`,
+    more: "Xem thêm đánh giá",
+    loadingMore: "Đang tải…",
+    noReviews: "Chưa có đánh giá",
+    emptyHint: (p: number) =>
+      `Khóa học này chưa có đánh giá nào. Học viên học được ${p}% khóa học là viết được đánh giá.`,
+    anonymous: "Học viên",
     formTitle: (p: number) => `Chia sẻ trải nghiệm học của bạn (Tiến độ: ${p}%)`,
     placeholder:
       "Nội dung kiến thức có sát với thực chiến không? Hãy đánh giá trung thực để cải thiện hệ thống nhé...",
@@ -78,31 +179,10 @@ export const COURSE_PAGE = {
       b: " tổng thời lượng khóa học để mở khóa tính năng viết bình luận.",
     },
     currentProgress: (p: number) => `Tiến trình lớp học hiện tại của bạn: ${p}%`,
-    loading: "Đang đồng bộ bình luận...",
-    helpful: (n: number) => `Bình luận hữu ích (${n})`,
-    verified: "Tài khoản đã được xác thực",
+    loading: "Đang tải đánh giá…",
+    helpful: (n: number) => `Hữu ích (${n})`,
+    verified: "Học viên của khóa",
     empty: "Khóa học này hiện chưa nhận được phản hồi.",
-  },
-
-  purchase: {
-    priceLabel: "Mức giá chương trình",
-    free: "Miễn phí",
-    continue: "Tiếp tục học tập",
-    inCart: "Đã có trong giỏ — Xem giỏ hàng",
-    addToCart: "Thêm vào giỏ",
-    linking: "Đang liên kết...",
-    transfer: "Chuyển khoản ngân hàng",
-    enroll: "Ghi danh học viên",
-    // Thoi han hoc (10/10/2026): khoa mien phi hoc mai mai, khoa co phi hoc
-    // trong accessDays ngay tinh tu luc thanh toan.
-    sessions: (n: number) => `${n} buổi học`,
-    accessPaid: (days: number) => `Học trong ${days} ngày kể từ khi thanh toán`,
-    accessFree: "Học miễn phí, không giới hạn thời gian",
-    renewNote: "Mua lại để gia hạn, ngày còn dư được cộng dồn",
-    reviewKept: "Lịch sử bài làm và chứng nhận được giữ lại",
-    expired: (date: string) => `Khóa học đã hết hạn ngày ${date}. Mua lại để học tiếp.`,
-    renew: "Gia hạn khóa học",
-    daysLeft: (n: number) => `Còn ${n} ngày học`,
   },
 
   messages: {

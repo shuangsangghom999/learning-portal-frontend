@@ -276,16 +276,15 @@ export function useCourseDetail() {
     }
   };
 
-  /** Nut to tren banner. */
+  /** Nut o thanh tab dinh (khi khu mua o hero da cuon khuat). */
   const handleHeroClick = () => {
-    // Khoa co phi: dua xuong the mua, KHONG tao don roi nhay
-    // thang sang man hinh QR. Nut nay la nut to nhat trang nen
-    // hau het nguoi dung bam no - nhay thang sang QR thi ho bo
-    // lo o nhap ma giam gia va nut them vao gio o the mua.
+    // Khoa co phi: cuon ve khu mua o hero, KHONG tao don roi nhay thang
+    // sang man hinh QR - nhay thang thi nguoi dung bo lo o nhap ma giam
+    // gia va nut them vao gio nam canh nut mua.
     if ((course?.price ?? 0) > 0) {
       document
         .getElementById(C.buyAnchorId)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     void handleEnrollCourse();

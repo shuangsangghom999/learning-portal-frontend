@@ -6,11 +6,17 @@ import { COURSE_PAGE as C } from "@/src/constants/portal/course-page";
 import { getErrorMessage } from "@/src/services/apiHelper";
 import { reviewService, type Review, type ReviewStats } from "@/src/services/review";
 
-/** Danh gia + thong ke sao cua mot khoa, bam "huu ich" va gui danh gia moi. */
+/**
+ * Danh gia + thong ke sao cua mot khoa, bam "huu ich" va gui danh gia moi.
+ * Tai tung trang C.reviewsQuery.limit danh gia; loadMore() noi trang sau vao.
+ */
 export function useCourseReviews(courseId: string | undefined) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [newRating, setNewRating] = useState<number>(5);
   const [newComment, setNewComment] = useState<string>("");
@@ -24,6 +30,8 @@ export function useCourseReviews(courseId: string | undefined) {
         reviewService.getReviewStats(id),
       ]);
       setReviews(reviewsData.reviews || []);
+      setTotalReviews(reviewsData.totalReviews ?? 0);
+      setPage(1);
       setStats(statsData);
     } catch (err) {
       console.error("Không thể tải dữ liệu đánh giá:", err);
@@ -38,6 +46,29 @@ export function useCourseReviews(courseId: string | undefined) {
     if (!courseId) return;
     void Promise.resolve().then(() => loadReviewsAndStats(courseId));
   }, [courseId, loadReviewsAndStats]);
+
+  const loadMore = async () => {
+    if (!courseId || loadingMore) return;
+    try {
+      setLoadingMore(true);
+      const next = await reviewService.getCourseReviews(courseId, {
+        ...C.reviewsQuery,
+        page: page + 1,
+      });
+      // Loc trung theo _id: co nguoi vua viet danh gia moi thi trang sau bi
+      // lui mot dong, dong cuoi trang truoc se lap lai.
+      setReviews((prev) => {
+        const seen = new Set(prev.map((r) => r._id));
+        return [...prev, ...(next.reviews || []).filter((r) => !seen.has(r._id))];
+      });
+      setTotalReviews(next.totalReviews ?? totalReviews);
+      setPage(page + 1);
+    } catch (err) {
+      console.error("Không thể tải thêm đánh giá:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const handleMarkHelpful = async (reviewId: string) => {
     try {
@@ -76,6 +107,9 @@ export function useCourseReviews(courseId: string | undefined) {
     reviews,
     stats,
     loadingReviews,
+    totalReviews,
+    loadingMore,
+    loadMore,
     newRating,
     setNewRating,
     newComment,

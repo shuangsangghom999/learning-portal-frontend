@@ -1,0 +1,84 @@
+$ink: #0f172a;
+$text: #334155;
+$muted: #64748b;
+
+.bar {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  background-color: #fff;
+}
+
+.list {
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: var(--crumbs-max, 1400px);
+  padding-inline: calc(var(--spacing) * 6);
+  font-size: 14px;
+  line-height: 20px;
+
+  @media (min-width: 48rem) {
+    padding-inline: calc(var(--spacing) * 12);
+  }
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sep {
+  flex-shrink: 0;
+  color: $muted;
+}
+
+// Icon trang chu: nut ghost 32px, de bam tren dien thoai.
+.home {
+  display: inline-grid;
+  place-items: center;
+  margin-left: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: $text;
+  transition: background-color 0.15s;
+
+  @media (hover: hover) {
+    &:hover {
+      background-color: #f1f5f9;
+      color: $ink;
+    }
+  }
+}
+
+.link {
+  overflow: hidden;
+  max-width: 18rem;
+  padding: 4px;
+  border-radius: 4px;
+  color: $text;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (hover: hover) {
+    &:hover {
+      color: $ink;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+}
+
+.home,
+.link {
+  &:focus-visible {
+    outline: 2px solid var(--color-blue-600);
+    outline-offset: 1px;
+  }
+}

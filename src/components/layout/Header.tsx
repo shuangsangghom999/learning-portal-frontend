@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 import TopNav from "./TopNav";
@@ -15,6 +16,21 @@ const GPA_ROUTES = ["/gpa-calculator", "/calc-point", "/convert-10-to-4", "/prac
 
 export default function Header() {
   const pathname = usePathname();
+  const ref = useRef<HTMLElement>(null);
+
+  // Header co dinh (position: fixed). Ghi chieu cao that vao --site-header-h
+  // de thanh dinh ben duoi (vd tab trang khoa hoc) bam ngay duoi no - chieu
+  // cao doi theo man hinh va theo loai header.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() =>
+      root.style.setProperty("--site-header-h", `${el.offsetHeight}px`),
+    );
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const renderHeader = () => {
     if (pathname.startsWith("/blog")) return <BlogHeader />;
@@ -26,7 +42,7 @@ export default function Header() {
   };
 
   return (
-    <header className={styles.header}>
+    <header ref={ref} className={styles.header}>
       <TopNav />
       {renderHeader()}
     </header>
